@@ -1,6 +1,5 @@
 import sys
 from collections import Iterable
-from csv import writer
 from enum import Enum
 from json import dumps
 from typing import Iterator, Dict, Any
@@ -21,15 +20,6 @@ class OutputFormat(Enum):
     TABLE = "table"
     CSV = "csv"
     HTML = "html"
-
-
-class TyperWriter(object):
-    """
-    Workaround for use of csv.writer class, which expects a file-like object.
-    """
-
-    def write(self, line):
-        typer.echo(line, nl=False)
 
 
 def format_field(x: Any) -> str:
@@ -53,9 +43,9 @@ def format_field(x: Any) -> str:
 def output_iterable(iter: Iterator[Dict], format: OutputFormat) -> None:
     """
     Function that iterates over a series of dicts representing JSON objects returned by API list operations, and which
-    outputs them using typer.echo in the specified format. Will use streaming processing for JSON and CSV formats,
-    all others need to load all responses in memory in a PrettyTable prior to output, which could be problematic for
-    things like alerts.
+    outputs them using typer.echo in the specified format. Will use streaming processing for JSON, all others need to
+    load all responses in memory in a PrettyTable prior to output, which could be problematic for large number of
+    entries.
     :param iter: the iterator containing the JSON objects
     :param format: the output format to use
     :return: None
@@ -63,24 +53,22 @@ def output_iterable(iter: Iterator[Dict], format: OutputFormat) -> None:
     if format is OutputFormat.JSON:
         for entry in iter:
             typer.echo(dumps(entry, indent=4))
-    elif format is OutputFormat.CSV:
-        cw = writer(TyperWriter())
-        field_names = None
-        for entry in iter:
-            if not field_names:
-                field_names = sorted(entry.keys())
-                cw.writerow(field_names)
-            cw.writerow([format_field(entry.get(fn, None)) for fn in field_names])
     else:
         table = PrettyTable()
+        rows = 0
         for entry in iter:
             if not table.field_names:
                 table.field_names = sorted(entry.keys())
+            else:
+                for k in entry.keys():
+                    if k not in table.field_names:
+                        table.add_column(k, [""] * rows)
             table.add_row([format_field(entry.get(fn, None)) for fn in table.field_names])
+            rows += 1
         if format is OutputFormat.TABLE:
             typer.echo(table.get_string())
-        elif format is OutputFormat.JSON:
-            typer.echo(table.get_json_string())
+        elif format is OutputFormat.CSV:
+            typer.echo(table.get_csv_string())
         elif format is OutputFormat.HTML:
             typer.echo(table.get_html_string())
         else:
