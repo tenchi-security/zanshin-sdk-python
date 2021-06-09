@@ -131,5 +131,21 @@ class Connection:
         """
         return self._request("GET", "/me").json()
 
+    def list_alerts(self, organization_id=None, scan_target_id=None, following_id=None, state=None, severity=None, tag=None, page=1, size=1000) -> Dict:
+        """
+        Returns alerts of the given organization, paginated and filtered as per 
+        <https://api.zanshin.tenchisecurity.com/#tag/Alerts>
+        :return: a dict containing: 
+           data - an array of alerts; 
+           total - an integer representing all alerts that matches the filtering criteria; 
+        """
+        return self._request("POST", "/alerts", None, {"organizationId": organization_id,
+                                                       "page": page, "pageSize": size,
+                                                       "scanTargetId": scan_target_id,
+                                                       "followingId": following_id,
+                                                       "state": state,
+                                                       "tag": tag,
+                                                       "severity": severity, }).json()
+
     def __repr__(self):
         return f'Connection(api_url="{self.api_url}", api_key="{self.api_key[0:6] + "***"}", user_agent="{self.user_agent}, proxy_url={self._get_sanitized_proxy_url()}")'
