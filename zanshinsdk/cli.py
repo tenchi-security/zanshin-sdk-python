@@ -8,7 +8,7 @@ from uuid import UUID
 import typer
 from prettytable import PrettyTable
 
-from zanshinsdk import __version__, Connection, AlertState, AlertSeverity
+from zanshinsdk import __version__, Client, AlertState, AlertSeverity
 
 main_app = typer.Typer()
 organizations_app = typer.Typer()
@@ -84,8 +84,8 @@ def me(profile: str = typer.Option("default",
     """
     Show details about the owner of the API key being used.
     """
-    conn = Connection(profile=profile)
-    typer.echo(dumps(conn.me(), indent=4))
+    client = Client(profile=profile)
+    typer.echo(dumps(client.me(), indent=4))
 
 
 @main_app.command()
@@ -105,8 +105,8 @@ def list(profile: str = typer.Option("default",
     """
     Lists the organizations this user has direct access to as a member.
     """
-    conn = Connection(profile=profile)
-    output_iterable(conn.iter_organizations(), format)
+    client = Client(profile=profile)
+    output_iterable(client.iter_organizations(), format)
 
 @organizations_app.command()
 def scan_targets(profile: str = typer.Option("default",
@@ -117,8 +117,8 @@ def scan_targets(profile: str = typer.Option("default",
     """
     Lists the scan targets from an organization that user has access to as a member.
     """
-    conn = Connection(profile=profile)
-    output_iterable(conn.iter_scan_targets(organization_id=organization_id), format)
+    client   = Client(profile=profile)
+    output_iterable(client.iter_scan_targets(organization_id=organization_id), format)
 
 @organizations_app.command()
 def alerts(organization_id: UUID = typer.Argument(..., help="UUID of the organization to list alerts from."),
@@ -137,9 +137,9 @@ def alerts(organization_id: UUID = typer.Argument(..., help="UUID of the organiz
     """
     List alerts from a given organization, with optional filters by scan target, state or severity.
     """
-    conn = Connection(profile=profile)
+    client = Client(profile=profile)
     output_iterable(
-        conn.iter_organization_alerts(organization_id=organization_id, states=state, severities=severity), format)
+        client.iter_organization_alerts(organization_id=organization_id, states=state, severities=severity), format)
 
 
 if __name__ == "__main__":

@@ -32,7 +32,7 @@ class AlertSeverity(str, Enum):
     INFO = "INFO"
 
 
-class Connection:
+class Client:
     def __init__(self, profile: str = 'default', api_key: Optional[str] = None, api_url: Optional[str] = None,
                  user_agent: Optional[str] = None, proxy_url: Optional[str] = None):
         """
