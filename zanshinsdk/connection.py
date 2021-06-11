@@ -187,13 +187,14 @@ class Connection:
         :return: an iterator over the organization objects
         """
         yield from self._request("GET", "/organizations").json()
-    
-    def iter_scantargets(self, organizationId) -> Iterator[Dict]:
+
+    def iter_scan_targets(self, organization_id: Union[UUID, str]) -> Iterator[Dict]:
         """
-        Iterates over the scan targets from an organization that the owner fo API has access to.
-        : return: an interator over the scan targets objects
+        Iterates over the scan targets of an organization.
+        :param organization_id: the ID of the organization
+        : return: an iterator over the scan target objects
         """
-        yield from self._request("GET", f"/organizations/{organizationId}/scantargets").json()
+        yield from self._request("GET", f"/organizations/{_stringify_UUID(organization_id)}/scantargets").json()
 
     def _get_organization_alerts_page(self, organization_id: Union[UUID, str],
                                       scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
@@ -201,8 +202,8 @@ class Connection:
                                       severities: Optional[Iterable[AlertSeverity]] = None, page: int = 1,
                                       page_size: int = 100) -> Dict:
         """
-        Internal method to retrieve a single page of alerts from an organizatoin.
-        :param organization_id: the ID of the organzation
+        Internal method to retrieve a single page of alerts from an organization.
+        :param organization_id: the ID of the organization
         :param scan_target_ids: optional list of scan target IDs to list alerts from, defaults to all
         :param states: optional list of states to filter returned alerts
         :param severities: optional list of severities to filter returned alerts
