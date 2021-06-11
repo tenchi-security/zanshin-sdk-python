@@ -1,18 +1,22 @@
-import sys
-from collections import Iterable
+from collections.abc import Sequence, Mapping
 from enum import Enum
 from json import dumps
-from typing import Iterator, Dict, Any
+from sys import version as python_version
+from typing import Iterator, Dict, Any, Optional, List
+from uuid import UUID
 
 import typer
 from prettytable import PrettyTable
 
-from zanshinsdk import Connection, __version__
+from zanshinsdk import __version__, Connection, AlertState, AlertSeverity
 
-app = typer.Typer()
+main_app = typer.Typer()
+organizations_app = typer.Typer()
+main_app.add_typer(organizations_app, name="organizations",
+                   help="List and obtain information and alerts from organizations the API key owner has direct access to.")
 
 
-class OutputFormat(Enum):
+class OutputFormat(str, Enum):
     """
     Used to specify command-line parameters indicating output format.
     """
@@ -22,22 +26,21 @@ class OutputFormat(Enum):
     HTML = "html"
 
 
-def format_field(x: Any) -> str:
+def format_field(value: Any) -> str:
     """
     Function that formats a single field for output on a table or CSV output, in order to deal with nested arrays or objects in the JSON outputs of the API.
-    :param x: the value to format
+    :param value: the value to format
     :return: a string that is fit for console output
     """
-    if x is None:
-        return ""
-    elif isinstance(x, (str, bytes)):
-        return x
-    elif isinstance(x, Iterable):
-        ", ".join(map(format_field, x))
-    elif isinstance(x, dict):
-        return dumps(x)
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
+        if all(isinstance(x, (str, bytes, int, float)) for x in value):
+            return ", ".join([str(x) for x in value])
+        else:
+            return dumps(value)
+    elif isinstance(value, Mapping):
+        return dumps(value)
     else:
-        return str(x)
+        return value
 
 
 def output_iterable(iter: Iterator[Dict], format: OutputFormat) -> None:
@@ -62,7 +65,7 @@ def output_iterable(iter: Iterator[Dict], format: OutputFormat) -> None:
             else:
                 for k in entry.keys():
                     if k not in table.field_names:
-                        table.add_column(k, [""] * rows)
+                        table.add_column(k, [None] * rows)
             table.add_row([format_field(entry.get(fn, None)) for fn in table.field_names])
             rows += 1
         if format is OutputFormat.TABLE:
@@ -75,7 +78,7 @@ def output_iterable(iter: Iterator[Dict], format: OutputFormat) -> None:
             raise NotImplementedError("unexpected format type")
 
 
-@app.command()
+@main_app.command()
 def me(profile: str = typer.Option("default",
                                    help="Configuration file section to use for credentials and other settings")):
     """
@@ -85,11 +88,20 @@ def me(profile: str = typer.Option("default",
     typer.echo(dumps(conn.me(), indent=4))
 
 
-@app.command()
-def organizations(profile: str = typer.Option("default",
-                                              help="Configuration file section to use for credentials and other settings"),
-                  format: OutputFormat = typer.Option(OutputFormat.JSON.value, help="Format to use for the output.",
-                                                      case_sensitive=False)):
+@main_app.command()
+def version():
+    """
+    Display the program and Python versions in use.
+    """
+    typer.echo(f'Zanshin Python SDK v{__version__}')
+    typer.echo(f'Python {python_version}')
+
+
+@organizations_app.command()
+def list(profile: str = typer.Option("default",
+                                     help="Configuration file section to use for credentials and other settings"),
+         format: OutputFormat = typer.Option(OutputFormat.JSON, help="Format to use for the output.",
+                                             case_sensitive=False)):
     """
     Lists the organizations this user has direct access to as a member.
     """
@@ -108,14 +120,27 @@ def scan_targets(profile: str = typer.Option("default",
     conn = Connection(profile=profile)
     output_iterable(conn.iter_scantargets(organizationId=organizationId), format)
 
-@app.command()
-def version():
+@organizations_app.command()
+def alerts(organization_id: UUID = typer.Argument(..., help="UUID of the organization to list alerts from."),
+           state: Optional[List[AlertState]] = typer.Option(
+               [AlertState.OPEN, AlertState.IN_PROGRESS, AlertState.RISK_ACCEPTED, AlertState.RESOLVED],
+               help="Only list alerts in the specified states.", show_default="all states except CLOSED",
+               case_sensitive=False),
+           severity: Optional[List[AlertSeverity]] = typer.Option(
+               [AlertSeverity.CRITICAL, AlertSeverity.HIGH, AlertSeverity.MEDIUM, AlertSeverity.LOW,
+                AlertSeverity.INFO], help="Only list alerts with the specified severities.",
+               show_default="all severities", case_sensitive=False),
+           profile: str = typer.Option("default",
+                                       help="Configuration file section to use for credentials and other settings"),
+           format: OutputFormat = typer.Option(OutputFormat.JSON, help="Format to use for the output.",
+                                               case_sensitive=False)):
     """
-    Display the program and Python versions in use.
+    List alerts from a given organization, with optional filters by scan target, state or severity.
     """
-    typer.echo(f'Zanshin Python SDK v{__version__}')
-    typer.echo(f'Python {sys.version}')
+    conn = Connection(profile=profile)
+    output_iterable(
+        conn.iter_organization_alerts(organization_id=organization_id, states=state, severities=severity), format)
 
 
 if __name__ == "__main__":
-    app()
+    main_app()

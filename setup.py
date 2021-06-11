@@ -47,6 +47,6 @@ setup(
         'Topic :: Software Development :: Libraries',
     ],
     entry_points={
-        'console_scripts': ['zanshin=zanshinsdk.cli:app']
+        'console_scripts': ['zanshin=zanshinsdk.cli:main_app']
     }
 )
