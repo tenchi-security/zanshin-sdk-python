@@ -12,9 +12,12 @@ from zanshinsdk import __version__, Client, AlertState, AlertSeverity
 
 main_app = typer.Typer()
 organizations_app = typer.Typer()
+scan_targets_app = typer.Typer()
 main_app.add_typer(organizations_app, name="organizations",
                    help="List and obtain information and alerts from organizations the API key owner has direct access to.")
 
+organizations_app.add_typer(scan_targets_app, name="scan_targets",
+                   help="List, check and Scan for scan targets from organizations the API key owner has direct access to.")
 
 class OutputFormat(str, Enum):
     """
@@ -108,8 +111,8 @@ def list(profile: str = typer.Option("default",
     client = Client(profile=profile)
     output_iterable(client.iter_organizations(), format)
 
-@organizations_app.command()
-def scan_targets(profile: str = typer.Option("default",
+@scan_targets_app.command()
+def list(profile: str = typer.Option("default",
                                              help="Configuration file section to use for credentials and other settings"),
                   organization_id: UUID = typer.Argument(..., help="UUID of the organizations whose scan targets should be listed."),
                   format: OutputFormat = typer.Option(OutputFormat.JSON.value, help="Format to use for the output.",
@@ -140,6 +143,30 @@ def alerts(organization_id: UUID = typer.Argument(..., help="UUID of the organiz
     client = Client(profile=profile)
     output_iterable(
         client.iter_organization_alerts(organization_id=organization_id, states=state, severities=severity), format)
+
+@scan_targets_app.command()
+def scan(organization_id: UUID = typer.Argument(..., help="UUID of the organization to list alerts from."),
+               scan_target_id: UUID = typer.Argument(..., help="UUID of the scan target to start scan." ),
+               profile: str = typer.Option("default",
+                                       help="Configuration file section to use for credentials and other settings")):
+    """
+    Start an Scan in a specific scan_target from an organization.
+    """
+    client   = Client(profile=profile)
+    result = client.start_scan_target(organization_id=organization_id,scan_target_id=scan_target_id)
+    print(f"scan_target_id: {scan_target_id} ({result['status']})")
+
+@scan_targets_app.command()
+def check(organization_id: UUID = typer.Argument(..., help="UUID of the organization to list alerts from."),
+               scan_target_id: UUID = typer.Argument(..., help="UUID of the scan target to start scan." ),
+               profile: str = typer.Option("default",
+                                       help="Configuration file section to use for credentials and other settings")):
+    """
+    Check an scan_target status from an organization.
+    """
+    client   = Client(profile=profile)
+    result = client.check_scan_target(organization_id=organization_id,scan_target_id=scan_target_id)
+    print(f"scan_target_id: {scan_target_id} ({result['status']})")
 
 
 if __name__ == "__main__":

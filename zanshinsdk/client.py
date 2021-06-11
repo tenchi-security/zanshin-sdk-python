@@ -238,6 +238,12 @@ class Client:
                                                       page_size=page_size)
             yield from page.get('data', [])
 
+    def start_scan_target(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]) -> Dict:
+        return self._request("POST", f"/organizations/{_stringify_UUID(organization_id)}/scantargets/{_stringify_UUID(scan_target_id)}/scan").json()
+
+    def check_scan_target(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]) -> Dict:
+        return self._request("POST", f"/organizations/{_stringify_UUID(organization_id)}/scantargets/{_stringify_UUID(scan_target_id)}/check").json()
+
     def __repr__(self):
         return f'Connection(api_url="{self.api_url}", api_key="{self._api_key[0:6] + "***"}", user_agent="{self.user_agent}, proxy_url={self._get_sanitized_proxy_url()}")'
 
