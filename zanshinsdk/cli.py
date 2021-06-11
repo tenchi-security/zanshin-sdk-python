@@ -1,6 +1,8 @@
 from collections.abc import Sequence, Mapping
+from configparser import RawConfigParser
 from enum import Enum
 from json import dumps
+from stat import S_IRUSR, S_IWUSR
 from sys import version as python_version
 from typing import Iterator, Dict, Any, Optional, List
 from uuid import UUID
@@ -9,15 +11,16 @@ import typer
 from prettytable import PrettyTable
 
 from zanshinsdk import __version__, Client, AlertState, AlertSeverity
+from zanshinsdk.client import _CONFIG_DIR, _CONFIG_FILE
 
 main_app = typer.Typer()
-organizations_app = typer.Typer()
-scan_targets_app = typer.Typer()
-main_app.add_typer(organizations_app, name="organizations",
-                   help="List and obtain information and alerts from organizations the API key owner has direct access to.")
+organization_app = typer.Typer()
+scan_target_app = typer.Typer()
+main_app.add_typer(organization_app, name="organization",
+                   help="Operations on organizations the API key owner has direct access to.")
+organization_app.add_typer(scan_target_app, name="scan_target",
+                           help="Operations on scan targets from organizations the API key owner has direct access to.")
 
-organizations_app.add_typer(scan_targets_app, name="scan_targets",
-                   help="List, check and Scan for scan targets from organizations the API key owner has direct access to.")
 
 class OutputFormat(str, Enum):
     """
@@ -82,6 +85,26 @@ def output_iterable(iter: Iterator[Dict], format: OutputFormat) -> None:
 
 
 @main_app.command()
+def init():
+    """
+    Update settings on configuration file.
+    """
+    cfg = RawConfigParser()
+    cfg.read(_CONFIG_FILE)
+    typer.echo("This command will allow you to set up profiles in the configuration file.")
+    profile = typer.prompt("Please enter the profile name to use", default="default")
+    if cfg.has_section(profile):
+        typer.confirm("Profile already exists. Overwrite?", abort=True)
+    else:
+        cfg.add_section(profile)
+    cfg.set(profile, "api_key", typer.prompt("Please enter the API key", hide_input=True))
+    _CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+    with _CONFIG_FILE.open('w') as f:
+        cfg.write(f)
+    _CONFIG_FILE.chmod(S_IRUSR | S_IWUSR)
+
+
+@main_app.command()
 def me(profile: str = typer.Option("default",
                                    help="Configuration file section to use for credentials and other settings")):
     """
@@ -100,7 +123,7 @@ def version():
     typer.echo(f'Python {python_version}')
 
 
-@organizations_app.command()
+@organization_app.command()
 def list(profile: str = typer.Option("default",
                                      help="Configuration file section to use for credentials and other settings"),
          format: OutputFormat = typer.Option(OutputFormat.JSON, help="Format to use for the output.",
@@ -111,19 +134,22 @@ def list(profile: str = typer.Option("default",
     client = Client(profile=profile)
     output_iterable(client.iter_organizations(), format)
 
-@scan_targets_app.command()
+
+@scan_target_app.command()
 def list(profile: str = typer.Option("default",
-                                             help="Configuration file section to use for credentials and other settings"),
-                  organization_id: UUID = typer.Argument(..., help="UUID of the organizations whose scan targets should be listed."),
-                  format: OutputFormat = typer.Option(OutputFormat.JSON.value, help="Format to use for the output.",
-                                                     case_sensitive=False)):
+                                     help="Configuration file section to use for credentials and other settings"),
+         organization_id: UUID = typer.Argument(...,
+                                                help="UUID of the organizations whose scan targets should be listed."),
+         format: OutputFormat = typer.Option(OutputFormat.JSON.value, help="Format to use for the output.",
+                                             case_sensitive=False)):
     """
     Lists the scan targets from an organization that user has access to as a member.
     """
-    client   = Client(profile=profile)
+    client = Client(profile=profile)
     output_iterable(client.iter_scan_targets(organization_id=organization_id), format)
 
-@organizations_app.command()
+
+@organization_app.command()
 def alerts(organization_id: UUID = typer.Argument(..., help="UUID of the organization to list alerts from."),
            state: Optional[List[AlertState]] = typer.Option(
                [AlertState.OPEN, AlertState.IN_PROGRESS, AlertState.RISK_ACCEPTED, AlertState.RESOLVED],
@@ -144,29 +170,31 @@ def alerts(organization_id: UUID = typer.Argument(..., help="UUID of the organiz
     output_iterable(
         client.iter_organization_alerts(organization_id=organization_id, states=state, severities=severity), format)
 
-@scan_targets_app.command()
+
+@scan_target_app.command()
 def scan(organization_id: UUID = typer.Argument(..., help="UUID of the organization to list alerts from."),
-               scan_target_id: UUID = typer.Argument(..., help="UUID of the scan target to start scan." ),
-               profile: str = typer.Option("default",
-                                       help="Configuration file section to use for credentials and other settings")):
+         scan_target_id: UUID = typer.Argument(..., help="UUID of the scan target to start scan."),
+         profile: str = typer.Option("default",
+                                     help="Configuration file section to use for credentials and other settings")):
     """
     Start an Scan in a specific scan_target from an organization.
     """
-    client   = Client(profile=profile)
-    result = client.start_scan_target(organization_id=organization_id,scan_target_id=scan_target_id)
-    print(f"scan_target_id: {scan_target_id} ({result['status']})")
+    client = Client(profile=profile)
+    typer.echo(
+        dumps(client.start_scan_target(organization_id=organization_id, scan_target_id=scan_target_id), indent=4))
 
-@scan_targets_app.command()
+
+@scan_target_app.command()
 def check(organization_id: UUID = typer.Argument(..., help="UUID of the organization to list alerts from."),
-               scan_target_id: UUID = typer.Argument(..., help="UUID of the scan target to start scan." ),
-               profile: str = typer.Option("default",
-                                       help="Configuration file section to use for credentials and other settings")):
+          scan_target_id: UUID = typer.Argument(..., help="UUID of the scan target to start scan."),
+          profile: str = typer.Option("default",
+                                      help="Configuration file section to use for credentials and other settings")):
     """
     Check an scan_target status from an organization.
     """
-    client   = Client(profile=profile)
-    result = client.check_scan_target(organization_id=organization_id,scan_target_id=scan_target_id)
-    print(f"scan_target_id: {scan_target_id} ({result['status']})")
+    client = Client(profile=profile)
+    typer.echo(
+        dumps(client.check_scan_target(organization_id=organization_id, scan_target_id=scan_target_id), indent=4))
 
 
 if __name__ == "__main__":

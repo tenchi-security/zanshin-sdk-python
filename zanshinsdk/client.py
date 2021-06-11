@@ -1,5 +1,5 @@
 import logging
-import os
+from pathlib import Path
 from configparser import RawConfigParser
 from enum import Enum
 from math import ceil
@@ -12,7 +12,8 @@ from requests import request, Response
 from zanshinsdk import __version__ as sdk_version
 
 # Default values used for the configuration
-_CONFIG_FILE = os.path.join(os.path.expanduser('~/.tenchi'), "config")
+_CONFIG_DIR = Path.home() / '.tenchi'
+_CONFIG_FILE = _CONFIG_DIR / "config"
 
 
 class AlertState(str, Enum):
@@ -47,9 +48,9 @@ class Client:
         self._proxy: Optional[Dict[str, str]] = None
 
         # read configuration file
-        if profile and os.path.isfile(_CONFIG_FILE):
+        if profile and _CONFIG_FILE.is_file():
             parser = RawConfigParser()
-            parser.read(_CONFIG_FILE)
+            parser.read(str(_CONFIG_FILE))
             if not parser.has_section(profile):
                 raise ValueError(f'profile {profile} not found in {_CONFIG_FILE}')
         else:
