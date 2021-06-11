@@ -2,8 +2,10 @@ import logging
 import os
 from configparser import RawConfigParser
 from enum import Enum
-from typing import Dict, Optional, Iterator
+from math import ceil
+from typing import Dict, Optional, Iterator, Iterable, Union
 from urllib.parse import urlparse
+from uuid import UUID
 
 from requests import request, Response
 
@@ -13,7 +15,7 @@ from zanshinsdk import __version__ as sdk_version
 _CONFIG_FILE = os.path.join(os.path.expanduser('~/.tenchi'), "config")
 
 
-class AlertState(Enum):
+class AlertState(str, Enum):
     OPEN = 'OPEN'
     ACTIVE = 'ACTIVE'
     IN_PROGRESS = 'IN_PROGRESS'
@@ -22,7 +24,7 @@ class AlertState(Enum):
     CLOSED = 'CLOSED'
 
 
-class AlertSeverity(Enum):
+class AlertSeverity(str, Enum):
     CRITICAL = "CRITICAL"
     HIGH = "HIGH"
     MEDIUM = "MEDIUM"
@@ -186,5 +188,54 @@ class Connection:
         """
         yield from self._request("GET", "/organizations").json()
 
+    def _get_organization_alerts_page(self, organization_id: Union[UUID, str],
+                                      scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
+                                      states: Optional[Iterable[AlertState]] = None,
+                                      severities: Optional[Iterable[AlertSeverity]] = None, page: int = 1,
+                                      page_size: int = 100) -> Dict:
+        """
+        Internal method to retrieve a single page of alerts from an organizatoin.
+        :param organization_id: the ID of the organzation
+        :param scan_target_ids: optional list of scan target IDs to list alerts from, defaults to all
+        :param states: optional list of states to filter returned alerts
+        :param severities: optional list of severities to filter returned alerts
+        :param page: page number, starting from 1
+        :param page_size: page size in number of alerts
+        :return:
+        """
+        body = {
+            "page": page,
+            "pageSize": page_size
+        }
+        if organization_id:
+            body['organizationId'] = _stringify_UUID(organization_id)
+        if scan_target_ids:
+            body['scanTargetIds'] = [_stringify_UUID(x) for x in scan_target_ids]
+        if states:
+            body['states'] = [x.value for x in states]
+        if severities:
+            body['severities'] = [x.value for x in severities]
+        return self._request("POST", "/alerts", body=body).json()
+
+    def iter_organization_alerts(self, organization_id: Union[UUID, str],
+                                 scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
+                                 states: Optional[Iterable[AlertState]] = None,
+                                 severities: Optional[Iterable[AlertSeverity]] = None, page_size: int = 100):
+        page = self._get_organization_alerts_page(organization_id, scan_target_ids, states, severities, page=1,
+                                                  page_size=page_size)
+        yield from page.get('data', [])
+        for page_number in range(2, int(ceil(page.get('total', 0) / float(page_size))) + 1):
+            page = self._get_organization_alerts_page(organization_id, scan_target_ids, states, severities,
+                                                      page=page_number,
+                                                      page_size=page_size)
+            yield from page.get('data', [])
+
     def __repr__(self):
         return f'Connection(api_url="{self.api_url}", api_key="{self._api_key[0:6] + "***"}", user_agent="{self.user_agent}, proxy_url={self._get_sanitized_proxy_url()}")'
+
+
+def _stringify_UUID(uuid: Union[UUID, str]):
+    if isinstance(uuid, str):
+        return str(UUID(uuid))
+    else:
+        return str(uuid)
