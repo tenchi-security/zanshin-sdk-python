@@ -96,6 +96,17 @@ def organizations(profile: str = typer.Option("default",
     conn = Connection(profile=profile)
     output_iterable(conn.iter_organizations(), format)
 
+@app.command()
+def scan_targets(profile: str = typer.Option("default",
+                                             help="Configuration file section to use for credentials and other settings"),
+                  organizationId: str = typer.Option(str, help="Organization ID to list the scan targets"),
+                  format: OutputFormat = typer.Option(OutputFormat.JSON.value, help="Format to use for the output.",
+                                                     case_sensitive=False)):
+    """
+    Lists the scan targets from an organization that user has access to as a member.
+    """
+    conn = Connection(profile=profile)
+    output_iterable(conn.iter_scantargets(organizationId=organizationId), format)
 
 @app.command()
 def version():

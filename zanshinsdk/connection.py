@@ -185,6 +185,13 @@ class Connection:
         :return: an iterator over the organization objects
         """
         yield from self._request("GET", "/organizations").json()
+    
+    def iter_scantargets(self, organizationId) -> Iterator[Dict]:
+        """
+        Iterates over the scan targets from an organization that the owner fo API has access to.
+        : return: an interator over the scan targets objects
+        """
+        yield from self._request("GET", f"/organizations/{organizationId}/scantargets").json()
 
     def __repr__(self):
         return f'Connection(api_url="{self.api_url}", api_key="{self._api_key[0:6] + "***"}", user_agent="{self.user_agent}, proxy_url={self._get_sanitized_proxy_url()}")'
