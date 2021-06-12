@@ -1,3 +1,5 @@
+[![PyPI version shields.io](https://img.shields.io/pypi/v/zanshinsdk.svg)](https://pypi.python.org/pypi/zanshinsdk/) [![PyPI pyversions](https://img.shields.io/pypi/pyversions/zanshinsdk.svg)](https://pypi.python.org/pypi/zanshinsdk/)
+
 # Zanshin Python SDK
 
 This Python package contains an SDK and CLI utility to interact with the [API of the Zanshin SaaS service](https://api.zanshin.tenchisecurity.com) from [Tenchi Security](https://www.tenchisecurity.com).
