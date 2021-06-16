@@ -13,8 +13,8 @@ setup(
     version=__version__,
     url='https://github.com/tenchi-security/zanshin-sdk-python',
     license='Apache Software License',
-    install_requires=['typer>=0.3.2', 'requests>=2.25,<3', 'types-requests>=0.1.8,<1', 'prettytable>=2.1,<3'],
-    tests_require=['pytest>=6.2,<7', 'pandoc'],
+    install_requires=['httpx>=0.18.1,<1'],
+    tests_require=['pytest>=6.2,<7'],
     setup_requires=['pytest-runner>=5.3,<6'],
     packages=['zanshinsdk'],
     # include_package_data=True,
@@ -35,8 +35,5 @@ setup(
         'Operating System :: OS Independent',
         'Topic :: Security',
         'Topic :: Software Development :: Libraries',
-    ],
-    entry_points={
-        'console_scripts': ['zanshin=zanshinsdk.cli:main_app']
-    }
+    ]
 )
