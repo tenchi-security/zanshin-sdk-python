@@ -70,6 +70,11 @@ in use:
    me = client.me()    # calls /me API endpoint
    print(dumps(me, indent=4))
 
+All operations call ``raise_for_status`` on the httpx `Response
+object <https://www.python-httpx.org/api/#response>`__ internally, so
+any 4xx or 5xx will raise
+`exceptions <https://www.python-httpx.org/exceptions/>`__.
+
 Support
 =======
 
