@@ -214,7 +214,7 @@ class Client:
         :param organization_id: the ID of the organization
         : return: an iterator over the scan target objects
         """
-        yield from self._request("GET", f"/organizations/{_stringify_uuid(organization_id)}/scantargets").json()
+        yield from self._request("GET", f"/organizations/{validate_uuid(organization_id)}/scantargets").json()
 
     def _get_organization_alerts_page(self, organization_id: Union[UUID, str],
                                       scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
@@ -225,24 +225,26 @@ class Client:
         Internal method to retrieve a single page of alerts from an organization.
         :param organization_id: the ID of the organization
         :param scan_target_ids: optional list of scan target IDs to list alerts from, defaults to all
-        :param states: optional list of states to filter returned alerts
-        :param severities: optional list of severities to filter returned alerts
+        :param states: optional list of states to filter returned alerts, defaults to all
+        :param severities: optional list of severities to filter returned alerts, defaults to all
         :param page: page number, starting from 1
         :param page_size: page size in number of alerts
         :return:
         """
+        validate_int(page, min_value=1, required=True)
+        validate_int(page_size, min_value=1, required=True)
         body = {
             "page": page,
             "pageSize": page_size
         }
         if organization_id:
-            body['organizationId'] = _stringify_uuid(organization_id)
+            body['organizationId'] = validate_uuid(organization_id)
         if scan_target_ids:
-            body['scanTargetIds'] = [_stringify_uuid(x) for x in scan_target_ids]
+            body['scanTargetIds'] = [validate_uuid(x) for x in scan_target_ids]
         if states:
-            body['states'] = [x.value for x in states]
+            body['states'] = [validate_class(x, AlertState).value for x in states]
         if severities:
-            body['severities'] = [x.value for x in severities]
+            body['severities'] = [validate_class(x, AlertSeverity).value for x in severities]
         return self._request("POST", "/alerts", body=body).json()
 
     def iter_organization_alerts(self, organization_id: Union[UUID, str],
@@ -254,8 +256,8 @@ class Client:
         Iterates over the alerts of an organization by loading them, transparently paginating on the API.
         :param organization_id: the ID of the organization
         :param scan_target_ids: optional list of scan target IDs to list alerts from, defaults to all
-        :param states: optional list of states to filter returned alerts
-        :param severities: optional list of severities to filter returned alerts
+        :param states: optional list of states to filter returned alerts, defaults to all
+        :param severities: optional list of severities to filter returned alerts, defaults to all
         :param page_size: the number of alerts to load from the API at a time
         :return: an iterator over the JSON decoded alerts
         """
@@ -264,8 +266,7 @@ class Client:
         yield from page.get('data', [])
         for page_number in range(2, int(ceil(page.get('total', 0) / float(page_size))) + 1):
             page = self._get_organization_alerts_page(organization_id, scan_target_ids, states, severities,
-                                                      page=page_number,
-                                                      page_size=page_size)
+                                                      page=page_number, page_size=page_size)
             yield from page.get('data', [])
 
     def start_scan_target(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]) -> Dict:
@@ -276,18 +277,141 @@ class Client:
         :return: the API response
         """
         return self._request("POST",
-                             f"/organizations/{_stringify_uuid(organization_id)}/scantargets/{_stringify_uuid(scan_target_id)}/scan").json()
+                             f"/organizations/{validate_uuid(organization_id)}/scantargets/{validate_uuid(scan_target_id)}/scan").json()
 
     def check_scan_target(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]) -> Dict:
         return self._request("POST",
-                             f"/organizations/{_stringify_uuid(organization_id)}/scantargets/{_stringify_uuid(scan_target_id)}/check").json()
+                             f"/organizations/{validate_uuid(organization_id)}/scantargets/{validate_uuid(scan_target_id)}/check").json()
+
+    def iter_following(self, organization_id: Union[UUID, str]) -> Iterator[Dict]:
+        """
+        Returns all other organizations that a given organization is following.
+        :param organization_id: the ID of the organization whose followed organizations we should list
+        :return: an iterator over the JSON decoded followed organizations
+        """
+        yield from self._request("GET", f"/organizations/{validate_uuid(organization_id)}/following").json()
+
+    def stop_following(self, organization_id: Union[UUID, str], following_id: Union[UUID, str]) -> bool:
+        """
+        Stops one organization following of another.
+        :param organization_id: the follower organization ID
+        :param following_id:  the followed organization ID
+        :return: a boolean indicating whether the operation was successful
+        """
+        return self._request("DELETE",
+                             f"/organizations/{validate_uuid(organization_id)}/following/{validate_uuid(following_id)}").json()
+
+    def iter_following_requests(self, organization_id: Union[UUID, str]) -> Iterator[Dict]:
+        """
+        Returns all requests received by an organization to follow another.
+        :param organization_id: the ID of the organization that was invited to follow another
+        :return: an iterator over the JSON decoded following requests
+        """
+        yield from self._request("GET", f"/organizations/{validate_uuid(organization_id)}/following/requests").json()
+
+    def accept_following_request(self, organization_id: Union[UUID, str], following_id: Union[UUID, str]) -> Dict:
+        """
+        Accepts a request to follow another organization.
+        :param organization_id: the ID of the organization who was invited to follow another
+        :param following_id: thet ID of the organization who is going to be followed
+        :return: a decoded JSON object describing the newly established following relationship
+        """
+        return self._request("POST",
+                             f"/organizations/{validate_uuid(organization_id)}/following/requests/{validate_uuid(following_id)}/accept").json()
+
+    def decline_following_request(self, organization_id: Union[UUID, str], following_id: Union[UUID, str]) -> Dict:
+        """
+        Declines a request to follow another organization.
+        :param organization_id: the ID of the organization who was invited to follow another
+        :param following_id: thet ID of the organization who was going to be followed
+        :return: a decoded JSON object describing the newly established following relationship
+        """
+        return self._request("POST",
+                             f"/organizations/{validate_uuid(organization_id)}/following/requests/{validate_uuid(following_id)}/accept").json()
+
+    def _get_following_alerts_page(self, following_ids: Optional[Iterable[Union[UUID, str]]] = None,
+                                   states: Optional[Iterable[AlertState]] = None,
+                                   severities: Optional[Iterable[AlertSeverity]] = None, page: int = 1,
+                                   page_size: int = 100) -> Dict:
+        """
+        Internal method to retrieve a single page of alerts from organizations being followed.
+        :param following_ids: optional list of scan target IDs to list alerts from, defaults to all
+        :param states: optional list of states to filter returned alerts, defaults to all
+        :param severities: optional list of severities to filter returned alerts, defaults to all
+        :param page: page number, starting from 1
+        :param page_size: page size in number of alerts
+        :return: the decoded JSON response from the API
+        """
+        validate_int(page, min_value=1, required=True)
+        validate_int(page_size, min_value=1, required=True)
+        body = {
+            "page": page,
+            "pageSize": page_size
+        }
+        if following_ids:
+            body['followingIds'] = [validate_uuid(x) for x in following_ids]
+        if states:
+            body['states'] = [validate_class(x, AlertState).value for x in states]
+        if severities:
+            body['severities'] = [validate_class(x, AlertSeverity).value for x in severities]
+        return self._request("POST", "/alerts/following", body=body).json()
+
+    def iter_following_alerts(self, following_ids: Optional[Iterable[Union[UUID, str]]] = None,
+                              states: Optional[Iterable[AlertState]] = None,
+                              severities: Optional[Iterable[AlertSeverity]] = None, page_size: int = 100) -> \
+            Iterator[Dict]:
+        """
+        Iterates over the alerts froms organizations being followed by transparently paginating on the API.
+        :param following_ids: optional list of scan target IDs to list alerts from, defaults to all
+        :param states: optional list of states to filter returned alerts, defaults to all
+        :param severities: optional list of severities to filter returned alerts, defaults to all
+        :param page_size: the number of alerts to load from the API at a time
+        :return: an iterator over the JSON decoded alerts
+        """
+        page = self._get_following_alerts_page(following_ids, states, severities, page=1, page_size=page_size)
+        yield from page.get('data', [])
+        for page_number in range(2, int(ceil(page.get('total', 0) / float(page_size))) + 1):
+            page = self._get_following_alerts_page(following_ids, states, severities, page=page_number,
+                                                   page_size=page_size)
+            yield from page.get('data', [])
+
+    def get_alert(self, alert_id: Union[UUID, str]) -> Dict:
+        """
+        Returns the detailed object that describes an alert.
+        :param alert_id: the ID of the alert
+        :return: the decoded JSON object returned by the API
+        """
+        return self._request("GET", f"/alerts/{validate_uuid(alert_id)}").json()
 
     def __repr__(self):
-        return f'Connection(api_url="{self.api_url}", api_key="{self._api_key[0:6] + "***"}", user_agent="{self.user_agent}, proxy_url={self._get_sanitized_proxy_url()}")'
+        return f'Connection(api_url="{self.api_url}", api_key="***{self._api_key[-6:]}", user_agent="{self.user_agent}, proxy_url={self._get_sanitized_proxy_url()}")'
 
 
-def _stringify_uuid(uuid: Union[UUID, str]):
+def validate_int(value, min_value=None, max_value=None, required=False):
+    if value is None:
+        if required:
+            raise ValueError('required integer parameter missing')
+        else:
+            return value
+    if not isinstance(value, int):
+        raise TypeError(f'{repr(value)} is not an integer')
+    if min_value and value < min_value:
+        raise ValueError(f'{repr(value)} shouldn\'t be lower than {min_value}')
+    if max_value and value > max_value:
+        raise ValueError(f'{repr(value)} shouldn\'t be higher than {max_value}')
+    return value
+
+
+def validate_class(value, class_type):
+    if not isinstance(value, class_type):
+        raise TypeError(f'{repr(value)} is not an instance of {class_type.__name__}')
+    return value
+
+
+def validate_uuid(uuid: Union[UUID, str]) -> str:
     if isinstance(uuid, str):
         return str(UUID(uuid))
-    else:
+    elif isinstance(uuid, UUID):
         return str(uuid)
+    else:
+        raise TypeError(f'{repr(uuid)} is not a valid UUID')
