@@ -240,10 +240,16 @@ class Client:
         if organization_id:
             body['organizationId'] = validate_uuid(organization_id)
         if scan_target_ids:
+            if isinstance(scan_target_ids, str):
+                scan_target_ids = [scan_target_ids]
+            else:
+                validate_class(scan_target_ids, Iterable)
             body['scanTargetIds'] = [validate_uuid(x) for x in scan_target_ids]
         if states:
+            validate_class(states, Iterable)
             body['states'] = [validate_class(x, AlertState).value for x in states]
         if severities:
+            validate_class(severities, Iterable)
             body['severities'] = [validate_class(x, AlertSeverity).value for x in severities]
         return self._request("POST", "/alerts", body=body).json()
 
@@ -349,11 +355,18 @@ class Client:
             "pageSize": page_size
         }
         if following_ids:
+            if isinstance(following_ids, str):
+                following_ids = [following_ids]
+            else:
+                validate_class(following_ids, Iterable)
             body['followingIds'] = [validate_uuid(x) for x in following_ids]
         if states:
+            validate_class(states, Iterable)
             body['states'] = [validate_class(x, AlertState).value for x in states]
         if severities:
+            validate_class(severities, Iterable)
             body['severities'] = [validate_class(x, AlertSeverity).value for x in severities]
+
         return self._request("POST", "/alerts/following", body=body).json()
 
     def iter_following_alerts(self, following_ids: Optional[Iterable[Union[UUID, str]]] = None,
@@ -362,14 +375,28 @@ class Client:
             Iterator[Dict]:
         """
         Iterates over the alerts froms organizations being followed by transparently paginating on the API.
-        :param following_ids: optional list of scan target IDs to list alerts from, defaults to all
+        :param following_ids: optional list of IDs of organizations you are following to list alerts from, defaults to all
         :param states: optional list of states to filter returned alerts, defaults to all
         :param severities: optional list of severities to filter returned alerts, defaults to all
         :param page_size: the number of alerts to load from the API at a time
         :return: an iterator over the JSON decoded alerts
         """
+
+        if following_ids:
+            if isinstance(following_ids, str):
+                following_ids = [following_ids]
+            else:
+                validate_class(following_ids, Iterable)
+        else:
+            # workaround for API limitation
+            following_ids = set()
+            for org in self.iter_organizations():
+                following_ids |= {x['id'] for x in self.iter_following(org['id'])}
+            following_ids = list(following_ids)
+
         page = self._get_following_alerts_page(following_ids, states, severities, page=1, page_size=page_size)
         yield from page.get('data', [])
+
         for page_number in range(2, int(ceil(page.get('total', 0) / float(page_size))) + 1):
             page = self._get_following_alerts_page(following_ids, states, severities, page=page_number,
                                                    page_size=page_size)
@@ -383,11 +410,90 @@ class Client:
         """
         return self._request("GET", f"/alerts/{validate_uuid(alert_id)}").json()
 
+    def get_organization_alert_summaries(self, organization_id: Union[UUID, str],
+                                         scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None) -> Dict:
+        """
+        Gets a summary of the current state of alerts for an organization, both in total and broken down by scan
+        target.
+        :param organization_id: the ID of the organization whose alert summaries are desired
+        :param scan_target_ids: optional list of scan target IDs to summarize alerts from, defaults to all
+        :return: JSON object containing the alert summaries
+        """
+
+        body = {"organizationId": validate_uuid(organization_id)}
+
+        if scan_target_ids:
+            if isinstance(scan_target_ids, str):
+                scan_target_ids = [scan_target_ids]
+            else:
+                validate_class(scan_target_ids, Iterable)
+            body['scanTargetIds'] = list({validate_uuid(x) for x in scan_target_ids})
+
+        return self._request("POST", "/alerts/summaries", body=body).json()
+
+    def get_following_alert_summaries(self, following_ids: Iterable[Union[UUID, str]]) -> Dict:
+        """
+        Gets a summary of the current state of alerts for followed organizations.
+        :param following_ids: list of IDs of organizations being followed to summarize alerts from
+        :return: JSON object containing the alert summaries
+        """
+
+        if isinstance(following_ids, str):
+            following_ids = [following_ids]
+        else:
+            validate_class(following_ids, Iterable)
+
+        body = {'followingIds': list({validate_uuid(x) for x in following_ids})}
+
+        return self._request("POST", "/alerts/summaries/following", body=body).json()
+
+    def get_organization_scan_summaries(self, organization_id: Union[UUID, str],
+                                        scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
+                                        days: Optional[int] = 7) -> Dict:
+        """
+        Returns summaries of scan results over a period of time, summarizing number of alerts that changed states.
+        :param organization_id: the ID of the organization whose scan summaries are desired
+        :param scan_target_ids: optional list of scan target IDs to summarize scans from, defaults to all
+        :param days: number of days to go back in time in historical search
+        :return: JSON object containing the scan summaries
+        """
+
+        body = {"organizationId": validate_uuid(organization_id), 'daysBefore': validate_int(days, min_value=1)}
+
+        if scan_target_ids:
+            if isinstance(scan_target_ids, str):
+                scan_target_ids = [scan_target_ids]
+            else:
+                validate_class(scan_target_ids, Iterable)
+            body['scanTargetIds'] = list({validate_uuid(x) for x in scan_target_ids})
+
+        return self._request("POST", "/alerts/summaries/scans", body=body).json()
+
+    def get_following_scan_summaries(self, following_ids: Iterable[Union[UUID, str]], days: Optional[int] = 7) -> Dict:
+        """
+        Gets a summary of the current state of alerts for followed organizations.
+        :param following_ids: list of IDs of organizations being followed to summarize alerts from
+        :param days: number of days to go back in time in historical search
+        :return: JSON object containing the scan summaries
+        """
+
+        if isinstance(following_ids, str):
+            following_ids = [following_ids]
+        else:
+            validate_class(following_ids, Iterable)
+
+        body = {
+            'followingIds': list({validate_uuid(x) for x in following_ids}),
+            'daysBefore': validate_int(days, min_value=1)
+        }
+
+        return self._request("POST", "/alerts/summaries/scans/following", body=body).json()
+
     def __repr__(self):
         return f'Connection(api_url="{self.api_url}", api_key="***{self._api_key[-6:]}", user_agent="{self.user_agent}, proxy_url={self._get_sanitized_proxy_url()}")'
 
 
-def validate_int(value, min_value=None, max_value=None, required=False):
+def validate_int(value, min_value=None, max_value=None, required=False) -> Optional[int]:
     if value is None:
         if required:
             raise ValueError('required integer parameter missing')
