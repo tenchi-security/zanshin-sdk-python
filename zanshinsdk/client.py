@@ -32,6 +32,11 @@ class AlertSeverity(str, Enum):
     LOW = "LOW"
     INFO = "INFO"
 
+class ScanTargetKind(str, Enum):
+    AWS = "AWS"
+    GCP = "GCP"
+    AZURE = "AZURE"
+
 
 class Client:
     def __init__(self, profile: str = 'default', api_key: Optional[str] = None, api_url: Optional[str] = None,
@@ -275,6 +280,40 @@ class Client:
                                                       page=page_number, page_size=page_size)
             yield from page.get('data', [])
 
+    def create_scan_target(self, organization_id: Union[UUID, str], kind: ScanTargetKind, name: str, **kwargs) -> Dict:
+        """
+        Create a new scan target in Zanshin for this organization
+        :param organization_id: the ID of the organization
+        :param kind: the Kind of scan target (AWS, GCP, AZURE)
+        :param name: the name of the scan target
+        :param kwargs: extra parameters for each kind of scan target
+        :param schedule: schedule in cron format
+        """
+        validate_class(kind, ScanTargetKind)
+        if kind == ScanTargetKind.AWS:
+            if kwargs['account']:
+                credential = {
+                    'account': kwargs['account']
+                }
+        elif kind == ScanTargetKind.AZURE:
+            credential = {
+                    'applicationId': kwargs['applicationId'],
+                    'subscriptionId': kwargs['subscriptionId'],
+                    'directoryId': kwargs['directoryId'],
+                    'secret': kwargs['secret']
+                }
+        elif kind == ScanTargetKind.GCP:
+            credential = {
+                    'projectId': kwargs['projectId']
+                }
+        else:
+            raise ValueError('Invalid ScanTarget Kind.')
+        content = {
+            'name': name,
+            'kind': kind,
+            'credential': credential
+        }
+        return self._request('POST', f'/organizations/{validate_uuid(organization_id)}/scantargets',body=content).json()
     def start_scan_target(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]) -> Dict:
         """
         Starts a scan on the specified scan target.
