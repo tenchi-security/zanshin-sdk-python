@@ -32,6 +32,7 @@ class AlertSeverity(str, Enum):
     LOW = "LOW"
     INFO = "INFO"
 
+
 class ScanTargetKind(str, Enum):
     AWS = "AWS"
     GCP = "GCP"
@@ -280,40 +281,43 @@ class Client:
                                                       page=page_number, page_size=page_size)
             yield from page.get('data', [])
 
-    def create_scan_target(self, organization_id: Union[UUID, str], kind: ScanTargetKind, name: str, **kwargs) -> Dict:
+    def create_scan_target(self, organization_id: Union[UUID, str], kind: ScanTargetKind, name: str,
+                           credential: Dict[str, any], schedule: str = "0 0 * * *") -> Dict:
         """
-        Create a new scan target in Zanshin for this organization
+        Create a new scan target in a Zanshin organization.
         :param organization_id: the ID of the organization
         :param kind: the Kind of scan target (AWS, GCP, AZURE)
         :param name: the name of the scan target
-        :param kwargs: extra parameters for each kind of scan target
+        :param credential: credentials to access the cloud account to be scanned:
+            * For AWS scan targets, provide the account ID in the *account* field
+            * For Azure scan targets, provide *applicationId*, *subscriptionId*, *directoryId* and *secret* fields.
+            * For GCP scan targets, provide a *projectId* field.
         :param schedule: schedule in cron format
         """
         validate_class(kind, ScanTargetKind)
+        validate_class(name, str)
+        validate_class(schedule, str)
+
+        validate_class(credential, dict)
         if kind == ScanTargetKind.AWS:
-            if kwargs['account']:
-                credential = {
-                    'account': kwargs['account']
-                }
+            credential_keys = {'account'}
         elif kind == ScanTargetKind.AZURE:
-            credential = {
-                    'applicationId': kwargs['applicationId'],
-                    'subscriptionId': kwargs['subscriptionId'],
-                    'directoryId': kwargs['directoryId'],
-                    'secret': kwargs['secret']
-                }
+            credential_keys = {'applicationId', 'subscriptionId', 'directoryId', 'secret'}
         elif kind == ScanTargetKind.GCP:
-            credential = {
-                    'projectId': kwargs['projectId']
-                }
-        else:
-            raise ValueError('Invalid ScanTarget Kind.')
-        content = {
+            credential_keys = {'projectId'}
+        if set(credential.keys()) != credential_keys:
+            raise ValueError(f'credential should contain the following field(s): {", ".join(credential_keys)}')
+        for k in credential_keys:
+            validate_class(credential[k], str)
+
+        body = {
             'name': name,
             'kind': kind,
             'credential': credential
         }
-        return self._request('POST', f'/organizations/{validate_uuid(organization_id)}/scantargets',body=content).json()
+        return self._request('POST', f'/organizations/{validate_uuid(organization_id)}/scantargets',
+                             body=body).json()
+
     def start_scan_target(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]) -> Dict:
         """
         Starts a scan on the specified scan target.
