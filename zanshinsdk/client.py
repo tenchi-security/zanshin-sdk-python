@@ -33,6 +33,12 @@ class AlertSeverity(str, Enum):
     INFO = "INFO"
 
 
+class ScanTargetKind(str, Enum):
+    AWS = "AWS"
+    GCP = "GCP"
+    AZURE = "AZURE"
+
+
 class Client:
     def __init__(self, profile: str = 'default', api_key: Optional[str] = None, api_url: Optional[str] = None,
                  user_agent: Optional[str] = None, proxy_url: Optional[str] = None):
@@ -274,6 +280,43 @@ class Client:
             page = self._get_organization_alerts_page(organization_id, scan_target_ids, states, severities,
                                                       page=page_number, page_size=page_size)
             yield from page.get('data', [])
+
+    def create_scan_target(self, organization_id: Union[UUID, str], kind: ScanTargetKind, name: str,
+                           credential: Dict[str, any], schedule: str = "0 0 * * *") -> Dict:
+        """
+        Create a new scan target in a Zanshin organization.
+        :param organization_id: the ID of the organization
+        :param kind: the Kind of scan target (AWS, GCP, AZURE)
+        :param name: the name of the scan target
+        :param credential: credentials to access the cloud account to be scanned:
+            * For AWS scan targets, provide the account ID in the *account* field
+            * For Azure scan targets, provide *applicationId*, *subscriptionId*, *directoryId* and *secret* fields.
+            * For GCP scan targets, provide a *projectId* field.
+        :param schedule: schedule in cron format
+        """
+        validate_class(kind, ScanTargetKind)
+        validate_class(name, str)
+        validate_class(schedule, str)
+
+        validate_class(credential, dict)
+        if kind == ScanTargetKind.AWS:
+            credential_keys = {'account'}
+        elif kind == ScanTargetKind.AZURE:
+            credential_keys = {'applicationId', 'subscriptionId', 'directoryId', 'secret'}
+        elif kind == ScanTargetKind.GCP:
+            credential_keys = {'projectId'}
+        if set(credential.keys()) != credential_keys:
+            raise ValueError(f'credential should contain the following field(s): {", ".join(credential_keys)}')
+        for k in credential_keys:
+            validate_class(credential[k], str)
+
+        body = {
+            'name': name,
+            'kind': kind,
+            'credential': credential
+        }
+        return self._request('POST', f'/organizations/{validate_uuid(organization_id)}/scantargets',
+                             body=body).json()
 
     def start_scan_target(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]) -> Dict:
         """
