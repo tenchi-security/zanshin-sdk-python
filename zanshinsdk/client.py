@@ -41,6 +41,10 @@ class ScanTargetKind(str, Enum):
 class Rules(str, Enum):
     ADMIN = "ADMIN"
 
+class Languages(str, Enum):
+    PTBR = "pt-BR"
+    ENUS = "en-US"
+
 class Client:
     def __init__(self, profile: str = 'default', api_key: Optional[str] = None, api_url: Optional[str] = None,
                  user_agent: Optional[str] = None, proxy_url: Optional[str] = None):
@@ -658,16 +662,24 @@ class Client:
     def _get_alerts_page(self, organization_id: Union[UUID, str],
                         scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
                         states: Optional[Iterable[AlertState]] = None,
-                        severities: Optional[Iterable[AlertSeverity]] = None, page: int = 1,
-                        page_size: int = 100) -> Dict:
+                        severities: Optional[Iterable[AlertSeverity]] = None,
+                        page: int = 1,
+                        page_size: int = 100,
+                        language: Optional[Iterable[Languages]] = None,
+                        start_date: Optional[str] = None,
+                        historical: Optional[bool] = None) -> Dict:
         """
         Internal method to retrieve a single page of alerts from an organization.
         :param organization_id: the ID of the organization
         :param scan_target_ids: optional list of scan target IDs to list alerts from, defaults to all
-        :param states: optional list of states to filter returned alerts, defaults to all
-        :param severities: optional list of severities to filter returned alerts, defaults to all
+        :param states: optional list of states to filter returned alerts, defaults to all. Ignored when historical is enabled
+        :param severities: optional list of severities to filter returned alerts, defaults to all. Ignored when historical is enabled
         :param page: page number, starting from 1
         :param page_size: page size in number of alerts
+        :param language: language the rule will be returned. Ignored when historical is enabled
+        :param start_date: search alerts from that date. Only works when historical is enabled
+        >param historical: return complete history of alerts
+        :return: an iterator over the JSON decoded alerts
         :return:
         """
         validate_int(page, min_value=1, required=True)
@@ -692,54 +704,42 @@ class Client:
             validate_class(severities, Iterable)
             body['severities'] = [validate_class(
                 x, AlertSeverity).value for x in severities]
+        if language:
+            body['lang'] = language
+        if start_date:
+            body['startDate'] = start_date
+        if historical:
+            body['historical'] = historical
         return self._request("POST", "/alerts", body=body).json()
 
     def iter_alerts(self, organization_id: Union[UUID, str],
                     scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
                     states: Optional[Iterable[AlertState]] = None,
-                    severities: Optional[Iterable[AlertSeverity]] = None, page_size: int = 100) -> Iterator[Dict]:
+                    severities: Optional[Iterable[AlertSeverity]] = None,
+                    page_size: int = 100,
+                    language: Optional[Languages] = None,
+                    start_date: Optional[str] = None,
+                    historical: Optional[bool] = None) -> Iterator[Dict]:
         """
         Iterates over the alerts of an organization by loading them, transparently paginating on the API.
         <https://api.zanshin.tenchisecurity.com/#operation/listAllAlert>
         :param organization_id: the ID of the organization
         :param scan_target_ids: optional list of scan target IDs to list alerts from, defaults to all
-        :param states: optional list of states to filter returned alerts, defaults to all
-        :param severities: optional list of severities to filter returned alerts, defaults to all
+        :param states: optional list of states to filter returned alerts, defaults to all. Ignored when historical is enabled
+        :param severities: optional list of severities to filter returned alerts, defaults to all. Ignored when historical is enabled
         :param page_size: the number of alerts to load from the API at a time
+        :param language: language the rule will be returned. Ignored when historical is enabled
+        :param start_date: search alerts from that date. Only works when historical is enabled
+        >param historical: return complete history of alerts
         :return: an iterator over the JSON decoded alerts
         """
         page = self._get_alerts_page(organization_id, scan_target_ids, states, severities, page=1,
-                                                  page_size=page_size)
+                                    page_size=page_size, language=language, start_date=start_date, historical=historical)
         yield from page.get('data', [])
         for page_number in range(2, int(ceil(page.get('total', 0) / float(page_size))) + 1):
             page = self._get_alerts_page(organization_id, scan_target_ids, states, severities,
-                                                      page=page_number, page_size=page_size)
+                                        page=page_number, page_size=page_size, language=language, start_date=start_date, historical=historical)
             yield from page.get('data', [])
-
-    def iter_alert_comments(self, alert_id: Union[UUID, str]) -> Iterator[Dict]:
-        """
-        Iterates over the comment of an alert.
-        <https://api.zanshin.tenchisecurity.com/#operation/listAllAlertComments>
-        :param alert_id: the ID of the alert
-        :return: 
-        """
-        yield from self._request("GET", f"/alerts/{validate_uuid(alert_id)}/comments").json()
-
-    def create_alert_comment(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str], alert_id: Union[UUID, str], comment: str) -> Iterator[Dict]:
-        """
-        Iterates over the comment of an alert.
-        <https://api.zanshin.tenchisecurity.com/#operation/listAllAlertComments>
-        :param organization_id: the ID of the organization
-        :param scan_target_id: the ID of the scan target
-        :param alert_id: the ID of the alert
-        :return: 
-        """
-
-        body = {
-            "comment": comment
-        }
-
-        yield from self._request("POST", f"/organizations/{validate_uuid(organization_id)}/scantargets/{validate_uuid(scan_target_id)}/alerts/{validate_uuid(alert_id)}/comments", body=body).json()
 
     def _get_following_alerts_page(self, following_ids: Optional[Iterable[Union[UUID, str]]] = None,
                                    states: Optional[Iterable[AlertState]] = None,
@@ -953,6 +953,24 @@ class Client:
         """
         return self._request("GET", f"/alerts/{validate_uuid(alert_id)}").json()
 
+    def iter_alert_history(self, alert_id: Union[UUID, str]) -> Iterator[Dict]:
+        """
+        Iterates over the history of an alert.
+        <https://api.zanshin.tenchisecurity.com/#operation/listAllAlertHistory>
+        :param alert_id: the ID of the alert
+        :return: 
+        """
+        yield from self._request("GET", f"/alerts/{validate_uuid(alert_id)}/history").json()
+
+    def iter_alert_comments(self, alert_id: Union[UUID, str]) -> Iterator[Dict]:
+        """
+        Iterates over the comment of an alert.
+        <https://api.zanshin.tenchisecurity.com/#operation/listAllAlertComments>
+        :param alert_id: the ID of the alert
+        :return: 
+        """
+        yield from self._request("GET", f"/alerts/{validate_uuid(alert_id)}/comments").json()
+
     def update_alert(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str], alert_id: Union[UUID, str],
                     state: Optional[AlertState], labels: Optional[Iterable[str]], comment: Optional[str]) -> Dict:
         """
@@ -969,6 +987,22 @@ class Client:
         }
 
         return self._request("PUT", f"/organizations/{validate_uuid(organization_id)}/scantargets/{validate_uuid(scan_target_id)}/alerts/{validate_uuid(alert_id)}", body=body).json()
+
+    def create_alert_comment(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str], alert_id: Union[UUID, str], comment: str) -> Iterator[Dict]:
+        """
+        Iterates over the comment of an alert.
+        <https://api.zanshin.tenchisecurity.com/#operation/listAllAlertComments>
+        :param organization_id: the ID of the organization
+        :param scan_target_id: the ID of the scan target
+        :param alert_id: the ID of the alert
+        :return: 
+        """
+
+        body = {
+            "comment": comment
+        }
+
+        yield from self._request("POST", f"/organizations/{validate_uuid(organization_id)}/scantargets/{validate_uuid(scan_target_id)}/alerts/{validate_uuid(alert_id)}/comments", body=body).json()
 
     def get_alert_summaries(self, organization_id: Union[UUID, str],
                             scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None) -> Dict:
