@@ -38,7 +38,7 @@ class ScanTargetKind(str, Enum):
     GCP = "GCP"
     AZURE = "AZURE"
 
-class Rules(str, Enum):
+class Roles(str, Enum):
     ADMIN = "ADMIN"
 
 class Languages(str, Enum):
@@ -314,7 +314,7 @@ class Client:
 
     def iter_members(self, organization_id: Union[UUID, str]) -> Iterator[Dict]:
         """
-        Iterates over the members of an organization.
+        Iterates over the users which are members of an organization.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationMembers>
         :param organization_id: the ID of the organization
         :return: an iterator over the organization members objects
@@ -323,7 +323,7 @@ class Client:
 
     def get_member(self, organization_id: Union[UUID, str], member_id: Union[UUID, str]) -> Dict:
         """
-        Get organization member.
+        Get details on a user's organization membership.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationMembers>
         :param organization_id: the ID of the organization
         :param member_id: the ID of the member
@@ -331,7 +331,7 @@ class Client:
         """
         return self._request("GET", f"/organizations/{validate_uuid(organization_id)}/members/{validate_uuid(member_id)}").json()
 
-    def update_member(self, organization_id: Union[UUID, str], member_id: Union[UUID, str], roles: Optional[Iterable[Rules]]) -> Dict:
+    def update_member(self, organization_id: Union[UUID, str], member_id: Union[UUID, str], roles: Optional[Iterable[Roles]]) -> Dict:
         """
         Update organization member.
         <https://api.zanshin.tenchisecurity.com/#operation/editOrganizationMembersById>
@@ -364,7 +364,7 @@ class Client:
         """
         yield from self._request("GET", f"/organizations/{validate_uuid(organization_id)}/invites").json()
 
-    def create_members_invite(self, organization_id: Union[UUID, str], email: str, roles: Optional[Iterable[Rules]]) -> Iterator[Dict]:
+    def create_members_invite(self, organization_id: Union[UUID, str], email: str, roles: Optional[Iterable[Roles]]) -> Iterator[Dict]:
         """
         Create organization member invite.
         <https://api.zanshin.tenchisecurity.com/#operation/createOrgamizationInvite>

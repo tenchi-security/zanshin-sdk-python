@@ -41,7 +41,7 @@ from zanshinsdk import Client
 from json import dumps
 
 client = Client()   # loads API key from the "default" profile in ~/.tenchi/config
-me = client.me()    # calls /me API endpoint
+me = client.get_me()    # calls /me API endpoint
 print(dumps(me, indent=4))
 ```
 
