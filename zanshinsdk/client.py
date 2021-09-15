@@ -270,14 +270,6 @@ class Client:
         """
         return self._request("DELETE", f"/me/apikeys/{validate_uuid(api_key_id)}").json()
 
-    def get_freshdesk_id(self) -> Dict:
-        """
-        Gets user freshdesk identifier.
-        <https://api.zanshin.tenchisecurity.com/#operation/getFreshdesk>
-        :return: a freshdesk unique identifier
-        """
-        return self._request("GET", "/me/freshdesk").json()
-
     def iter_organizations(self) -> Iterator[Dict]:
         """
         Iterates over organizations of current logged user.
@@ -301,7 +293,7 @@ class Client:
         <https://api.zanshin.tenchisecurity.com/#operation/editOrganizationById>
         :param organization_id: the ID of the organization
         :param name: the Name of the oranization
-        :param picture: the picture of the organization
+        :param picture: the picture URL of the organization, accepted formats: jpg, jpeg, png, svg
         :param email: the e-mail contact of the organization
         :return: a dict representing the organization object
         """
@@ -312,7 +304,7 @@ class Client:
         }
         return self._request("PUT", f"/organizations/{validate_uuid(organization_id)}", body=body).json()
 
-    def iter_members(self, organization_id: Union[UUID, str]) -> Iterator[Dict]:
+    def iter_organization_members(self, organization_id: Union[UUID, str]) -> Iterator[Dict]:
         """
         Iterates over the users which are members of an organization.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationMembers>
@@ -321,7 +313,7 @@ class Client:
         """
         yield from self._request("GET", f"/organizations/{validate_uuid(organization_id)}/members").json()
 
-    def get_member(self, organization_id: Union[UUID, str], member_id: Union[UUID, str]) -> Dict:
+    def get_organization_member(self, organization_id: Union[UUID, str], member_id: Union[UUID, str]) -> Dict:
         """
         Get details on a user's organization membership.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationMembers>
@@ -331,7 +323,7 @@ class Client:
         """
         return self._request("GET", f"/organizations/{validate_uuid(organization_id)}/members/{validate_uuid(member_id)}").json()
 
-    def update_member(self, organization_id: Union[UUID, str], member_id: Union[UUID, str], roles: Optional[Iterable[Roles]]) -> Dict:
+    def update_organization_member(self, organization_id: Union[UUID, str], member_id: Union[UUID, str], roles: Optional[Iterable[Roles]]) -> Dict:
         """
         Update organization member.
         <https://api.zanshin.tenchisecurity.com/#operation/editOrganizationMembersById>
@@ -345,7 +337,7 @@ class Client:
         }
         return self._request("PUT", f"/organizations/{validate_uuid(organization_id)}/{validate_uuid(member_id)}", body=body).json()
 
-    def delete_member(self, organization_id: Union[UUID, str], member_id: Union[UUID, str]) -> bool:
+    def delete_organization_member(self, organization_id: Union[UUID, str], member_id: Union[UUID, str]) -> bool:
         """
         Gets an organization details given its ID.
         <https://api.zanshin.tenchisecurity.com/#operation/removeOrganizationMemberById>
@@ -355,7 +347,7 @@ class Client:
         """
         return self._request("DELETE", f"/organizations/{validate_uuid(organization_id)}/{validate_uuid(member_id)}").json()
 
-    def iter_members_invites(self, organization_id: Union[UUID, str]) -> Iterator[Dict]:
+    def iter_organization_members_invites(self, organization_id: Union[UUID, str]) -> Iterator[Dict]:
         """
         Iterates over the members invites of an organization.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrgamizationInvites>
@@ -364,7 +356,7 @@ class Client:
         """
         yield from self._request("GET", f"/organizations/{validate_uuid(organization_id)}/invites").json()
 
-    def create_members_invite(self, organization_id: Union[UUID, str], email: str, roles: Optional[Iterable[Roles]]) -> Iterator[Dict]:
+    def create_organization_members_invite(self, organization_id: Union[UUID, str], email: str, roles: Optional[Iterable[Roles]]) -> Iterator[Dict]:
         """
         Create organization member invite.
         <https://api.zanshin.tenchisecurity.com/#operation/createOrgamizationInvite>
@@ -379,7 +371,7 @@ class Client:
         }
         return self._request("POST", f"/organizations/{validate_uuid(organization_id)}/invites", body=body).json()
 
-    def get_member_invite(self, organization_id: Union[UUID, str], email: str) -> Iterator[Dict]:
+    def get_organization_member_invite(self, organization_id: Union[UUID, str], email: str) -> Iterator[Dict]:
         """
         Get organization member invite .
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationInviteByEmail>
@@ -389,7 +381,7 @@ class Client:
         """
         return self._request("GET", f"/organizations/{validate_uuid(organization_id)}/invites/{email}").json()
 
-    def delete_member_invite(self, organization_id: Union[UUID, str], email: str) -> bool:
+    def delete_organization_member_invite(self, organization_id: Union[UUID, str], email: str) -> bool:
         """
         Delete organization member invite.
         <https://api.zanshin.tenchisecurity.com/#operation/deleteOrganizationInviteByEmail>
@@ -399,7 +391,7 @@ class Client:
         """
         return self._request("PUT", f"/organizations/{validate_uuid(organization_id)}/invites/{email}").json()
 
-    def resend_member_invite(self, organization_id: Union[UUID, str], email: str) -> Dict:
+    def resend_organization_member_invite(self, organization_id: Union[UUID, str], email: str) -> Dict:
         """
         Resend organization member invitation.
         <https://api.zanshin.tenchisecurity.com/#operation/resendOrganizationInviteByEmail>
@@ -409,7 +401,7 @@ class Client:
         """
         return self._request("POST", f"/organizations/{validate_uuid(organization_id)}/invites/{email}/resend").json()
 
-    def iter_followers(self, organization_id: Union[UUID, str]) -> Iterator[Dict]:
+    def iter_organization_followers(self, organization_id: Union[UUID, str]) -> Iterator[Dict]:
         """
         Iterates over the followers of an organization.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationFollowers>
@@ -418,7 +410,7 @@ class Client:
         """
         yield from self._request("GET", f"/organizations/{validate_uuid(organization_id)}/followers").json()
 
-    def stop_follower(self, organization_id: Union[UUID, str], follower_id: Union[UUID, str]) -> bool:
+    def stop_organization_follower(self, organization_id: Union[UUID, str], follower_id: Union[UUID, str]) -> bool:
         """
         Stops one organization follower of another.
         <https://api.zanshin.tenchisecurity.com/#operation/removeOrganizationFollower>
@@ -428,7 +420,7 @@ class Client:
         """
         return self._request("DELETE", f"/organizations/{validate_uuid(organization_id)}/followers/{validate_uuid(follower_id)}").json()
 
-    def iter_follower_requests(self, organization_id: Union[UUID, str]) -> Iterator[Dict]:
+    def iter_organization_follower_requests(self, organization_id: Union[UUID, str]) -> Iterator[Dict]:
         """
         Iterates over the follower requests of an organization.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationFollowRequests>
@@ -437,7 +429,7 @@ class Client:
         """
         yield from self._request("GET", f"/organizations/{validate_uuid(organization_id)}/followers/requests").json()
 
-    def create_follower_request(self, organization_id: Union[UUID, str], token: Union[UUID, str]) -> Dict:
+    def create_organization_follower_request(self, organization_id: Union[UUID, str], token: Union[UUID, str]) -> Dict:
         """
         Create organization follower request.
         <https://api.zanshin.tenchisecurity.com/#operation/createOrganizationFollowRequests>
@@ -450,7 +442,7 @@ class Client:
         }
         return self._request("POST", f"/organizations/{validate_uuid(organization_id)}/followers/requests", body=body).json()
 
-    def get_follower_request(self, organization_id: Union[UUID, str], token: Union[UUID, str]) -> Dict:
+    def get_organization_follower_request(self, organization_id: Union[UUID, str], token: Union[UUID, str]) -> Dict:
         """
         Get organization follower request.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationFollowRequestsByToken>
@@ -460,7 +452,7 @@ class Client:
         """
         return self._request("GET", f"/organizations/{validate_uuid(organization_id)}/followers/requests/{validate_uuid(token)}").json()
 
-    def delete_follower_request(self, organization_id: Union[UUID, str], follower_id: Union[UUID, str]) -> bool:
+    def delete_organization_follower_request(self, organization_id: Union[UUID, str], follower_id: Union[UUID, str]) -> bool:
         """
         Delete follower request.
         <https://api.zanshin.tenchisecurity.com/#operation/deleteOrganizationFollowRequestsbyToken>
@@ -470,7 +462,7 @@ class Client:
         """
         return self._request("DELETE", f"/organizations/{validate_uuid(organization_id)}/followers/requests/{validate_uuid(follower_id)}").json()
 
-    def iter_following(self, organization_id: Union[UUID, str]) -> Iterator[Dict]:
+    def iter_organization_following(self, organization_id: Union[UUID, str]) -> Iterator[Dict]:
         """
         Iterates over the following of an organization.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationFollowing>
@@ -479,7 +471,7 @@ class Client:
         """
         yield from self._request("GET", f"/organizations/{validate_uuid(organization_id)}/following").json()
 
-    def stop_following(self, organization_id: Union[UUID, str], following_id: Union[UUID, str]) -> bool:
+    def stop_organization_following(self, organization_id: Union[UUID, str], following_id: Union[UUID, str]) -> bool:
         """
         Stops one organization following of another.
         <https://api.zanshin.tenchisecurity.com/#operation/removeOrganizationFollowingById>
@@ -490,7 +482,7 @@ class Client:
         return self._request("DELETE",
                              f"/organizations/{validate_uuid(organization_id)}/following/{validate_uuid(following_id)}").json()
 
-    def iter_following_requests(self, organization_id: Union[UUID, str]) -> Iterator[Dict]:
+    def iter_organization_following_requests(self, organization_id: Union[UUID, str]) -> Iterator[Dict]:
         """
         Returns all requests received by an organization to follow another.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationFollowingRequests>
@@ -499,7 +491,7 @@ class Client:
         """
         yield from self._request("GET", f"/organizations/{validate_uuid(organization_id)}/following/requests").json()
 
-    def get_following_request(self, organization_id: Union[UUID, str], following_id: Union[UUID, str]) -> Dict:
+    def get_organization_following_request(self, organization_id: Union[UUID, str], following_id: Union[UUID, str]) -> Dict:
         """
         Returns a request received by an organization to follow another.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationFollowingRequestByToken>
@@ -509,7 +501,7 @@ class Client:
         """
         return self._request("GET", f"/organizations/{validate_uuid(organization_id)}/followers/requests/{validate_uuid(following_id)}").json()
 
-    def accept_following_request(self, organization_id: Union[UUID, str], following_id: Union[UUID, str]) -> Dict:
+    def accept_organization_following_request(self, organization_id: Union[UUID, str], following_id: Union[UUID, str]) -> Dict:
         """
         Accepts a request to follow another organization.
         <https://api.zanshin.tenchisecurity.com/#operation/acceptOrganizationFollowingRequestByToken>
@@ -520,7 +512,7 @@ class Client:
         return self._request("POST",
                              f"/organizations/{validate_uuid(organization_id)}/following/requests/{validate_uuid(following_id)}/accept").json()
 
-    def decline_following_request(self, organization_id: Union[UUID, str], following_id: Union[UUID, str]) -> Dict:
+    def decline_organization_following_request(self, organization_id: Union[UUID, str], following_id: Union[UUID, str]) -> Dict:
         """
         Declines a request to follow another organization.
         <https://api.zanshin.tenchisecurity.com/#operation/declineOrganizationFollowingRequestByToken>
@@ -531,7 +523,7 @@ class Client:
         return self._request("POST",
                              f"/organizations/{validate_uuid(organization_id)}/following/requests/{validate_uuid(following_id)}/accept").json()
 
-    def iter_scan_targets(self, organization_id: Union[UUID, str]) -> Iterator[Dict]:
+    def iter_organization_scan_targets(self, organization_id: Union[UUID, str]) -> Iterator[Dict]:
         """
         Iterates over the scan targets of an organization.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationScanTargets>
@@ -540,7 +532,7 @@ class Client:
         """
         yield from self._request("GET", f"/organizations/{validate_uuid(organization_id)}/scantargets").json()
 
-    def create_scan_target(self, organization_id: Union[UUID, str], kind: ScanTargetKind, name: str,
+    def create_organization_scan_target(self, organization_id: Union[UUID, str], kind: ScanTargetKind, name: str,
                            credential: Dict[str, any], schedule: str = "0 0 * * *") -> Dict:
         """
         Create a new scan target in a Zanshin organization.
@@ -580,7 +572,7 @@ class Client:
         return self._request('POST', f'/organizations/{validate_uuid(organization_id)}/scantargets',
                              body=body).json()
 
-    def get_scan_target(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]) -> Dict:
+    def get_organization_scan_target(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]) -> Dict:
         """
         Get scan target of organization.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationScanTargetById>
@@ -590,7 +582,7 @@ class Client:
         """
         return self._request("GET", f"/organizations/{validate_uuid(organization_id)}/scantargets/{validate_uuid(scan_target_id)}").json()
 
-    def update_scan_target(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str], name: str, schedule: str) -> Dict:
+    def update_organization_scan_target(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str], name: str, schedule: str) -> Dict:
         """
         Update scan target of organization.
         <https://api.zanshin.tenchisecurity.com/#operation/editOrganizationScanTargetById>
@@ -606,7 +598,7 @@ class Client:
 
         return self._request("PUT", f"/organizations/{validate_uuid(organization_id)}/scantargets/{validate_uuid(scan_target_id)}", body=body).json()
 
-    def delete_scan_target(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]) -> bool:
+    def delete_organization_scan_target(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]) -> bool:
         """
         Delete scan target of organization.
         <https://api.zanshin.tenchisecurity.com/#operation/deleteOrganizationScanTargetById>
@@ -616,7 +608,7 @@ class Client:
         """
         return self._request("DELETE", f"/organizations/{validate_uuid(organization_id)}/scantargets/{validate_uuid(scan_target_id)}").json()
 
-    def start_scan_target_scan(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]) -> bool:
+    def start_organization_scan_target_scan(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]) -> bool:
         """
         Starts a scan on the specified scan target.
         <https://api.zanshin.tenchisecurity.com/#operation/scanOrganizationScanTarget>
@@ -627,7 +619,7 @@ class Client:
         return self._request("POST",
                              f"/organizations/{validate_uuid(organization_id)}/scantargets/{validate_uuid(scan_target_id)}/scan").json()
 
-    def check_scan_target(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]) -> Dict:
+    def check_organization_scan_target(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]) -> Dict:
         """
         Check scan target.
         <https://api.zanshin.tenchisecurity.com/#operation/checkOrganizationScanTarget>
@@ -638,7 +630,7 @@ class Client:
         return self._request("POST",
                              f"/organizations/{validate_uuid(organization_id)}/scantargets/{validate_uuid(scan_target_id)}/check").json()
 
-    def iter_scan(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]) -> Iterator[Dict]:
+    def iter_organization_scan_target_scans(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]) -> Iterator[Dict]:
         """
         Iterates over the scan of an scan target.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationScanTargetScans>
@@ -648,7 +640,7 @@ class Client:
         """
         yield from self._request("GET", f"/organizations/{validate_uuid(organization_id)}/scantargets/{validate_uuid(scan_target_id)}/scans").json()
 
-    def get_scan(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str], scan_id: Union[UUID, str]) -> Dict:
+    def get_organization_scan_target_scan(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str], scan_id: Union[UUID, str]) -> Dict:
         """
         Get scan of scan target.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationScanTargetScanSlot>
