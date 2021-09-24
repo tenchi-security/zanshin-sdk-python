@@ -207,13 +207,21 @@ class Client:
         response.raise_for_status()
         return response
 
+    ###################################################
+    # Account
+    ###################################################
+
     def get_me(self) -> Dict:
         """
-        Returns the details of the user account that owns the API key used by this Connection instance as per
+        Returns the details of the user account that owns the API key used by this Connection instance as per.
         <https://api.zanshin.tenchisecurity.com/#operation/getMe>
         :return: a dict representing the user
         """
         return self._request("GET", "/me").json()
+    
+    ###################################################
+    # Account Invites
+    ###################################################
 
     def iter_invites(self) -> Iterator[Dict]:
         """
@@ -241,6 +249,10 @@ class Client:
         """
         return self._request("POST", f"/me/invites/{validate_uuid(invite_id)}/accept").json()
 
+    ###################################################
+    # Account API key
+    ###################################################
+
     def iter_api_keys(self) -> Iterator[Dict]:
         """
         Iterates over the API keys of current logged user.
@@ -251,7 +263,7 @@ class Client:
 
     def create_api_key(self, name: Optional[str]) -> Dict:
         """
-        Cretes a new API key for the current logged user, API Keys can be used to interact with the zanshin api directly on behalf of that user.
+        Creates a new API key for the current logged user, API Keys can be used to interact with the zanshin api directly on behalf of that user.
         <https://api.zanshin.tenchisecurity.com/#operation/createApiKeys>
         :param name: the Name of your new API key
         :return: a dict representing the user api key
@@ -269,6 +281,10 @@ class Client:
         :return: a boolean if success
         """
         return self._request("DELETE", f"/me/apikeys/{validate_uuid(api_key_id)}").json()
+
+    ###################################################
+    # Organization
+    ###################################################
 
     def iter_organizations(self) -> Iterator[Dict]:
         """
@@ -303,6 +319,10 @@ class Client:
             "email": email
         }
         return self._request("PUT", f"/organizations/{validate_uuid(organization_id)}", body=body).json()
+
+    ###################################################
+    # Organization Member
+    ###################################################
 
     def iter_organization_members(self, organization_id: Union[UUID, str]) -> Iterator[Dict]:
         """
@@ -339,13 +359,17 @@ class Client:
 
     def delete_organization_member(self, organization_id: Union[UUID, str], member_id: Union[UUID, str]) -> bool:
         """
-        Gets an organization details given its ID.
+        Delete organization member.
         <https://api.zanshin.tenchisecurity.com/#operation/removeOrganizationMemberById>
         :param organization_id: the ID of the organization
         :param member_id: the ID of the member
         :return: a boolean if success
         """
         return self._request("DELETE", f"/organizations/{validate_uuid(organization_id)}/{validate_uuid(member_id)}").json()
+
+    ###################################################
+    # Organization Member Invite
+    ###################################################
 
     def iter_organization_members_invites(self, organization_id: Union[UUID, str]) -> Iterator[Dict]:
         """
@@ -373,7 +397,7 @@ class Client:
 
     def get_organization_member_invite(self, organization_id: Union[UUID, str], email: str) -> Iterator[Dict]:
         """
-        Get organization member invite .
+        Get organization member invite.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationInviteByEmail>
         :param organization_id: the ID of the organization
         :param email: the e-mail of the invited member
@@ -401,6 +425,10 @@ class Client:
         """
         return self._request("POST", f"/organizations/{validate_uuid(organization_id)}/invites/{email}/resend").json()
 
+    ###################################################
+    # Organization Follower
+    ###################################################
+
     def iter_organization_followers(self, organization_id: Union[UUID, str]) -> Iterator[Dict]:
         """
         Iterates over the followers of an organization.
@@ -419,6 +447,10 @@ class Client:
         :return: a boolean if success
         """
         return self._request("DELETE", f"/organizations/{validate_uuid(organization_id)}/followers/{validate_uuid(follower_id)}").json()
+
+    ###################################################
+    # Organization Follower Request
+    ###################################################
 
     def iter_organization_follower_requests(self, organization_id: Union[UUID, str]) -> Iterator[Dict]:
         """
@@ -454,13 +486,17 @@ class Client:
 
     def delete_organization_follower_request(self, organization_id: Union[UUID, str], follower_id: Union[UUID, str]) -> bool:
         """
-        Delete follower request.
+        Delete organization follower request.
         <https://api.zanshin.tenchisecurity.com/#operation/deleteOrganizationFollowRequestsbyToken>
         :param organization_id: the ID of the organization
         :param follower_id: the ID of the follower
         :return: a boolean if success
         """
         return self._request("DELETE", f"/organizations/{validate_uuid(organization_id)}/followers/requests/{validate_uuid(follower_id)}").json()
+
+    ###################################################
+    # Organization Following
+    ###################################################
 
     def iter_organization_following(self, organization_id: Union[UUID, str]) -> Iterator[Dict]:
         """
@@ -481,6 +517,10 @@ class Client:
         """
         return self._request("DELETE",
                              f"/organizations/{validate_uuid(organization_id)}/following/{validate_uuid(following_id)}").json()
+
+    ###################################################
+    # Organization Following Request
+    ###################################################
 
     def iter_organization_following_requests(self, organization_id: Union[UUID, str]) -> Iterator[Dict]:
         """
@@ -523,6 +563,10 @@ class Client:
         return self._request("POST",
                              f"/organizations/{validate_uuid(organization_id)}/following/requests/{validate_uuid(following_id)}/accept").json()
 
+    ###################################################
+    # Organization Scan Target
+    ###################################################
+
     def iter_organization_scan_targets(self, organization_id: Union[UUID, str]) -> Iterator[Dict]:
         """
         Iterates over the scan targets of an organization.
@@ -535,7 +579,7 @@ class Client:
     def create_organization_scan_target(self, organization_id: Union[UUID, str], kind: ScanTargetKind, name: str,
                            credential: Dict[str, any], schedule: str = "0 0 * * *") -> Dict:
         """
-        Create a new scan target in a Zanshin organization.
+        Create a new scan target in organization.
         <https://api.zanshin.tenchisecurity.com/#operation/createOrganizationScanTargets>
         :param organization_id: the ID of the organization
         :param kind: the Kind of scan target (AWS, GCP, AZURE)
@@ -630,6 +674,10 @@ class Client:
         return self._request("POST",
                              f"/organizations/{validate_uuid(organization_id)}/scantargets/{validate_uuid(scan_target_id)}/check").json()
 
+    ###################################################
+    # Organization Scan Target Scan
+    ###################################################
+
     def iter_organization_scan_target_scans(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]) -> Iterator[Dict]:
         """
         Iterates over the scan of an scan target.
@@ -650,6 +698,10 @@ class Client:
         :return: a dict representing the scan
         """
         return self._request("GET", f"/organizations/{validate_uuid(organization_id)}/scantargets/{validate_uuid(scan_target_id)}/scans/{scan_id}").json()
+
+    ###################################################
+    # Alerts
+    ###################################################
 
     def _get_alerts_page(self, organization_id: Union[UUID, str],
                         scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
@@ -996,6 +1048,10 @@ class Client:
 
         yield from self._request("POST", f"/organizations/{validate_uuid(organization_id)}/scantargets/{validate_uuid(scan_target_id)}/alerts/{validate_uuid(alert_id)}/comments", body=body).json()
 
+    ###################################################
+    # Summary
+    ###################################################
+
     def get_alert_summaries(self, organization_id: Union[UUID, str],
                             scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None) -> Dict:
         """
@@ -1019,7 +1075,7 @@ class Client:
 
         return self._request("POST", "/alerts/summaries", body=body).json()
     
-    def get_following_alert_summaries(self, following_ids: Iterable[Union[UUID, str]]) -> Dict:
+    def get_following_alert_summaries(self, organization_id: Union[UUID, str], following_ids: Iterable[Union[UUID, str]]) -> Dict:
         """
         Gets a summary of the current state of alerts for followed organizations.
         <https://api.zanshin.tenchisecurity.com/#operation/alertFollowingSummary>
@@ -1032,14 +1088,16 @@ class Client:
         else:
             validate_class(following_ids, Iterable)
 
-        body = {'followingIds': list({validate_uuid(x)
-                                     for x in following_ids})}
+        body = {
+            "organizationId": validate_uuid(organization_id),
+            "followingIds": list({validate_uuid(x)
+                                  for x in following_ids})}
 
         return self._request("POST", "/alerts/summaries/following", body=body).json()
 
     def get_scan_summaries(self, organization_id: Union[UUID, str],
-                                        scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
-                                        days: Optional[int] = 7) -> Dict:
+                            scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
+                            days: Optional[int] = 7) -> Dict:
         """
         Returns summaries of scan results over a period of time, summarizing number of alerts that changed states.
         <https://api.zanshin.tenchisecurity.com/#operation/scanSummary>
@@ -1049,8 +1107,10 @@ class Client:
         :return: JSON object containing the scan summaries
         """
 
-        body = {"organizationId": validate_uuid(
-            organization_id), 'daysBefore': validate_int(days, min_value=1)}
+        body = {
+            "organizationId": validate_uuid(organization_id),
+            "daysBefore": validate_int(days, min_value=1)
+        }
 
         if scan_target_ids:
             if isinstance(scan_target_ids, str):
@@ -1062,7 +1122,7 @@ class Client:
 
         return self._request("POST", "/alerts/summaries/scans", body=body).json()
 
-    def get_following_scan_summaries(self, following_ids: Iterable[Union[UUID, str]], days: Optional[int] = 7) -> Dict:
+    def get_following_scan_summaries(self, organization_id: Union[UUID, str], following_ids: Iterable[Union[UUID, str]], days: Optional[int] = 7) -> Dict:
         """
         Gets a summary of the current state of alerts for followed organizations.
         <https://api.zanshin.tenchisecurity.com/#operation/scanSummaryFollowing>
@@ -1077,8 +1137,9 @@ class Client:
             validate_class(following_ids, Iterable)
 
         body = {
-            'followingIds': list({validate_uuid(x) for x in following_ids}),
-            'daysBefore': validate_int(days, min_value=1)
+            "organizationId": validate_uuid(organization_id),
+            "followingIds": list({validate_uuid(x) for x in following_ids}),
+            "daysBefore": validate_int(days, min_value=1)
         }
 
         return self._request("POST", "/alerts/summaries/scans/following", body=body).json()
