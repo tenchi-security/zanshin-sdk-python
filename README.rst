@@ -35,7 +35,8 @@ These are the supported options:
 -  ``user_agent`` (optional) allows you to override the default
    user-agent header used by the SDK when making API requests.
 -  ``api_url`` (optional) directs the SDK to use a different API
-   endpoint than the default (https://api.zanshin.tenchisecurity.com).
+   endpoint than the default
+   (`https://api.zanshin.tenchisecurity.com <https://api.zanshin.tenchisecurity.com>`__).
 
 This is what a minimal configuration file looks like:
 
@@ -67,7 +68,7 @@ in use:
    from json import dumps
 
    client = Client()   # loads API key from the "default" profile in ~/.tenchi/config
-   me = client.me()    # calls /me API endpoint
+   me = client.get_me()    # calls /me API endpoint
    print(dumps(me, indent=4))
 
 All operations call ``raise_for_status`` on the httpx `Response
