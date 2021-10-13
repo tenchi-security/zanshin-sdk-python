@@ -867,7 +867,7 @@ class Client:
             following_ids = set()
             for org in self.iter_organizations():
                 following_ids |= {x['id']
-                                  for x in self.iter_following(org['id'])}
+                                  for x in self.iter_organization_following(org['id'])}
             following_ids = list(following_ids)
 
         page = self._get_following_alerts_page(
@@ -1003,7 +1003,7 @@ class Client:
             following_ids = set()
             for org in self.iter_organizations():
                 following_ids |= {x['id']
-                                  for x in self.iter_following(org['id'])}
+                                  for x in self.iter_organization_following(org['id'])}
             following_ids = list(following_ids)
 
         page = self._get_following_alerts_page(
