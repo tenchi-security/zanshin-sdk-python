@@ -663,6 +663,16 @@ class Client:
         return self._request("POST",
                              f"/organizations/{validate_uuid(organization_id)}/scantargets/{validate_uuid(scan_target_id)}/scan").json()
 
+    def stop_orgganization_scan_target_scan(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]) -> bool:
+        """
+        Stop a scan on the specific scan target.
+        :param organization_id: the ID of organization the scan target belonggs to
+        :param scan_target_id: the Id of the scan target
+        :return: a boolean if success
+        """
+        return self._request("POST",
+                            f"/organizations/{validate_uuid(oranization_id)}/scantargets/{validate_uuid(scan_targget_id)}/stop").json()
+
     def check_organization_scan_target(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]) -> Dict:
         """
         Check scan target.
