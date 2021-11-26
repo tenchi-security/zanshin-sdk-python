@@ -308,7 +308,7 @@ class Client:
         Update organization given its ID.
         <https://api.zanshin.tenchisecurity.com/#operation/editOrganizationById>
         :param organization_id: the ID of the organization
-        :param name: the Name of the oranization
+        :param name: the Name of the organization
         :param picture: the picture URL of the organization, accepted formats: jpg, jpeg, png, svg
         :param email: the e-mail contact of the organization
         :return: a dict representing the organization object
@@ -663,7 +663,7 @@ class Client:
         return self._request("POST",
                              f"/organizations/{validate_uuid(organization_id)}/scantargets/{validate_uuid(scan_target_id)}/scan").json()
 
-    def stop_orgganization_scan_target_scan(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]) -> bool:
+    def stop_organization_scan_target_scan(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]) -> bool:
         """
         Stop a scan on the specific scan target.
         :param organization_id: the ID of organization the scan target belonggs to
@@ -671,7 +671,7 @@ class Client:
         :return: a boolean if success
         """
         return self._request("POST",
-                            f"/organizations/{validate_uuid(oranization_id)}/scantargets/{validate_uuid(scan_targget_id)}/stop").json()
+                            f"/organizations/{validate_uuid(organization_id)}/scantargets/{validate_uuid(scan_target_id)}/stop").json()
 
     def check_organization_scan_target(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]) -> Dict:
         """
