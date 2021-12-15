@@ -78,7 +78,6 @@ class TestClient(unittest.TestCase):
             body = {"roles": ['ADMIN']})
 
     def test_delete_organization_members(self):
-        cli = zanshinsdk.Client()
         self.cli.delete_organization_member(
             'a72f4225-43e9-4922-b6b7-8b0620bdb1c0',
             'b72f4225-43e1-1922-b6b7-8b0620bdb1d1')
