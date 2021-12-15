@@ -218,7 +218,7 @@ class Client:
         :return: a dict representing the user
         """
         return self._request("GET", "/me").json()
-    
+
     ###################################################
     # Account Invites
     ###################################################
@@ -355,7 +355,7 @@ class Client:
         body = {
             "roles": roles,
         }
-        return self._request("PUT", f"/organizations/{validate_uuid(organization_id)}/{validate_uuid(member_id)}", body=body).json()
+        return self._request("PUT", f"/organizations/{validate_uuid(organization_id)}/members/{validate_uuid(member_id)}", body=body).json()
 
     def delete_organization_member(self, organization_id: Union[UUID, str], member_id: Union[UUID, str]) -> bool:
         """
@@ -365,7 +365,7 @@ class Client:
         :param member_id: the ID of the member
         :return: a boolean if success
         """
-        return self._request("DELETE", f"/organizations/{validate_uuid(organization_id)}/{validate_uuid(member_id)}").json()
+        return self._request("DELETE", f"/organizations/{validate_uuid(organization_id)}/members/{validate_uuid(member_id)}").json()
 
     ###################################################
     # Organization Member Invite
@@ -1039,7 +1039,7 @@ class Client:
         Iterates over the history of an alert.
         <https://api.zanshin.tenchisecurity.com/#operation/listAllAlertHistory>
         :param alert_id: the ID of the alert
-        :return: 
+        :return:
         """
         yield from self._request("GET", f"/alerts/{validate_uuid(alert_id)}/history").json()
 
@@ -1048,7 +1048,7 @@ class Client:
         Iterates over the comment of an alert.
         <https://api.zanshin.tenchisecurity.com/#operation/listAllAlertComments>
         :param alert_id: the ID of the alert
-        :return: 
+        :return:
         """
         yield from self._request("GET", f"/alerts/{validate_uuid(alert_id)}/comments").json()
 
@@ -1076,7 +1076,7 @@ class Client:
         :param organization_id: the ID of the organization
         :param scan_target_id: the ID of the scan target
         :param alert_id: the ID of the alert
-        :return: 
+        :return:
         """
 
         body = {
@@ -1111,7 +1111,7 @@ class Client:
                 {validate_uuid(x) for x in scan_target_ids})
 
         return self._request("POST", "/alerts/summaries", body=body).json()
-    
+
     def get_following_alert_summaries(self, organization_id: Union[UUID, str], following_ids: Iterable[Union[UUID, str]]) -> Dict:
         """
         Gets a summary of the current state of alerts for followed organizations.
