@@ -12,3 +12,7 @@ pypi: README.rst sdist
 pypitest: README.rst sdist
 	python setup.py clean
 	twine upload --repository pypitest dist/*
+
+test:
+	python -m unittest zanshinsdk/test_client.py
+
