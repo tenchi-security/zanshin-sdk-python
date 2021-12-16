@@ -9,11 +9,18 @@ class TestClient(unittest.TestCase):
         self.cli = zanshinsdk.Client(profile=None, api_key="abc")
         self.cli._request = request
 
+    ###################################################
+    # Account
+    ###################################################
 
     def test_get_me(self):
         self.cli.get_me()
 
         self.cli._request.assert_called_once_with('GET', '/me')
+
+    ###################################################
+    # Account Invites
+    ###################################################
 
     def test_iter_invites(self):
         try:
@@ -33,6 +40,9 @@ class TestClient(unittest.TestCase):
 
         self.cli._request.assert_called_once_with('POST', '/me/invites/a72f4225-43e9-4922-b6b7-8b0620bdb1c0/accept')
 
+    ###################################################
+    # Account API key
+    ###################################################
 
     def test_iter_api_keys(self):
         try:
@@ -51,6 +61,10 @@ class TestClient(unittest.TestCase):
         self.cli.delete_api_key("a72f4225-43e9-4922-b6b7-8b0620bdb1c0")
 
         self.cli._request.assert_called_once_with('DELETE', '/me/apikeys/a72f4225-43e9-4922-b6b7-8b0620bdb1c0')
+
+    ###################################################
+    # Organization
+    ###################################################
 
     def test_iter_organization_members(self):
         try:
