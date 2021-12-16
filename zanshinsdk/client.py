@@ -413,7 +413,7 @@ class Client:
         :param email: the e-mail of the invited member
         :return: a boolean if success
         """
-        return self._request("PUT", f"/organizations/{validate_uuid(organization_id)}/invites/{email}").json()
+        return self._request("DELETE", f"/organizations/{validate_uuid(organization_id)}/invites/{email}").json()
 
     def resend_organization_member_invite(self, organization_id: Union[UUID, str], email: str) -> Dict:
         """
