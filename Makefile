@@ -16,3 +16,7 @@ pypitest: README.rst sdist
 test:
 	python -m unittest zanshinsdk/test_client.py
 
+coverage:
+	coverage run -m unittest zanshinsdk/test_client.py
+	coverage report
+
