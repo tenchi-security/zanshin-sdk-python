@@ -10,7 +10,7 @@ from os.path import isfile
 from zanshinsdk import Client, validate_uuid
 
 
-class PersistenceEntry(object):
+class PersistenceFollowingEntry(object):
     """Class that encapsulates the minimal persistence information needed to continuously process
     only new alerts from a given organization."""
 
@@ -87,7 +87,7 @@ class AbstractPersistentFollowingAlertsIterator(Iterator):
 
         self._cursor = cursor
 
-        self._persistence_entry = None
+        self._persistence_following_entry = None
         self._alerts = []
 
     @property
@@ -111,22 +111,27 @@ class AbstractPersistentFollowingAlertsIterator(Iterator):
         return self._cursor
 
     @property
-    def persistence_entry(self):
-        if not self._persistence_entry:
-            self._persistence_entry = self._load()
+    def persistence_following_entry(self):
+        if not self._persistence_following_entry:
+            self._persistence_following_entry = self._load()
 
-            if self._persistence_entry is None:
-                self._persistence_entry = PersistenceEntry(self.organization_id, self.following_ids, self.cursor)
+            if self._persistence_following_entry is None:
+                self._persistence_following_entry = PersistenceFollowingEntry(self.organization_id, self.following_ids,
+                                                                              self.cursor)
             else:
-                if not isinstance(self._persistence_entry, PersistenceEntry):
+                if not isinstance(self._persistence_following_entry, PersistenceFollowingEntry):
                     raise ValueError('load method should return a PersistenceEntry instance')
-                if not str(self._persistence_entry.organization_id) == str(self.organization_id):
+                if not str(self._persistence_following_entry.organization_id) == str(self.organization_id):
                     raise ValueError(
                         'PersistenceEntry instance does not match organization ID: ' + self.organization_id)
-                if tuple(self._persistence_entry.following_ids) != self.following_ids:
+                if tuple(self._persistence_following_entry.following_ids) != self.following_ids:
                     raise ValueError(
                         'PersistenceEntry instance does not match Scan Target IDs: ' + self.following_ids)
-        return self._persistence_entry
+        return self._persistence_following_entry
+
+    @persistence_following_entry.setter
+    def persistence_following_entry(self, value):
+        self._persistence_following_entry = value
 
     @abstractmethod
     def _load(self):
@@ -148,8 +153,7 @@ class AbstractPersistentFollowingAlertsIterator(Iterator):
 
         if self._alerts:
             alert = self._alerts.pop(0)
-            self._persistence_entry.cursor = alert['cursor']
-            self.save()
+            self.persistence_following_entry.cursor = alert['cursor']
             return alert
         else:
             raise StopIteration
@@ -160,9 +164,9 @@ class AbstractPersistentFollowingAlertsIterator(Iterator):
             return
 
         alerts_generator = self.client.iter_alerts_following_history(
-            organization_id=self.persistence_entry.organization_id,
-            following_ids=self.persistence_entry.following_ids,
-            cursor=self.persistence_entry.cursor
+            organization_id=self.persistence_following_entry.organization_id,
+            following_ids=self.persistence_following_entry.following_ids,
+            cursor=self.persistence_following_entry.cursor
         )
 
         for alert in alerts_generator:
@@ -176,13 +180,13 @@ class AbstractPersistentFollowingAlertsIterator(Iterator):
         self._save()
 
     def load(self):
-        self._persistence_entry = None
+        self.persistence_following_entry = None
         self._alerts = []
 
     def __str__(self):
         return "%s(organization_id=%s, following_ids=%s, cursor=%s, persistence_entry=%s) " \
                % (self.__class__.__name__, self.organization_id, self.following_ids, self.cursor,
-                  self.persistence_entry)
+                  self.persistence_following_entry)
 
 
 class FilePersistentFollowingAlertsIterator(AbstractPersistentFollowingAlertsIterator):
@@ -199,19 +203,19 @@ class FilePersistentFollowingAlertsIterator(AbstractPersistentFollowingAlertsIte
             with open(self.filename, 'r') as f:
                 pe = json.load(f)
                 if 'cursor' in pe:
-                    return PersistenceEntry(pe['organization_id'], pe['following_ids'].split(), pe['cursor'])
+                    return PersistenceFollowingEntry(pe['organization_id'], pe['following_ids'].split(), pe['cursor'])
         else:
             return None
 
     def _save(self):
         with open(self.filename, 'w') as f:
             pe = {
-                'organization_id': str(self.persistence_entry.organization_id),
-                'following_ids': ','.join(self.persistence_entry.following_ids),
-                'cursor': str(self.persistence_entry.cursor)
+                'organization_id': str(self.persistence_following_entry.organization_id),
+                'following_ids': ','.join(self.persistence_following_entry.following_ids),
+                'cursor': str(self.persistence_following_entry.cursor)
             }
             json.dump(pe, f)
 
     def __str__(self):
         return super(FilePersistentFollowingAlertsIterator, self).__str__()[:-1] + ", filename=%s)" \
-               % self._filename
+               % self.filename

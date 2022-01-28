@@ -149,7 +149,6 @@ class AbstractPersistentAlertsIterator(Iterator):
         if self._alerts:
             alert = self._alerts.pop(0)
             self._persistence_entry.cursor = alert['cursor']
-            self.save()
             return alert
         else:
             raise StopIteration
@@ -214,4 +213,4 @@ class FilePersistentAlertsIterator(AbstractPersistentAlertsIterator):
 
     def __str__(self):
         return super(FilePersistentAlertsIterator, self).__str__()[:-1] + ", filename=%s)" \
-               % self._filename
+               % self.filename
