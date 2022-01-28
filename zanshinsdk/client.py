@@ -11,9 +11,8 @@ import httpx
 
 from zanshinsdk import __version__ as sdk_version
 
-# Default values used for the configuration
-_CONFIG_DIR = Path.home() / '.tenchi'
-_CONFIG_FILE = _CONFIG_DIR / "config"
+CONFIG_DIR = Path.home() / '.tenchi'
+CONFIG_FILE = CONFIG_DIR / "config"
 
 
 class AlertState(str, Enum):
@@ -63,12 +62,12 @@ class Client:
         self._logger: logging.Logger = logging.getLogger('zanshinsdk')
 
         # read configuration file
-        if profile and _CONFIG_FILE.is_file():
+        if profile and CONFIG_FILE.is_file():
             parser = RawConfigParser()
-            parser.read(str(_CONFIG_FILE))
+            parser.read(str(CONFIG_FILE))
             if not parser.has_section(profile):
                 raise ValueError(
-                    f'profile {profile} not found in {_CONFIG_FILE}')
+                    f'profile {profile} not found in {CONFIG_FILE}')
         else:
             parser = None
 
