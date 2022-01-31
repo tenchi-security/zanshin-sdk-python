@@ -10,8 +10,9 @@ from zanshinsdk.iterator import AbstractPersistentAlertsIterator, PersistenceEnt
 
 
 class FilePersistentAlertsIterator(AbstractPersistentAlertsIterator):
-    def __init__(self, filename, *args, **kwargs):
-        super(FilePersistentAlertsIterator, self).__init__(field_name='scan_target_ids', *args, **kwargs)
+    def __init__(self, filename, scan_target_ids, *args, **kwargs):
+        super(FilePersistentAlertsIterator, self).__init__(field_name='scan_target_ids', filter_ids=scan_target_ids,
+                                                           *args, **kwargs)
         self._filename = filename
 
     @property
@@ -53,7 +54,3 @@ class FilePersistentAlertsIterator(AbstractPersistentAlertsIterator):
                 'cursor': str(self.persistence_entry.cursor)
             }
             json.dump(pe, f)
-
-    def __str__(self):
-        return super(FilePersistentAlertsIterator, self).__str__()[:-1] + ", filename=%s)" \
-               % self.filename

@@ -53,10 +53,6 @@ class PersistenceEntry(object):
     def cursor(self, value):
         self._cursor = value
 
-    def __str__(self):
-        return "%s(organization_id=%s, filter_ids=%s, cursor=%s)" \
-               % (self.__class__.__name__, self.organization_id, self.filter_ids, self.cursor)
-
 
 class AbstractPersistentAlertsIterator(Iterator):
     """Abstract class that encapsulates the logic of walking through an organization's alerts in
@@ -130,10 +126,11 @@ class AbstractPersistentAlertsIterator(Iterator):
                     raise ValueError('load method should return a PersistenceEntry instance')
                 if not str(self._persistence_entry.organization_id) == str(self.organization_id):
                     raise ValueError(
-                        'PersistenceEntry instance does not match organization ID: ' + self.organization_id)
-                if tuple(self._persistence_entry.filter_ids) != self.filter_ids:
+                        'PersistenceEntry instance does not match organization ID: ' + str(self.organization_id))
+                if ','.join(self._persistence_entry.filter_ids) != ','.join(self.filter_ids):
                     raise ValueError(
-                        f'PersistenceEntry instance does not match {self._field_name} IDs: ' + self.filter_ids)
+                        f'PersistenceEntry instance does not match {self._field_name} IDs: ' +
+                        ','.join(self.filter_ids))
         return self._persistence_entry
 
     @abstractmethod
@@ -175,8 +172,3 @@ class AbstractPersistentAlertsIterator(Iterator):
 
     def load_alerts(self):
         self._load_alerts()
-
-    def __str__(self):
-        return "%s(organization_id=%s, %s=%s, cursor=%s, (persistence_entry=%s)) " \
-               % (self.__class__.__name__, self.organization_id, self._field_name, self.filter_ids, self.cursor,
-                  self.persistence_entry.__str__())
