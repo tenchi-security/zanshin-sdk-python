@@ -4,7 +4,7 @@ This module allows persistent iteration of alerts. Some use cases include openin
 on new alerts, or even automating responses for some high-confidence alerts.
 """
 from abc import ABCMeta, abstractmethod
-from collections import Iterator
+from typing import Dict, Iterator
 from zanshinsdk import Client, validate_uuid
 
 
@@ -100,37 +100,23 @@ class AbstractPersistentAlertsIterator(Iterator):
         return self._client
 
     @property
-    def organization_id(self):
-        """A string in UUID format containing the ID's of the organization."""
-        return self._organization_id
-
-    @property
-    def filter_ids(self):
-        """A string in UUID format containing the ID's of the Scan Target."""
-        return self._filter_ids
-
-    @property
-    def cursor(self):
-        """A string in UUID format containing the ID's of the Scan Target or Following."""
-        return self._cursor
-
-    @property
     def persistence_entry(self):
         if not self._persistence_entry:
             self._persistence_entry = self._load()
 
             if self._persistence_entry is None:
-                self._persistence_entry = PersistenceEntry(self.organization_id, self.filter_ids, self.cursor)
+                self._persistence_entry = PersistenceEntry(self._organization_id, self._filter_ids, self._cursor)
             else:
                 if not isinstance(self._persistence_entry, PersistenceEntry):
                     raise ValueError('load method should return a PersistenceEntry instance')
-                if not str(self._persistence_entry.organization_id) == str(self.organization_id):
+                if not str(self._persistence_entry.organization_id) == str(self._organization_id):
                     raise ValueError(
-                        'PersistenceEntry instance does not match organization ID: ' + str(self.organization_id))
-                if ','.join(self._persistence_entry.filter_ids) != ','.join(self.filter_ids):
+                        'PersistenceEntry instance does not match organization ID: ' + str(self._organization_id))
+                if ','.join([str(filter_id) for filter_id in self._persistence_entry.filter_ids]) !=\
+                        ','.join([str(filter_id) for filter_id in self._filter_ids]):
                     raise ValueError(
                         f'PersistenceEntry instance does not match {self._field_name} IDs: ' +
-                        ','.join(self.filter_ids))
+                        ','.join([str(filter_id) for filter_id in self._filter_ids]))
         return self._persistence_entry
 
     @abstractmethod
@@ -145,7 +131,7 @@ class AbstractPersistentAlertsIterator(Iterator):
         pass
 
     @abstractmethod
-    def _load_alerts(self):
+    def _load_alerts(self) -> Iterator[Dict]:
         """Abstract method that saves a given organization's persistence data."""
         pass
 
@@ -154,10 +140,10 @@ class AbstractPersistentAlertsIterator(Iterator):
 
     def __next__(self):
         if not self._alerts:
-            self.load_alerts()
+            self._alerts = self.load_alerts()
 
         if self._alerts:
-            alert = self._alerts.pop(0)
+            alert = next(self._alerts)
             self._persistence_entry.cursor = alert['cursor']
             return alert
         else:
@@ -170,5 +156,5 @@ class AbstractPersistentAlertsIterator(Iterator):
         self._persistence_entry = None
         self._alerts = []
 
-    def load_alerts(self):
-        self._load_alerts()
+    def load_alerts(self) -> Iterator[Dict]:
+        return self._load_alerts()

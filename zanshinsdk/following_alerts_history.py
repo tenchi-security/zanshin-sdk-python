@@ -6,6 +6,7 @@ on new alerts, or even automating responses for some high-confidence alerts.
 import json
 
 from os.path import isfile
+from typing import Dict, Iterator
 from zanshinsdk.iterator import AbstractPersistentAlertsIterator, PersistenceEntry
 
 
@@ -19,23 +20,12 @@ class FilePersistentFollowingAlertsIterator(AbstractPersistentAlertsIterator):
     def filename(self):
         return self._filename
 
-    def _load_alerts(self):
-        # if we already have cached alerts, do nothing
-        if self._alerts:
-            return
-
-        alerts_generator = self.client.iter_alerts_following_history(
+    def _load_alerts(self) -> Iterator[Dict]:
+        return self.client.iter_alerts_following_history(
             organization_id=self.persistence_entry.organization_id,
             following_ids=self.persistence_entry.filter_ids,
             cursor=self.persistence_entry.cursor
         )
-
-        for alert in alerts_generator:
-            self._alerts.append(alert)
-
-        # if alert cache is not empty, we are finished for now
-        if self._alerts:
-            return
 
     def _load(self):
         if isfile(self.filename):
