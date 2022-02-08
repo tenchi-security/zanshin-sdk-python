@@ -33,7 +33,7 @@ jobs:
       run: |
         mkdir -p /home/runner/.tenchi
         touch /home/runner/.tenchi/config
-        echo "[default]\napi_key = apikey\n" > /home/runner/.tenchi/config
+        echo $'[default]\napi_key = apikey\n' > /home/runner/.tenchi/config
     - name: Test with makefile
       run: |
         make test
