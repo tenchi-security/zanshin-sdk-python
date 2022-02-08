@@ -11,17 +11,17 @@ import httpx
 
 from zanshinsdk import __version__ as sdk_version
 
-CONFIG_DIR = Path.home() / '.tenchi'
+CONFIG_DIR = Path.home() / ".tenchi"
 CONFIG_FILE = CONFIG_DIR / "config"
 
 
 class AlertState(str, Enum):
-    OPEN = 'OPEN'
-    ACTIVE = 'ACTIVE'
-    IN_PROGRESS = 'IN_PROGRESS'
-    RISK_ACCEPTED = 'RISK_ACCEPTED'
-    SOLVED = 'SOLVED'
-    CLOSED = 'CLOSED'
+    OPEN = "OPEN"
+    ACTIVE = "ACTIVE"
+    IN_PROGRESS = "IN_PROGRESS"
+    RISK_ACCEPTED = "RISK_ACCEPTED"
+    SOLVED = "SOLVED"
+    CLOSED = "CLOSED"
 
 
 class AlertSeverity(str, Enum):
@@ -36,6 +36,8 @@ class ScanTargetKind(str, Enum):
     AWS = "AWS"
     GCP = "GCP"
     AZURE = "AZURE"
+    HUAWEI = "HUAWEI"
+    ORACLE = "ORACLE"
 
 
 class Roles(str, Enum):
@@ -48,7 +50,7 @@ class Languages(str, Enum):
 
 
 class Client:
-    def __init__(self, profile: str = 'default', api_key: Optional[str] = None, api_url: Optional[str] = None,
+    def __init__(self, profile: str = "default", api_key: Optional[str] = None, api_url: Optional[str] = None,
                  user_agent: Optional[str] = None, proxy_url: Optional[str] = None):
         """
         Initialize a new connection to the Zanshin API
@@ -59,7 +61,7 @@ class Client:
         :param proxy_url: optional URL indicating which proxy server to use, or None for direct connections to the API
         """
         self._client = httpx.Client()
-        self._logger: logging.Logger = logging.getLogger('zanshinsdk')
+        self._logger: logging.Logger = logging.getLogger("zanshinsdk")
 
         # read configuration file
         if profile and CONFIG_FILE.is_file():
@@ -67,41 +69,55 @@ class Client:
             parser.read(str(CONFIG_FILE))
             if not parser.has_section(profile):
                 raise ValueError(
-                    f'profile {profile} not found in {CONFIG_FILE}')
+                    f"profile {profile} not found in {CONFIG_FILE}")
         else:
             parser = None
 
         # set API key
         if api_key:
             self._api_key = api_key
-        elif parser and parser.get(profile, 'api_key', fallback=None):
-            self._api_key = parser.get(profile, 'api_key')
+        elif parser and parser.get(profile, "api_key", fallback=None):
+            self._api_key = parser.get(profile, "api_key")
         else:
-            raise ValueError('no API key found')
+            raise ValueError("no API key found")
 
         # set API URL
         if api_url:
             self._api_url = api_url
-        elif parser and parser.get(profile, 'api_url', fallback=None):
-            self._api_url = parser.get(profile, 'api_url')
+        elif parser and parser.get(profile, "api_url", fallback=None):
+            self._api_key = parser.get(profile, "api_url")
         else:
-            self._api_url = 'https://api.zanshin.tenchisecurity.com'
+            self._api_url = "https://api.zanshin.tenchisecurity.com"
+
+        if self._api_url:
+            parsed = urlparse(self._api_url)
+            if not parsed.scheme or parsed.scheme not in (
+                    "http", "https") or not parsed.hostname or parsed.password or parsed.username or (
+                    parsed.port and (parsed.port <= 0 or parsed.port > 65535)):
+                raise ValueError(f"Invalid API URL: {self._api_url}")
 
         # set proxy URL
         if proxy_url:
             self._proxy_url = proxy_url
-        elif parser and parser.get(profile, 'proxy_url', fallback=None):
-            self._proxy_url = parser.get(profile, 'proxy_url')
+        elif parser and parser.get(profile, "proxy_url", fallback=None):
+            self._proxy_url = parser.get(profile, "proxy_url")
         else:
             self._proxy_url = None
+
+        if self._proxy_url:
+            parsed = urlparse(self._proxy_url)
+            if parsed.scheme not in ("http", "https") or not parsed.hostname or (
+                    parsed.password and not parsed.username) or (
+                    parsed.port and (parsed.port <= 0 or parsed.port > 65535)):
+                raise ValueError(f"Invalid proxy URL: {self._proxy_url}")
 
         # set user-agent
         if user_agent:
             self._user_agent = user_agent
-        elif parser and parser.get(profile, 'user_agent', fallback=None):
-            self._user_agent = parser.get(profile, 'user_agent')
+        elif parser and parser.get(profile, "user_agent", fallback=None):
+            self._user_agent = parser.get(profile, "user_agent")
         else:
-            self._user_agent = f'Zanshin Python SDK v{sdk_version}'
+            self._user_agent = f"Zanshin Python SDK v{sdk_version}"
 
         self._update_client()
 
@@ -116,7 +132,7 @@ class Client:
             pass
         finally:
             self._client = httpx.Client(proxies=self._proxy_url, timeout=60,
-                                        headers={"Authorization": f'Bearer {self._api_key}',
+                                        headers={"Authorization": f"Bearer {self._api_key}",
                                                  "Accept-Encoding": "gzip, deflate",
                                                  "User-Agent": self.user_agent,
                                                  "Accept": "application/json"})
@@ -127,12 +143,15 @@ class Client:
 
     @api_url.setter
     def api_url(self, new_api_url: str) -> None:
+        if new_api_url is None:
+            raise ValueError(f"API URL cannot be null")
+
         parsed = urlparse(new_api_url)
         if not parsed.scheme or parsed.scheme not in (
-                'http', 'https') or not parsed.hostname or parsed.password or parsed.username or (
+                "http", "https") or not parsed.hostname or parsed.password or parsed.username or (
                 parsed.port and (parsed.port <= 0 or parsed.port > 65535)):
-            raise ValueError(f'Invalid API URL: {self.api_url}')
-        self._api_url: str = new_api_url.rstrip('/')
+            raise ValueError(f"Invalid API URL: {new_api_url}")
+        self._api_url: str = new_api_url.rstrip("/")
 
     @property
     def api_key(self) -> str:
@@ -149,15 +168,15 @@ class Client:
 
     @proxy_url.setter
     def proxy_url(self, new_proxy_url: Optional[str]) -> None:
-        if new_proxy_url and new_proxy_url != self._proxy_url:
-            self._proxy_url: Optional[str] = new_proxy_url
-            parsed = urlparse(self._proxy_url)
-            if parsed.scheme not in ('http', 'https') or not parsed.hostname or (
+        if new_proxy_url is None:
+            self._proxy_url = None
+        elif new_proxy_url != self._proxy_url:
+            parsed = urlparse(new_proxy_url)
+            if parsed.scheme not in ("http", "https") or not parsed.hostname or (
                     parsed.password and not parsed.username) or (
                     parsed.port and (parsed.port <= 0 or parsed.port > 65535)):
-                raise ValueError(f'Invalid proxy URL: {self._proxy_url}')
-        else:
-            self._proxy_url: Optional[str] = None
+                raise ValueError(f"Invalid proxy URL: {new_proxy_url}")
+            self._proxy_url = new_proxy_url
         self._update_client()
 
     @property
@@ -171,20 +190,20 @@ class Client:
 
     def _get_sanitized_proxy_url(self) -> Optional[str]:
         """
-        Returns a sanitized proxy URL that doesn't expose a password, if one is present.
+        Returns a sanitized proxy URL that doesn"t expose a password, if one is present.
         :return:
         """
         if self.proxy_url:
             url = urlparse(self.proxy_url)
-            proxy_url = f'{url.scheme}://'
+            proxy_url = f"{url.scheme}://"
             if url.username:
                 proxy_url += url.username
                 if url.password:
-                    proxy_url += ':***'
-                proxy_url += '@'
+                    proxy_url += ":***"
+                proxy_url += "@"
             proxy_url += url.hostname
             if url.port:
-                proxy_url += f':{url.port}'
+                proxy_url += f":{url.port}"
             return proxy_url
         else:
             return None
@@ -202,11 +221,11 @@ class Client:
             method=method, url=self.api_url + path, params=params, json=body)
 
         if response.request.content:
-            self._logger.debug('%s %s (%d bytes in request body) status code %d', response.request.method,
+            self._logger.debug("%s %s (%d bytes in request body) status code %d", response.request.method,
                                response.request.url,
                                len(response.request.content), response.status_code)
         else:
-            self._logger.debug('%s %s status code %d', response.request.method, response.request.url,
+            self._logger.debug("%s %s status code %d", response.request.method, response.request.url,
                                response.status_code)
         response.raise_for_status()
         return response
@@ -342,7 +361,7 @@ class Client:
 
     def get_organization_member(self, organization_id: Union[UUID, str], member_id: Union[UUID, str]) -> Dict:
         """
-        Get details on a user's organization membership.
+        Get details on a user"s organization membership.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationMembers>
         :param organization_id: the ID of the organization
         :param member_id: the ID of the member
@@ -565,7 +584,7 @@ class Client:
         :return: a dict representing the following request
         """
         return self._request("GET",
-                             f"/organizations/{validate_uuid(organization_id)}/followers/requests/"
+                             f"/organizations/{validate_uuid(organization_id)}/following/requests/"
                              f"{validate_uuid(following_id)}").json()
 
     def accept_organization_following_request(self, organization_id: Union[UUID, str],
@@ -592,7 +611,7 @@ class Client:
         """
         return self._request("POST",
                              f"/organizations/{validate_uuid(organization_id)}/following/requests/"
-                             f"{validate_uuid(following_id)}/accept").json()
+                             f"{validate_uuid(following_id)}/decline").json()
 
     ###################################################
     # Organization Scan Target
@@ -627,25 +646,30 @@ class Client:
         validate_class(credential, dict)
 
         credential_keys = ""
+
         if kind == ScanTargetKind.AWS:
-            credential_keys = {'account'}
+            credential_keys = {"account"}
         elif kind == ScanTargetKind.AZURE:
-            credential_keys = {'applicationId',
-                               'subscriptionId', 'directoryId', 'secret'}
+            credential_keys = {"applicationId",
+                               "subscriptionId", "directoryId", "secret"}
         elif kind == ScanTargetKind.GCP:
-            credential_keys = {'projectId'}
+            credential_keys = {"projectId"}
+        elif kind == ScanTargetKind.HUAWEI:
+            credential_keys = {"accountId"}
+
         if set(credential.keys()) != credential_keys:
             raise ValueError(
-                f'credential should contain the following field(s): {", ".join(credential_keys)}')
+                f"credential should contain the following field(s): {', '.join(credential_keys)}")
         for k in credential_keys:
             validate_class(credential[k], str)
 
         body = {
-            'name': name,
-            'kind': kind,
-            'credential': credential
+            "name": name,
+            "kind": kind,
+            "credential": credential,
+            "schedule": schedule
         }
-        return self._request('POST', f'/organizations/{validate_uuid(organization_id)}/scantargets',
+        return self._request("POST", f"/organizations/{validate_uuid(organization_id)}/scantargets",
                              body=body).json()
 
     def get_organization_scan_target(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]) -> Dict:
@@ -810,27 +834,27 @@ class Client:
                 scan_target_ids = [scan_target_ids]
             else:
                 validate_class(scan_target_ids, Iterable)
-            body['scanTargetIds'] = [validate_uuid(x) for x in scan_target_ids]
+            body["scanTargetIds"] = [validate_uuid(x) for x in scan_target_ids]
         if rule:
-            body['rule'] = rule
+            body["rule"] = rule
         if states:
             validate_class(states, Iterable)
-            body['states'] = [validate_class(
+            body["states"] = [validate_class(
                 x, AlertState).value for x in states]
         if severities:
             validate_class(severities, Iterable)
-            body['severities'] = [validate_class(
+            body["severities"] = [validate_class(
                 x, AlertSeverity).value for x in severities]
         if language:
-            body['lang'] = language
+            body["lang"] = language
         if created_at_start:
-            body['CreatedAtStart'] = created_at_start
+            body["CreatedAtStart"] = created_at_start
         if created_at_end:
-            body['CreatedAtEnd'] = created_at_end
+            body["CreatedAtEnd"] = created_at_end
         if updated_at_start:
-            body['UpdatedAtStart'] = updated_at_start
+            body["UpdatedAtStart"] = updated_at_start
         if updated_at_end:
-            body['UpdatedAtEnd'] = updated_at_end
+            body["UpdatedAtEnd"] = updated_at_end
 
         return self._request("POST", "/alerts", body=body).json()
 
@@ -865,14 +889,14 @@ class Client:
                                      page_size=page_size, language=language, created_at_start=created_at_start,
                                      created_at_end=created_at_end, updated_at_start=updated_at_start,
                                      updated_at_end=updated_at_end)
-        yield from page.get('data', [])
-        for page_number in range(2, int(ceil(page.get('total', 0) / float(page_size))) + 1):
+        yield from page.get("data", [])
+        for page_number in range(2, int(ceil(page.get("total", 0) / float(page_size))) + 1):
             page = self._get_alerts_page(organization_id, scan_target_ids, rule, states, severities,
                                          page=page_number, page_size=page_size, language=language,
                                          created_at_start=created_at_start,
                                          created_at_end=created_at_end, updated_at_start=updated_at_start,
                                          updated_at_end=updated_at_end)
-            yield from page.get('data', [])
+            yield from page.get("data", [])
 
     def _get_following_alerts_page(self, organization_id: Union[UUID, str],
                                    following_ids: Optional[Iterable[Union[UUID, str]]] = None,
@@ -914,27 +938,27 @@ class Client:
                 following_ids = [following_ids]
             else:
                 validate_class(following_ids, Iterable)
-            body['followingIds'] = [validate_uuid(x) for x in following_ids]
+            body["followingIds"] = [validate_uuid(x) for x in following_ids]
         if rule:
-            body['rule'] = rule
+            body["rule"] = rule
         if states:
             validate_class(states, Iterable)
-            body['states'] = [validate_class(
+            body["states"] = [validate_class(
                 x, AlertState).value for x in states]
         if severities:
             validate_class(severities, Iterable)
-            body['severities'] = [validate_class(
+            body["severities"] = [validate_class(
                 x, AlertSeverity).value for x in severities]
         if language:
-            body['lang'] = language
+            body["lang"] = language
         if created_at_start:
-            body['CreatedAtStart'] = created_at_start
+            body["CreatedAtStart"] = created_at_start
         if created_at_end:
-            body['CreatedAtEnd'] = created_at_end
+            body["CreatedAtEnd"] = created_at_end
         if updated_at_start:
-            body['UpdatedAtStart'] = updated_at_start
+            body["UpdatedAtStart"] = updated_at_start
         if updated_at_end:
-            body['UpdatedAtEnd'] = updated_at_end
+            body["UpdatedAtEnd"] = updated_at_end
 
         return self._request("POST", "/alerts/following", body=body).json()
 
@@ -975,8 +999,8 @@ class Client:
             # workaround for API limitation
             following_ids = set()
             for org in self.iter_organizations():
-                following_ids |= {x['id']
-                                  for x in self.iter_organization_following(org['id'])}
+                following_ids |= {x["id"]
+                                  for x in self.iter_organization_following(org["id"])}
             following_ids = list(following_ids)
 
         page = self._get_following_alerts_page(organization_id, following_ids, rule, states, severities, page=1,
@@ -984,16 +1008,16 @@ class Client:
                                                language=language, created_at_start=created_at_start,
                                                created_at_end=created_at_end,
                                                updated_at_start=updated_at_start, updated_at_end=updated_at_end)
-        yield from page.get('data', [])
+        yield from page.get("data", [])
 
-        for page_number in range(2, int(ceil(page.get('total', 0) / float(page_size))) + 1):
+        for page_number in range(2, int(ceil(page.get("total", 0) / float(page_size))) + 1):
             page = self._get_following_alerts_page(organization_id, following_ids, rule, states, severities,
                                                    page=page_number,
                                                    page_size=page_size, language=language,
                                                    created_at_start=created_at_start,
                                                    created_at_end=created_at_end, updated_at_start=updated_at_start,
                                                    updated_at_end=updated_at_end)
-            yield from page.get('data', [])
+            yield from page.get("data", [])
 
     def _get_alerts_history_page(self, organization_id: Union[UUID, str],
                                  scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
@@ -1022,11 +1046,11 @@ class Client:
                 scan_target_ids = [scan_target_ids]
             else:
                 validate_class(scan_target_ids, Iterable)
-            body['scanTargetIds'] = [validate_uuid(x) for x in scan_target_ids]
+            body["scanTargetIds"] = [validate_uuid(x) for x in scan_target_ids]
         if language:
-            body['lang'] = language
+            body["lang"] = language
         if cursor:
-            body['cursor'] = cursor
+            body["cursor"] = cursor
 
         return self._request("POST", "/alerts/history", body=body).json()
 
@@ -1036,7 +1060,7 @@ class Client:
                             language: Optional[Languages] = None,
                             cursor: Optional[str] = None) -> Iterator[Dict]:
         """
-        Iterates over the alerts' history of an organization by loading them, transparently paginating on the API.
+        Iterates over the alerts" history of an organization by loading them, transparently paginating on the API.
         <https://api.zanshin.tenchisecurity.com/#operation/listAllAlertsHistory>
         :param organization_id: the ID of the organization
         :param scan_target_ids: optional list of scan target IDs to list alerts from, defaults to all
@@ -1049,14 +1073,14 @@ class Client:
 
         page = self._get_alerts_history_page(organization_id, scan_target_ids, page_size=page_size, language=language,
                                              cursor=cursor)
-        data = page.get('data', [])
+        data = page.get("data", [])
         yield from data
 
         while len(data) > 0:
-            cursor = data[len(data) - 1]['cursor']
+            cursor = data[len(data) - 1]["cursor"]
             page = self._get_alerts_history_page(organization_id, scan_target_ids, page_size=page_size,
                                                  language=language, cursor=cursor)
-            data = page.get('data', [])
+            data = page.get("data", [])
             yield from data
 
     def _get_alerts_following_history_page(self, organization_id: Union[UUID, str],
@@ -1087,11 +1111,11 @@ class Client:
                 following_ids = [following_ids]
             else:
                 validate_class(following_ids, Iterable)
-            body['following_ids'] = [validate_uuid(x) for x in following_ids]
+            body["following_ids"] = [validate_uuid(x) for x in following_ids]
         if language:
-            body['lang'] = language
+            body["lang"] = language
         if cursor:
-            body['cursor'] = cursor
+            body["cursor"] = cursor
 
         return self._request("POST", "/alerts/history/following", body=body).json()
 
@@ -1101,7 +1125,7 @@ class Client:
                                       language: Optional[Languages] = None,
                                       cursor: Optional[str] = None) -> Iterator[Dict]:
         """
-        Iterates over the alerts' history of an organization by loading them, transparently paginating on the API
+        Iterates over the alerts" history of an organization by loading them, transparently paginating on the API
         <https://api.zanshin.tenchisecurity.com/#operation/listAllAlertsHistoryFollowing>
         :param organization_id: the ID of the organization
         :param following_ids: optional list of IDs of organizations you are following to list alerts from, defaults to
@@ -1114,14 +1138,14 @@ class Client:
         """
         page = self._get_alerts_following_history_page(organization_id, following_ids, page_size=page_size,
                                                        language=language, cursor=cursor)
-        data = page.get('data', [])
+        data = page.get("data", [])
         yield from data
 
         while len(data) > 0:
-            cursor = data[len(data) - 1]['cursor']
+            cursor = data[len(data) - 1]["cursor"]
             page = self._get_alerts_following_history_page(organization_id, following_ids, page_size=page_size,
                                                            language=language, cursor=cursor)
-            data = page.get('data', [])
+            data = page.get("data", [])
             yield from data
 
     def _get_grouped_alerts_page(self, organization_id: Union[UUID, str],
@@ -1151,14 +1175,14 @@ class Client:
                 scan_target_ids = [scan_target_ids]
             else:
                 validate_class(scan_target_ids, Iterable)
-            body['scanTargetIds'] = [validate_uuid(x) for x in scan_target_ids]
+            body["scanTargetIds"] = [validate_uuid(x) for x in scan_target_ids]
         if states:
             validate_class(states, Iterable)
-            body['states'] = [validate_class(
+            body["states"] = [validate_class(
                 x, AlertState).value for x in states]
         if severities:
             validate_class(severities, Iterable)
-            body['severities'] = [validate_class(
+            body["severities"] = [validate_class(
                 x, AlertSeverity).value for x in severities]
         return self._request("POST", "/alerts/rules", body=body).json()
 
@@ -1179,11 +1203,11 @@ class Client:
         """
         page = self._get_grouped_alerts_page(organization_id, scan_target_ids, states, severities, page=1,
                                              page_size=page_size)
-        yield from page.get('data', [])
-        for page_number in range(2, int(ceil(page.get('total', 0) / float(page_size))) + 1):
+        yield from page.get("data", [])
+        for page_number in range(2, int(ceil(page.get("total", 0) / float(page_size))) + 1):
             page = self._get_grouped_alerts_page(organization_id, scan_target_ids, states, severities,
                                                  page=page_number, page_size=page_size)
-            yield from page.get('data', [])
+            yield from page.get("data", [])
 
     def _get_grouped_following_alerts_page(self, organization_id: Union[UUID, str],
                                            following_ids: Optional[Iterable[Union[UUID, str]]] = None,
@@ -1212,14 +1236,14 @@ class Client:
                 following_ids = [following_ids]
             else:
                 validate_class(following_ids, Iterable)
-            body['followingIds'] = [validate_uuid(x) for x in following_ids]
+            body["followingIds"] = [validate_uuid(x) for x in following_ids]
         if states:
             validate_class(states, Iterable)
-            body['states'] = [validate_class(
+            body["states"] = [validate_class(
                 x, AlertState).value for x in states]
         if severities:
             validate_class(severities, Iterable)
-            body['severities'] = [validate_class(
+            body["severities"] = [validate_class(
                 x, AlertSeverity).value for x in severities]
 
         return self._request("POST", "/alerts/rules/following", body=body).json()
@@ -1251,18 +1275,18 @@ class Client:
             # workaround for API limitation
             following_ids = set()
             for org in self.iter_organizations():
-                following_ids |= {x['id']
-                                  for x in self.iter_organization_following(org['id'])}
+                following_ids |= {x["id"]
+                                  for x in self.iter_organization_following(org["id"])}
             following_ids = list(following_ids)
 
-        page = self._get_following_alerts_page(
+        page = self._get_grouped_following_alerts_page(
             organization_id, following_ids, states, severities, page=1, page_size=page_size)
-        yield from page.get('data', [])
+        yield from page.get("data", [])
 
-        for page_number in range(2, int(ceil(page.get('total', 0) / float(page_size))) + 1):
-            page = self._get_following_alerts_page(organization_id, following_ids, states, severities, page=page_number,
-                                                   page_size=page_size)
-            yield from page.get('data', [])
+        for page_number in range(2, int(ceil(page.get("total", 0) / float(page_size))) + 1):
+            page = self._get_grouped_following_alerts_page(organization_id, following_ids, states,
+                                                           severities, page=page_number, page_size=page_size)
+            yield from page.get("data", [])
 
     def get_alert(self, alert_id: Union[UUID, str]) -> Dict:
         """
@@ -1333,10 +1357,10 @@ class Client:
             "comment": comment
         }
 
-        yield from self._request("POST",
-                                 f"/organizations/{validate_uuid(organization_id)}/scantargets/"
-                                 f"{validate_uuid(scan_target_id)}/alerts/{validate_uuid(alert_id)}/comments",
-                                 body=body).json()
+        return self._request("POST",
+                             f"/organizations/{validate_uuid(organization_id)}/scantargets/"
+                             f"{validate_uuid(scan_target_id)}/alerts/{validate_uuid(alert_id)}/comments",
+                             body=body).json()
 
     ###################################################
     # Summary
@@ -1360,13 +1384,13 @@ class Client:
                 scan_target_ids = [scan_target_ids]
             else:
                 validate_class(scan_target_ids, Iterable)
-            body['scanTargetIds'] = list(
+            body["scanTargetIds"] = list(
                 {validate_uuid(x) for x in scan_target_ids})
 
         return self._request("POST", "/alerts/summaries", body=body).json()
 
     def get_following_alert_summaries(self, organization_id: Union[UUID, str],
-                                      following_ids: Iterable[Union[UUID, str]]) -> Dict:
+                                      following_ids: Optional[Iterable[Union[UUID, str]]] = None) -> Dict:
         """
         Gets a summary of the current state of alerts for followed organizations.
         <https://api.zanshin.tenchisecurity.com/#operation/alertFollowingSummary>
@@ -1375,15 +1399,15 @@ class Client:
         :return: JSON object containing the alert summaries
         """
 
-        if isinstance(following_ids, str):
-            following_ids = [following_ids]
-        else:
-            validate_class(following_ids, Iterable)
+        body = {"organizationId": validate_uuid(organization_id)}
 
-        body = {
-            "organizationId": validate_uuid(organization_id),
-            "followingIds": list({validate_uuid(x)
-                                  for x in following_ids})}
+        if following_ids:
+            if isinstance(following_ids, str):
+                following_ids = [following_ids]
+            else:
+                validate_class(following_ids, Iterable)
+            body["followingIds"] = list(
+                {validate_uuid(x) for x in following_ids})
 
         return self._request("POST", "/alerts/summaries/following", body=body).json()
 
@@ -1409,12 +1433,13 @@ class Client:
                 scan_target_ids = [scan_target_ids]
             else:
                 validate_class(scan_target_ids, Iterable)
-            body['scanTargetIds'] = list(
+            body["scanTargetIds"] = list(
                 {validate_uuid(x) for x in scan_target_ids})
 
         return self._request("POST", "/alerts/summaries/scans", body=body).json()
 
-    def get_following_scan_summaries(self, organization_id: Union[UUID, str], following_ids: Iterable[Union[UUID, str]],
+    def get_following_scan_summaries(self, organization_id: Union[UUID, str],
+                                     following_ids: Optional[Iterable[Union[UUID, str]]] = None,
                                      days: Optional[int] = 7) -> Dict:
         """
         Gets a summary of the current state of alerts for followed organizations.
@@ -1425,44 +1450,46 @@ class Client:
         :return: JSON object containing the scan summaries
         """
 
-        if isinstance(following_ids, str):
-            following_ids = [following_ids]
-        else:
-            validate_class(following_ids, Iterable)
-
         body = {
             "organizationId": validate_uuid(organization_id),
-            "followingIds": list({validate_uuid(x) for x in following_ids}),
             "daysBefore": validate_int(days, min_value=1)
         }
+
+        if following_ids:
+            if isinstance(following_ids, str):
+                following_ids = [following_ids]
+            else:
+                validate_class(following_ids, Iterable)
+            body["followingIds"] = list(
+                {validate_uuid(x) for x in following_ids})
 
         return self._request("POST", "/alerts/summaries/scans/following", body=body).json()
 
     def __repr__(self):
-        return f'Connection(api_url="{self.api_url}", api_key="***{self._api_key[-6:]}", ' \
-               f'user_agent="{self.user_agent}, proxy_url={self._get_sanitized_proxy_url()}")'
+        return f"Connection(api_url='{self.api_url}', api_key='***{self._api_key[-6:]}', " \
+               f"user_agent='{self.user_agent}, proxy_url={self._get_sanitized_proxy_url()}')"
 
 
 def validate_int(value, min_value=None, max_value=None, required=False) -> Optional[int]:
     if value is None:
         if required:
-            raise ValueError('required integer parameter missing')
+            raise ValueError("required integer parameter missing")
         else:
             return value
     if not isinstance(value, int):
-        raise TypeError(f'{repr(value)} is not an integer')
+        raise TypeError(f"{repr(value)} is not an integer")
     if min_value and value < min_value:
-        raise ValueError(f'{repr(value)} shouldn\'t be lower than {min_value}')
+        raise ValueError(f"{repr(value)} shouldn\"t be lower than {min_value}")
     if max_value and value > max_value:
         raise ValueError(
-            f'{repr(value)} shouldn\'t be higher than {max_value}')
+            f"{repr(value)} shouldn\"t be higher than {max_value}")
     return value
 
 
 def validate_class(value, class_type):
     if not isinstance(value, class_type):
         raise TypeError(
-            f'{repr(value)} is not an instance of {class_type.__name__}')
+            f"{repr(value)} is not an instance of {class_type.__name__}")
     return value
 
 
@@ -1472,4 +1499,4 @@ def validate_uuid(uuid: Union[UUID, str]) -> str:
     elif isinstance(uuid, UUID):
         return str(uuid)
     else:
-        raise TypeError(f'{repr(uuid)} is not a valid UUID')
+        raise TypeError(f"{repr(uuid)} is not a valid UUID")

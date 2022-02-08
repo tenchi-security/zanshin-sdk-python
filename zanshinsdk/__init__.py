@@ -8,5 +8,8 @@ logging.getLogger(__name__).addHandler(logging.NullHandler())
 # dependencies are not present yet
 try:
     from zanshinsdk.client import Client, AlertState, AlertSeverity, ScanTargetKind, validate_uuid
+    from zanshinsdk.iterator import AbstractPersistentAlertsIterator, PersistenceEntry
+    from zanshinsdk.alerts_history import FilePersistentAlertsIterator
+    from zanshinsdk.following_alerts_history import FilePersistentFollowingAlertsIterator
 except ImportError:
     pass

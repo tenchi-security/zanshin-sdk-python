@@ -19,8 +19,10 @@ class PersistenceEntry(object):
         :param cursor:
         """
 
-        if not validate_uuid(organization_id):
-            raise ValueError('invalid organization ID')
+        try:
+            validate_uuid(organization_id)
+        except:
+            raise ValueError("invalid organization ID")
         self._organization_id = organization_id
 
         if filter_ids is None:
@@ -28,8 +30,10 @@ class PersistenceEntry(object):
 
         if filter_ids:
             for filter_id in filter_ids:
-                if not validate_uuid(filter_id):
-                    raise ValueError('invalid filter ID')
+                try:
+                    validate_uuid(filter_id)
+                except:
+                    raise ValueError("invalid filter ID")
         self._filter_ids = filter_ids
 
         self._cursor = cursor
@@ -76,17 +80,21 @@ class AbstractPersistentAlertsIterator(Iterator):
             filter_ids = []
 
         if not isinstance(client, Client):
-            raise ValueError('invalid client')
+            raise ValueError("invalid client")
         self._client = client
 
-        if not validate_uuid(organization_id):
-            raise ValueError('invalid organization ID')
+        try:
+            validate_uuid(organization_id)
+        except:
+            raise ValueError("invalid organization ID")
         self._organization_id = organization_id
 
         if filter_ids:
             for filter_id in filter_ids:
-                if not validate_uuid(filter_id):
-                    raise ValueError(f'invalid {field_name} ID')
+                try:
+                    validate_uuid(filter_id)
+                except:
+                    raise ValueError(f"invalid {field_name} ID")
         self._filter_ids = filter_ids
 
         self._cursor = cursor
@@ -108,35 +116,29 @@ class AbstractPersistentAlertsIterator(Iterator):
                 self._persistence_entry = PersistenceEntry(self._organization_id, self._filter_ids, self._cursor)
             else:
                 if not isinstance(self._persistence_entry, PersistenceEntry):
-                    raise ValueError('load method should return a PersistenceEntry instance')
+                    raise ValueError("load method should return a PersistenceEntry instance")
                 if not str(self._persistence_entry.organization_id) == str(self._organization_id):
                     raise ValueError(
-                        'PersistenceEntry instance does not match organization ID: ' + str(self._organization_id))
-                if ','.join([str(filter_id) for filter_id in self._persistence_entry.filter_ids]) !=\
-                        ','.join([str(filter_id) for filter_id in self._filter_ids]):
+                        f"PersistenceEntry instance does not match organization ID: {str(self._organization_id)}")
+                if ",".join([str(filter_id) for filter_id in self._persistence_entry.filter_ids]) !=\
+                        ",".join([str(filter_id) for filter_id in self._filter_ids]):
                     raise ValueError(
-                        f'PersistenceEntry instance does not match {self._field_name} IDs: ' +
-                        ','.join([str(filter_id) for filter_id in self._filter_ids]))
+                        f"PersistenceEntry instance does not match {self._field_name} IDs: " +
+                        ",".join([str(filter_id) for filter_id in self._filter_ids]))
         return self._persistence_entry
 
     @abstractmethod
     def _load(self):
         """Abstract method that loads a given organization's persistence data. Implementations
         should return a PersistenceEntry instance or None."""
-        pass
 
     @abstractmethod
     def _save(self):
         """Abstract method that saves a given organization's persistence data."""
-        pass
 
     @abstractmethod
     def _load_alerts(self) -> Iterator[Dict]:
         """Abstract method that saves a given organization's persistence data."""
-        pass
-
-    def __iter__(self):
-        return self
 
     def __next__(self):
         if not self._alerts:
@@ -144,7 +146,7 @@ class AbstractPersistentAlertsIterator(Iterator):
 
         if self._alerts:
             alert = next(self._alerts)
-            self._persistence_entry.cursor = alert['cursor']
+            self.persistence_entry.cursor = alert["cursor"]
             return alert
         else:
             raise StopIteration

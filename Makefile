@@ -14,9 +14,13 @@ pypitest: README.rst sdist
 	twine upload --repository pypitest dist/*
 
 test:
-	python -m unittest zanshinsdk/test_client.py
+	python -m unittest discover -v
 
 coverage:
-	coverage run -m unittest zanshinsdk/test_client.py
+	coverage run -m unittest discover
 	coverage report
+
+coverage_missing:
+	coverage run -m unittest discover
+	coverage report -m
 
