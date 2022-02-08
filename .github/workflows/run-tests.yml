@@ -3,7 +3,7 @@
 
 name: Test zanshin-sdk
 
-on: [push, pull_request]
+on: [push]
 
 jobs:
   build:
@@ -11,33 +11,54 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v2
-      with:
-        python-version: "3.10"
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install flake8 pytest
-        pip install httpx
-        pip install coverage
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Lint with flake8
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Create fake tenchi config
-      run: |
-        mkdir -p /home/runner/.tenchi
-        touch /home/runner/.tenchi/config
-        echo $'[default]\napi_key = apikey\n' > /home/runner/.tenchi/config
-    - name: Test with makefile
-      run: |
-        make test
-    - name: Test coverage
-      run: |
-        make coverage
+      - name: Checkout
+        uses: actions/checkout@v2
 
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pytest
+          pip install httpx
+          pip install coverage
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Create fake tenchi config
+        run: |
+          mkdir -p /home/runner/.tenchi
+          touch /home/runner/.tenchi/config
+          echo $'[default]\napi_key = apikey\n' > /home/runner/.tenchi/config
+
+      - name: Unit test
+        run: |
+          make test
+
+      - name: Test coverage
+        run: |
+          make coverage
+
+      - name: Coverage comment
+        id: coverage_comment
+        uses: ewjoachim/python-coverage-comment-action@v2
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Store Pull Request comment to be posted
+        uses: actions/upload-artifact@v2
+        if: steps.coverage_comment.outputs.COMMENT_FILE_WRITTEN == 'true'
+        with:
+          # If you use a different name, update COMMENT_ARTIFACT_NAME accordingly
+          name: python-coverage-comment-action
+          # If you use a different name, update COMMENT_FILENAME accordingly
+          path: python-coverage-comment-action.txt
