@@ -20,7 +20,6 @@ class AlertState(str, Enum):
     ACTIVE = "ACTIVE"
     IN_PROGRESS = "IN_PROGRESS"
     RISK_ACCEPTED = "RISK_ACCEPTED"
-    SOLVED = "SOLVED"
     CLOSED = "CLOSED"
 
 
