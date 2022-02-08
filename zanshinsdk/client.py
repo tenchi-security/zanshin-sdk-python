@@ -112,9 +112,9 @@ class Client:
 
         # set user-agent
         if user_agent:
-            self._user_agent = user_agent
+            self._user_agent = f"{user_agent} (Zanshin Python SDK v{sdk_version})"
         elif parser and parser.get(profile, "user_agent", fallback=None):
-            self._user_agent = parser.get(profile, "user_agent")
+            self._user_agent = f"{parser.get(profile, 'user_agent')} (Zanshin Python SDK v{sdk_version})"
         else:
             self._user_agent = f"Zanshin Python SDK v{sdk_version}"
 
@@ -184,7 +184,7 @@ class Client:
 
     @user_agent.setter
     def user_agent(self, new_user_agent: str) -> None:
-        self._user_agent = new_user_agent
+        self._user_agent = f"{new_user_agent} (Zanshin Python SDK v{sdk_version})"
         self._update_client()
 
     def _get_sanitized_proxy_url(self) -> Optional[str]:

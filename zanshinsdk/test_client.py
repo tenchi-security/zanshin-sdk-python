@@ -66,7 +66,7 @@ class TestClient(unittest.TestCase):
 
         client = zanshinsdk.Client(user_agent=_user_agent)
 
-        self.assertEqual(client._user_agent, _user_agent)
+        self.assertEqual(client._user_agent, f"{_user_agent} (Zanshin Python SDK v{zanshinsdk.__version__})")
 
     ###################################################
     # _update_client except
@@ -180,7 +180,7 @@ class TestClient(unittest.TestCase):
 
         client = zanshinsdk.Client(user_agent=_user_agent)
 
-        self.assertEqual(client.user_agent, _user_agent)
+        self.assertEqual(client.user_agent, f"{_user_agent} (Zanshin Python SDK v{zanshinsdk.__version__})")
 
     def test_set_user_agent(self):
         _user_agent = "test_agent"
@@ -189,7 +189,7 @@ class TestClient(unittest.TestCase):
         client = zanshinsdk.Client(user_agent=_user_agent)
         client.user_agent = _new_user_agent
 
-        self.assertEqual(client.user_agent, _new_user_agent)
+        self.assertEqual(client.user_agent, f"{_new_user_agent} (Zanshin Python SDK v{zanshinsdk.__version__})")
 
     ###################################################
     # Account
