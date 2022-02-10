@@ -1,3 +1,4 @@
+![ Coverage badge ](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/wiki/tenchi-security/zanshin-sdk-python/python-coverage-comment-action-badge.json)
 [![PyPI version shields.io](https://img.shields.io/pypi/v/zanshinsdk.svg)](https://pypi.python.org/pypi/zanshinsdk/) [![PyPI pyversions](https://img.shields.io/pypi/pyversions/zanshinsdk.svg)](https://pypi.python.org/pypi/zanshinsdk/)
 
 # Zanshin Python SDK
