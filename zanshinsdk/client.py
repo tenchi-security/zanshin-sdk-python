@@ -11,18 +11,16 @@ import httpx
 
 from zanshinsdk import __version__ as sdk_version
 
-# Default values used for the configuration
-_CONFIG_DIR = Path.home() / '.tenchi'
-_CONFIG_FILE = _CONFIG_DIR / "config"
+CONFIG_DIR = Path.home() / ".tenchi"
+CONFIG_FILE = CONFIG_DIR / "config"
 
 
 class AlertState(str, Enum):
-    OPEN = 'OPEN'
-    ACTIVE = 'ACTIVE'
-    IN_PROGRESS = 'IN_PROGRESS'
-    RISK_ACCEPTED = 'RISK_ACCEPTED'
-    SOLVED = 'SOLVED'
-    CLOSED = 'CLOSED'
+    OPEN = "OPEN"
+    ACTIVE = "ACTIVE"
+    IN_PROGRESS = "IN_PROGRESS"
+    RISK_ACCEPTED = "RISK_ACCEPTED"
+    CLOSED = "CLOSED"
 
 
 class AlertSeverity(str, Enum):
@@ -37,68 +35,88 @@ class ScanTargetKind(str, Enum):
     AWS = "AWS"
     GCP = "GCP"
     AZURE = "AZURE"
+    HUAWEI = "HUAWEI"
+    ORACLE = "ORACLE"
+
 
 class Roles(str, Enum):
     ADMIN = "ADMIN"
+
 
 class Languages(str, Enum):
     PTBR = "pt-BR"
     ENUS = "en-US"
 
+
 class Client:
-    def __init__(self, profile: str = 'default', api_key: Optional[str] = None, api_url: Optional[str] = None,
+    def __init__(self, profile: str = "default", api_key: Optional[str] = None, api_url: Optional[str] = None,
                  user_agent: Optional[str] = None, proxy_url: Optional[str] = None):
         """
-        Initialize a new connection to the Zanshin API.
+        Initialize a new connection to the Zanshin API
         :param profile: which configuration file section to use for settings, or None to ignore configuration file
         :param api_key: optional override of the API key to use
         :param api_url: optional override of the base URL of the Zanshin API to use
         :param user_agent: optional override of the user agent to use in requests performed
         :param proxy_url: optional URL indicating which proxy server to use, or None for direct connections to the API
         """
-        self._logger: logging.Logger = logging.getLogger('zanshinsdk')
+        self._client = httpx.Client()
+        self._logger: logging.Logger = logging.getLogger("zanshinsdk")
 
         # read configuration file
-        if profile and _CONFIG_FILE.is_file():
+        if profile and CONFIG_FILE.is_file():
             parser = RawConfigParser()
-            parser.read(str(_CONFIG_FILE))
+            parser.read(str(CONFIG_FILE))
             if not parser.has_section(profile):
                 raise ValueError(
-                    f'profile {profile} not found in {_CONFIG_FILE}')
+                    f"profile {profile} not found in {CONFIG_FILE}")
         else:
             parser = None
 
         # set API key
         if api_key:
             self._api_key = api_key
-        elif parser and parser.get(profile, 'api_key', fallback=None):
-            self._api_key = parser.get(profile, 'api_key')
+        elif parser and parser.get(profile, "api_key", fallback=None):
+            self._api_key = parser.get(profile, "api_key")
         else:
-            raise ValueError('no API key found')
+            raise ValueError("no API key found")
 
         # set API URL
         if api_url:
             self._api_url = api_url
-        elif parser and parser.get(profile, 'api_url', fallback=None):
-            self._api_url = parser.get(profile, 'api_url')
+        elif parser and parser.get(profile, "api_url", fallback=None):
+            self._api_key = parser.get(profile, "api_url")
         else:
-            self._api_url = 'https://api.zanshin.tenchisecurity.com'
+            self._api_url = "https://api.zanshin.tenchisecurity.com"
+
+        if self._api_url:
+            parsed = urlparse(self._api_url)
+            if not parsed.scheme or parsed.scheme not in (
+                    "http", "https") or not parsed.hostname or parsed.password or parsed.username or (
+                    parsed.port and (parsed.port <= 0 or parsed.port > 65535)):
+                raise ValueError(f"Invalid API URL: {self._api_url}")
 
         # set proxy URL
         if proxy_url:
             self._proxy_url = proxy_url
-        elif parser and parser.get(profile, 'proxy_url', fallback=None):
-            self._proxy_url = parser.get(profile, 'proxy_url')
+        elif parser and parser.get(profile, "proxy_url", fallback=None):
+            self._proxy_url = parser.get(profile, "proxy_url")
         else:
             self._proxy_url = None
 
+        if self._proxy_url:
+            parsed = urlparse(self._proxy_url)
+            if parsed.scheme not in ("http", "https") or not parsed.hostname or (
+                    parsed.password and not parsed.username) or (
+                    parsed.port and (parsed.port <= 0 or parsed.port > 65535)):
+                raise ValueError(f"Invalid proxy URL: {self._proxy_url}")
+
         # set user-agent
         if user_agent:
-            self._user_agent = user_agent
-        elif parser and parser.get(profile, 'user_agent', fallback=None):
-            self._user_agent = parser.get(profile, 'user_agent')
+            self._user_agent = f"{user_agent} (Zanshin Python SDK v{sdk_version})"
+        elif parser and parser.get(profile, "user_agent", fallback=None):
+            self._user_agent = f"{parser.get(profile, 'user_agent')} (Zanshin Python SDK v{sdk_version})"
         else:
-            self._user_agent = f'Zanshin Python SDK v{sdk_version}'
+            self._user_agent = f"Zanshin Python SDK v{sdk_version}"
 
         self._update_client()
 
@@ -113,7 +131,7 @@ class Client:
             pass
         finally:
             self._client = httpx.Client(proxies=self._proxy_url, timeout=60,
-                                        headers={"Authorization": f'Bearer {self._api_key}',
+                                        headers={"Authorization": f"Bearer {self._api_key}",
                                                  "Accept-Encoding": "gzip, deflate",
                                                  "User-Agent": self.user_agent,
                                                  "Accept": "application/json"})
@@ -124,12 +142,15 @@ class Client:
 
     @api_url.setter
     def api_url(self, new_api_url: str) -> None:
+        if new_api_url is None:
+            raise ValueError(f"API URL cannot be null")
+
         parsed = urlparse(new_api_url)
         if not parsed.scheme or parsed.scheme not in (
-                'http', 'https') or not parsed.hostname or parsed.password or parsed.username or (
+                "http", "https") or not parsed.hostname or parsed.password or parsed.username or (
                 parsed.port and (parsed.port <= 0 or parsed.port > 65535)):
-            raise ValueError(f'Invalid API URL: {self.api_url}')
-        self._api_url: str = new_api_url.rstrip('/')
+            raise ValueError(f"Invalid API URL: {new_api_url}")
+        self._api_url: str = new_api_url.rstrip("/")
 
     @property
     def api_key(self) -> str:
@@ -146,15 +167,15 @@ class Client:
 
     @proxy_url.setter
     def proxy_url(self, new_proxy_url: Optional[str]) -> None:
-        if new_proxy_url and new_proxy_url != self._proxy_url:
-            self._proxy_url: Optional[str] = new_proxy_url
-            parsed = urlparse(self._proxy_url)
-            if parsed.scheme not in ('http', 'https') or not parsed.hostname or (
+        if new_proxy_url is None:
+            self._proxy_url = None
+        elif new_proxy_url != self._proxy_url:
+            parsed = urlparse(new_proxy_url)
+            if parsed.scheme not in ("http", "https") or not parsed.hostname or (
                     parsed.password and not parsed.username) or (
                     parsed.port and (parsed.port <= 0 or parsed.port > 65535)):
-                raise ValueError(f'Invalid proxy URL: {self._proxy_url}')
-        else:
-            self._proxy_url: Optional[str] = None
+                raise ValueError(f"Invalid proxy URL: {new_proxy_url}")
+            self._proxy_url = new_proxy_url
         self._update_client()
 
     @property
@@ -163,32 +184,32 @@ class Client:
 
     @user_agent.setter
     def user_agent(self, new_user_agent: str) -> None:
-        self._user_agent = new_user_agent
+        self._user_agent = f"{new_user_agent} (Zanshin Python SDK v{sdk_version})"
         self._update_client()
 
     def _get_sanitized_proxy_url(self) -> Optional[str]:
         """
-        Returns a sanitized proxy URL that doesn't expose a password, if one is present.
+        Returns a sanitized proxy URL that doesn"t expose a password, if one is present.
         :return:
         """
         if self.proxy_url:
             url = urlparse(self.proxy_url)
-            proxy_url = f'{url.scheme}://'
+            proxy_url = f"{url.scheme}://"
             if url.username:
                 proxy_url += url.username
                 if url.password:
-                    proxy_url += ':***'
-                proxy_url += '@'
+                    proxy_url += ":***"
+                proxy_url += "@"
             proxy_url += url.hostname
             if url.port:
-                proxy_url += f':{url.port}'
+                proxy_url += f":{url.port}"
             return proxy_url
         else:
             return None
 
     def _request(self, method: str, path: str, params=None, body=None) -> httpx.Response:
         """
-        Internal method to simplify calling requests.
+        Internal method to simplify calling requests
         :param method: HTTP method to pass along to httpx.Client.request
         :param path: API path to access
         :param params: parameters to pass along to httpx.Client.request
@@ -197,12 +218,13 @@ class Client:
         """
         response = self._client.request(
             method=method, url=self.api_url + path, params=params, json=body)
+
         if response.request.content:
-            self._logger.debug('%s %s (%d bytes in request body) status code %d', response.request.method,
+            self._logger.debug("%s %s (%d bytes in request body) status code %d", response.request.method,
                                response.request.url,
                                len(response.request.content), response.status_code)
         else:
-            self._logger.debug('%s %s status code %d', response.request.method, response.request.url,
+            self._logger.debug("%s %s status code %d", response.request.method, response.request.url,
                                response.status_code)
         response.raise_for_status()
         return response
@@ -233,7 +255,7 @@ class Client:
 
     def get_invite(self, invite_id: Union[UUID, str]) -> Dict:
         """
-        Gets an specific invitation details, it only works if the invitation was made for the current logged user.
+        Gets a specific invitation details, it only works if the invitation was made for the current logged user.
         <https://api.zanshin.tenchisecurity.com/#operation/getInviteById>
         :param invite_id: the ID of the invite
         :return: a dict representing the user invite
@@ -242,7 +264,8 @@ class Client:
 
     def accept_invite(self, invite_id: Union[UUID, str]) -> Dict:
         """
-        Accepts an inivitation with the informed ID, it only works if the user accepting the invitation is the user that received the invitation.
+        Accepts an invitation with the informed ID, it only works if the user accepting the invitation is the user that
+        received the invitation.
         <https://api.zanshin.tenchisecurity.com/#operation/acceptInviteById>
         :param invite_id: the ID of the invite
         :return: a dict representing the organization of this invite
@@ -263,7 +286,8 @@ class Client:
 
     def create_api_key(self, name: Optional[str]) -> Dict:
         """
-        Creates a new API key for the current logged user, API Keys can be used to interact with the zanshin api directly on behalf of that user.
+        Creates a new API key for the current logged user, API Keys can be used to interact with the zanshin api
+        directly on behalf of that user.
         <https://api.zanshin.tenchisecurity.com/#operation/createApiKeys>
         :param name: the Name of your new API key
         :return: a dict representing the user api key
@@ -303,7 +327,8 @@ class Client:
         """
         return self._request("GET", f"/organizations/{validate_uuid(organization_id)}").json()
 
-    def update_organization(self, organization_id: Union[UUID, str], name: Optional[str], picture: Optional[str], email: Optional[str]) -> Dict:
+    def update_organization(self, organization_id: Union[UUID, str], name: Optional[str], picture: Optional[str],
+                            email: Optional[str]) -> Dict:
         """
         Update organization given its ID.
         <https://api.zanshin.tenchisecurity.com/#operation/editOrganizationById>
@@ -335,15 +360,18 @@ class Client:
 
     def get_organization_member(self, organization_id: Union[UUID, str], member_id: Union[UUID, str]) -> Dict:
         """
-        Get details on a user's organization membership.
+        Get details on a user"s organization membership.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationMembers>
         :param organization_id: the ID of the organization
         :param member_id: the ID of the member
         :return: a dict representing the organization member
         """
-        return self._request("GET", f"/organizations/{validate_uuid(organization_id)}/members/{validate_uuid(member_id)}").json()
+        return self._request("GET",
+                             f"/organizations/{validate_uuid(organization_id)}/members/"
+                             f"{validate_uuid(member_id)}").json()
 
-    def update_organization_member(self, organization_id: Union[UUID, str], member_id: Union[UUID, str], roles: Optional[Iterable[Roles]]) -> Dict:
+    def update_organization_member(self, organization_id: Union[UUID, str], member_id: Union[UUID, str],
+                                   roles: Optional[Iterable[Roles]]) -> Dict:
         """
         Update organization member.
         <https://api.zanshin.tenchisecurity.com/#operation/editOrganizationMembersById>
@@ -355,7 +383,9 @@ class Client:
         body = {
             "roles": roles,
         }
-        return self._request("PUT", f"/organizations/{validate_uuid(organization_id)}/members/{validate_uuid(member_id)}", body=body).json()
+        return self._request("PUT",
+                             f"/organizations/{validate_uuid(organization_id)}/members/{validate_uuid(member_id)}",
+                             body=body).json()
 
     def delete_organization_member(self, organization_id: Union[UUID, str], member_id: Union[UUID, str]) -> bool:
         """
@@ -365,7 +395,9 @@ class Client:
         :param member_id: the ID of the member
         :return: a boolean if success
         """
-        return self._request("DELETE", f"/organizations/{validate_uuid(organization_id)}/members/{validate_uuid(member_id)}").json()
+        return self._request("DELETE",
+                             f"/organizations/{validate_uuid(organization_id)}/members/"
+                             f"{validate_uuid(member_id)}").json()
 
     ###################################################
     # Organization Member Invite
@@ -380,7 +412,8 @@ class Client:
         """
         yield from self._request("GET", f"/organizations/{validate_uuid(organization_id)}/invites").json()
 
-    def create_organization_members_invite(self, organization_id: Union[UUID, str], email: str, roles: Optional[Iterable[Roles]]) -> Iterator[Dict]:
+    def create_organization_members_invite(self, organization_id: Union[UUID, str], email: str,
+                                           roles: Optional[Iterable[Roles]]) -> Iterator[Dict]:
         """
         Create organization member invite.
         <https://api.zanshin.tenchisecurity.com/#operation/createOrgamizationInvite>
@@ -446,7 +479,9 @@ class Client:
         :param follower_id: the ID of the follower
         :return: a boolean if success
         """
-        return self._request("DELETE", f"/organizations/{validate_uuid(organization_id)}/followers/{validate_uuid(follower_id)}").json()
+        return self._request("DELETE",
+                             f"/organizations/{validate_uuid(organization_id)}/followers/"
+                             f"{validate_uuid(follower_id)}").json()
 
     ###################################################
     # Organization Follower Request
@@ -472,7 +507,8 @@ class Client:
         body = {
             "token": validate_uuid(token),
         }
-        return self._request("POST", f"/organizations/{validate_uuid(organization_id)}/followers/requests", body=body).json()
+        return self._request("POST", f"/organizations/{validate_uuid(organization_id)}/followers/requests",
+                             body=body).json()
 
     def get_organization_follower_request(self, organization_id: Union[UUID, str], token: Union[UUID, str]) -> Dict:
         """
@@ -482,9 +518,12 @@ class Client:
         :param token: the token of the follower request
         :return: a dict representing the organization follower
         """
-        return self._request("GET", f"/organizations/{validate_uuid(organization_id)}/followers/requests/{validate_uuid(token)}").json()
+        return self._request("GET",
+                             f"/organizations/{validate_uuid(organization_id)}/followers/requests/"
+                             f"{validate_uuid(token)}").json()
 
-    def delete_organization_follower_request(self, organization_id: Union[UUID, str], follower_id: Union[UUID, str]) -> bool:
+    def delete_organization_follower_request(self, organization_id: Union[UUID, str],
+                                             follower_id: Union[UUID, str]) -> bool:
         """
         Delete organization follower request.
         <https://api.zanshin.tenchisecurity.com/#operation/deleteOrganizationFollowRequestsbyToken>
@@ -492,7 +531,9 @@ class Client:
         :param follower_id: the ID of the follower
         :return: a boolean if success
         """
-        return self._request("DELETE", f"/organizations/{validate_uuid(organization_id)}/followers/requests/{validate_uuid(follower_id)}").json()
+        return self._request("DELETE",
+                             f"/organizations/{validate_uuid(organization_id)}/followers/requests/"
+                             f"{validate_uuid(follower_id)}").json()
 
     ###################################################
     # Organization Following
@@ -516,7 +557,8 @@ class Client:
         :return: a boolean indicating whether the operation was successful
         """
         return self._request("DELETE",
-                             f"/organizations/{validate_uuid(organization_id)}/following/{validate_uuid(following_id)}").json()
+                             f"/organizations/{validate_uuid(organization_id)}/following/"
+                             f"{validate_uuid(following_id)}").json()
 
     ###################################################
     # Organization Following Request
@@ -531,7 +573,8 @@ class Client:
         """
         yield from self._request("GET", f"/organizations/{validate_uuid(organization_id)}/following/requests").json()
 
-    def get_organization_following_request(self, organization_id: Union[UUID, str], following_id: Union[UUID, str]) -> Dict:
+    def get_organization_following_request(self, organization_id: Union[UUID, str],
+                                           following_id: Union[UUID, str]) -> Dict:
         """
         Returns a request received by an organization to follow another.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationFollowingRequestByToken>
@@ -539,29 +582,35 @@ class Client:
         :param following_id: the ID of the following
         :return: a dict representing the following request
         """
-        return self._request("GET", f"/organizations/{validate_uuid(organization_id)}/followers/requests/{validate_uuid(following_id)}").json()
+        return self._request("GET",
+                             f"/organizations/{validate_uuid(organization_id)}/following/requests/"
+                             f"{validate_uuid(following_id)}").json()
 
-    def accept_organization_following_request(self, organization_id: Union[UUID, str], following_id: Union[UUID, str]) -> Dict:
+    def accept_organization_following_request(self, organization_id: Union[UUID, str],
+                                              following_id: Union[UUID, str]) -> Dict:
         """
         Accepts a request to follow another organization.
         <https://api.zanshin.tenchisecurity.com/#operation/acceptOrganizationFollowingRequestByToken>
         :param organization_id: the ID of the organization who was invited to follow another
-        :param following_id: thet ID of the organization who is going to be followed
+        :param following_id: the ID of the organization who is going to be followed
         :return: a decoded JSON object describing the newly established following relationship
         """
         return self._request("POST",
-                             f"/organizations/{validate_uuid(organization_id)}/following/requests/{validate_uuid(following_id)}/accept").json()
+                             f"/organizations/{validate_uuid(organization_id)}/following/requests/"
+                             f"{validate_uuid(following_id)}/accept").json()
 
-    def decline_organization_following_request(self, organization_id: Union[UUID, str], following_id: Union[UUID, str]) -> Dict:
+    def decline_organization_following_request(self, organization_id: Union[UUID, str],
+                                               following_id: Union[UUID, str]) -> Dict:
         """
         Declines a request to follow another organization.
         <https://api.zanshin.tenchisecurity.com/#operation/declineOrganizationFollowingRequestByToken>
         :param organization_id: the ID of the organization who was invited to follow another
-        :param following_id: thet ID of the organization who was going to be followed
+        :param following_id: the ID of the organization who was going to be followed
         :return: a decoded JSON object describing the newly established following relationship
         """
         return self._request("POST",
-                             f"/organizations/{validate_uuid(organization_id)}/following/requests/{validate_uuid(following_id)}/accept").json()
+                             f"/organizations/{validate_uuid(organization_id)}/following/requests/"
+                             f"{validate_uuid(following_id)}/decline").json()
 
     ###################################################
     # Organization Scan Target
@@ -577,7 +626,7 @@ class Client:
         yield from self._request("GET", f"/organizations/{validate_uuid(organization_id)}/scantargets").json()
 
     def create_organization_scan_target(self, organization_id: Union[UUID, str], kind: ScanTargetKind, name: str,
-                           credential: Dict[str, any], schedule: str = "0 0 * * *") -> Dict:
+                                        credential: Dict[str, any], schedule: str = "0 0 * * *") -> Dict:
         """
         Create a new scan target in organization.
         <https://api.zanshin.tenchisecurity.com/#operation/createOrganizationScanTargets>
@@ -587,51 +636,62 @@ class Client:
         :param credential: credentials to access the cloud account to be scanned:
             * For AWS scan targets, provide the account ID in the *account* field
             * For Azure scan targets, provide *applicationId*, *subscriptionId*, *directoryId* and *secret* fields.
-            * For GCP scan targets, provide a *projectId* field.
+            * For GCP scan targets, provide a *projectId* field
         :param schedule: schedule in cron format
         """
         validate_class(kind, ScanTargetKind)
         validate_class(name, str)
         validate_class(schedule, str)
-
         validate_class(credential, dict)
+
+        credential_keys = ""
+
         if kind == ScanTargetKind.AWS:
-            credential_keys = {'account'}
+            credential_keys = {"account"}
         elif kind == ScanTargetKind.AZURE:
-            credential_keys = {'applicationId',
-                               'subscriptionId', 'directoryId', 'secret'}
+            credential_keys = {"applicationId",
+                               "subscriptionId", "directoryId", "secret"}
         elif kind == ScanTargetKind.GCP:
-            credential_keys = {'projectId'}
+            credential_keys = {"projectId"}
+        elif kind == ScanTargetKind.HUAWEI:
+            credential_keys = {"accountId"}
+
         if set(credential.keys()) != credential_keys:
             raise ValueError(
-                f'credential should contain the following field(s): {", ".join(credential_keys)}')
+                f"credential should contain the following field(s): {', '.join(credential_keys)}")
         for k in credential_keys:
             validate_class(credential[k], str)
 
         body = {
-            'name': name,
-            'kind': kind,
-            'credential': credential
+            "name": name,
+            "kind": kind,
+            "credential": credential,
+            "schedule": schedule
         }
-        return self._request('POST', f'/organizations/{validate_uuid(organization_id)}/scantargets',
+        return self._request("POST", f"/organizations/{validate_uuid(organization_id)}/scantargets",
                              body=body).json()
 
     def get_organization_scan_target(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]) -> Dict:
         """
         Get scan target of organization.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationScanTargetById>
+        :param scan_target_id:
         :param organization_id: the ID of the organization
-        :param token: the token of the follower request
         :return: a dict representing the scan target
         """
-        return self._request("GET", f"/organizations/{validate_uuid(organization_id)}/scantargets/{validate_uuid(scan_target_id)}").json()
+        return self._request("GET",
+                             f"/organizations/{validate_uuid(organization_id)}/scantargets/"
+                             f"{validate_uuid(scan_target_id)}").json()
 
-    def update_organization_scan_target(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str], name: str, schedule: str) -> Dict:
+    def update_organization_scan_target(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str],
+                                        name: str, schedule: str) -> Dict:
         """
         Update scan target of organization.
         <https://api.zanshin.tenchisecurity.com/#operation/editOrganizationScanTargetById>
+        :param schedule:
+        :param scan_target_id:
+        :param name:
         :param organization_id: the ID of the organization
-        :param token: the token of the follower request
         :return: a dict representing the organization follower
         """
 
@@ -640,19 +700,26 @@ class Client:
             "schedule": schedule,
         }
 
-        return self._request("PUT", f"/organizations/{validate_uuid(organization_id)}/scantargets/{validate_uuid(scan_target_id)}", body=body).json()
+        return self._request("PUT",
+                             f"/organizations/{validate_uuid(organization_id)}/scantargets/"
+                             f"{validate_uuid(scan_target_id)}",
+                             body=body).json()
 
-    def delete_organization_scan_target(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]) -> bool:
+    def delete_organization_scan_target(self, organization_id: Union[UUID, str],
+                                        scan_target_id: Union[UUID, str]) -> bool:
         """
         Delete scan target of organization.
         <https://api.zanshin.tenchisecurity.com/#operation/deleteOrganizationScanTargetById>
         :param organization_id: the ID of the organization
-        :param token: the token of the follower request
+        :param scan_target_id:
         :return: a boolean if success
         """
-        return self._request("DELETE", f"/organizations/{validate_uuid(organization_id)}/scantargets/{validate_uuid(scan_target_id)}").json()
+        return self._request("DELETE",
+                             f"/organizations/{validate_uuid(organization_id)}/scantargets/"
+                             f"{validate_uuid(scan_target_id)}").json()
 
-    def start_organization_scan_target_scan(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]) -> bool:
+    def start_organization_scan_target_scan(self, organization_id: Union[UUID, str],
+                                            scan_target_id: Union[UUID, str]) -> bool:
         """
         Starts a scan on the specified scan target.
         <https://api.zanshin.tenchisecurity.com/#operation/scanOrganizationScanTarget>
@@ -661,19 +728,23 @@ class Client:
         :return: a boolean if success
         """
         return self._request("POST",
-                             f"/organizations/{validate_uuid(organization_id)}/scantargets/{validate_uuid(scan_target_id)}/scan").json()
+                             f"/organizations/{validate_uuid(organization_id)}/scantargets/"
+                             f"{validate_uuid(scan_target_id)}/scan").json()
 
-    def stop_organization_scan_target_scan(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]) -> bool:
+    def stop_organization_scan_target_scan(self, organization_id: Union[UUID, str],
+                                           scan_target_id: Union[UUID, str]) -> bool:
         """
-        Stop a scan on the specific scan target.
-        :param organization_id: the ID of organization the scan target belonggs to
-        :param scan_target_id: the Id of the scan target
+        Stop a scan on the specific scan target
+        :param organization_id: the ID of organization the scan target belongs to
+        :param scan_target_id: the ID of the scan target
         :return: a boolean if success
         """
         return self._request("POST",
-                            f"/organizations/{validate_uuid(organization_id)}/scantargets/{validate_uuid(scan_target_id)}/stop").json()
+                             f"/organizations/{validate_uuid(organization_id)}/scantargets/"
+                             f"{validate_uuid(scan_target_id)}/stop").json()
 
-    def check_organization_scan_target(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]) -> Dict:
+    def check_organization_scan_target(self, organization_id: Union[UUID, str],
+                                       scan_target_id: Union[UUID, str]) -> Dict:
         """
         Check scan target.
         <https://api.zanshin.tenchisecurity.com/#operation/checkOrganizationScanTarget>
@@ -682,23 +753,28 @@ class Client:
         :return: a dict representing the scan target
         """
         return self._request("POST",
-                             f"/organizations/{validate_uuid(organization_id)}/scantargets/{validate_uuid(scan_target_id)}/check").json()
+                             f"/organizations/{validate_uuid(organization_id)}/scantargets/"
+                             f"{validate_uuid(scan_target_id)}/check").json()
 
     ###################################################
     # Organization Scan Target Scan
     ###################################################
 
-    def iter_organization_scan_target_scans(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]) -> Iterator[Dict]:
+    def iter_organization_scan_target_scans(self, organization_id: Union[UUID, str],
+                                            scan_target_id: Union[UUID, str]) -> Iterator[Dict]:
         """
-        Iterates over the scan of an scan target.
+        Iterates over the scan of a scan target.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationScanTargetScans>
         :param organization_id: the ID of the organization
         :param scan_target_id: the ID of the scan target
         :return: an iterator over the JSON decoded scans
         """
-        yield from self._request("GET", f"/organizations/{validate_uuid(organization_id)}/scantargets/{validate_uuid(scan_target_id)}/scans").json()
+        yield from self._request("GET",
+                                 f"/organizations/{validate_uuid(organization_id)}/scantargets/"
+                                 f"{validate_uuid(scan_target_id)}/scans").json()
 
-    def get_organization_scan_target_scan(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str], scan_id: Union[UUID, str]) -> Dict:
+    def get_organization_scan_target_scan(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str],
+                                          scan_id: Union[UUID, str]) -> Dict:
         """
         Get scan of scan target.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationScanTargetScanSlot>
@@ -707,32 +783,40 @@ class Client:
         :param scan_id: the ID of the scan
         :return: a dict representing the scan
         """
-        return self._request("GET", f"/organizations/{validate_uuid(organization_id)}/scantargets/{validate_uuid(scan_target_id)}/scans/{scan_id}").json()
+        return self._request("GET",
+                             f"/organizations/{validate_uuid(organization_id)}/scantargets/"
+                             f"{validate_uuid(scan_target_id)}/scans/{scan_id}").json()
 
     ###################################################
     # Alerts
     ###################################################
 
     def _get_alerts_page(self, organization_id: Union[UUID, str],
-                        scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
-                        states: Optional[Iterable[AlertState]] = None,
-                        severities: Optional[Iterable[AlertSeverity]] = None,
-                        page: int = 1,
-                        page_size: int = 100,
-                        language: Optional[Iterable[Languages]] = None,
-                        start_date: Optional[str] = None,
-                        historical: Optional[bool] = None) -> Dict:
+                         scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
+                         rule: Optional[str] = None,
+                         states: Optional[Iterable[AlertState]] = None,
+                         severities: Optional[Iterable[AlertSeverity]] = None,
+                         page: int = 1,
+                         page_size: int = 100,
+                         language: Optional[Iterable[Languages]] = None,
+                         created_at_start: Optional[str] = None,
+                         created_at_end: Optional[str] = None,
+                         updated_at_start: Optional[str] = None,
+                         updated_at_end: Optional[str] = None) -> Dict:
         """
-        Internal method to retrieve a single page of alerts from an organization.
+        Internal method to retrieve a single page of alerts from an organization
         :param organization_id: the ID of the organization
         :param scan_target_ids: optional list of scan target IDs to list alerts from, defaults to all
-        :param states: optional list of states to filter returned alerts, defaults to all. Ignored when historical is enabled
-        :param severities: optional list of severities to filter returned alerts, defaults to all. Ignored when historical is enabled
+        :param rule: to filter alerts from (rule), not passing the field will fetch all
+        :param states: optional list of states to filter returned alerts, defaults to all
+        :param severities: optional list of severities to filter returned alerts, defaults to all
         :param page: page number, starting from 1
-        :param page_size: page size in number of alerts
-        :param language: language the rule will be returned. Ignored when historical is enabled
-        :param start_date: search alerts from that date. Only works when historical is enabled
-        :param historical: return complete history of alerts
+        :param page_size: page size of alerts
+        :param language: language the rule will be returned
+        :param created_at_start: Search alerts by creation date - greater or equals than
+        :param created_at_end: Search alerts by creation date - less or equals than
+        :param updated_at_start: Search alerts by update date - greater or equals than
+        :param updated_at_end: Search alerts by update date - less or equals than
         :return: an iterator over the JSON decoded alerts
         :return:
         """
@@ -749,71 +833,95 @@ class Client:
                 scan_target_ids = [scan_target_ids]
             else:
                 validate_class(scan_target_ids, Iterable)
-            body['scanTargetIds'] = [validate_uuid(x) for x in scan_target_ids]
+            body["scanTargetIds"] = [validate_uuid(x) for x in scan_target_ids]
+        if rule:
+            body["rule"] = rule
         if states:
             validate_class(states, Iterable)
-            body['states'] = [validate_class(
+            body["states"] = [validate_class(
                 x, AlertState).value for x in states]
         if severities:
             validate_class(severities, Iterable)
-            body['severities'] = [validate_class(
+            body["severities"] = [validate_class(
                 x, AlertSeverity).value for x in severities]
         if language:
-            body['lang'] = language
-        if start_date:
-            body['startDate'] = start_date
-        if historical:
-            body['historical'] = historical
+            body["lang"] = language
+        if created_at_start:
+            body["CreatedAtStart"] = created_at_start
+        if created_at_end:
+            body["CreatedAtEnd"] = created_at_end
+        if updated_at_start:
+            body["UpdatedAtStart"] = updated_at_start
+        if updated_at_end:
+            body["UpdatedAtEnd"] = updated_at_end
+
         return self._request("POST", "/alerts", body=body).json()
 
     def iter_alerts(self, organization_id: Union[UUID, str],
                     scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
+                    rule: Optional[str] = None,
                     states: Optional[Iterable[AlertState]] = None,
                     severities: Optional[Iterable[AlertSeverity]] = None,
                     page_size: int = 100,
                     language: Optional[Languages] = None,
-                    start_date: Optional[str] = None,
-                    historical: Optional[bool] = None) -> Iterator[Dict]:
+                    created_at_start: Optional[str] = None,
+                    created_at_end: Optional[str] = None,
+                    updated_at_start: Optional[str] = None,
+                    updated_at_end: Optional[str] = None) -> Iterator[Dict]:
         """
-        Iterates over the alerts of an organization by loading them, transparently paginating on the API.
+        Iterates over the alerts of an organization by loading them, transparently paginating on the API
         <https://api.zanshin.tenchisecurity.com/#operation/listAllAlert>
         :param organization_id: the ID of the organization
         :param scan_target_ids: optional list of scan target IDs to list alerts from, defaults to all
-        :param states: optional list of states to filter returned alerts, defaults to all. Ignored when historical is enabled
-        :param severities: optional list of severities to filter returned alerts, defaults to all. Ignored when historical is enabled
+        :param rule: to filter alerts from (rule), not passing the field will fetch all
+        :param states: optional list of states to filter returned alerts, defaults to all
+        :param severities: optional list of severities to filter returned alerts, defaults to all
         :param page_size: the number of alerts to load from the API at a time
         :param language: language the rule will be returned. Ignored when historical is enabled
-        :param start_date: search alerts from that date. Only works when historical is enabled
-        :param historical: return complete history of alerts
+        :param created_at_start: Search alerts by creation date - greater or equals than
+        :param created_at_end: Search alerts by creation date - less or equals than
+        :param updated_at_start: Search alerts by update date - greater or equals than
+        :param updated_at_end: Search alerts by update date - less or equals than
         :return: an iterator over the JSON decoded alerts
         """
-        page = self._get_alerts_page(organization_id, scan_target_ids, states, severities, page=1,
-                                    page_size=page_size, language=language, start_date=start_date, historical=historical)
-        yield from page.get('data', [])
-        for page_number in range(2, int(ceil(page.get('total', 0) / float(page_size))) + 1):
-            page = self._get_alerts_page(organization_id, scan_target_ids, states, severities,
-                                        page=page_number, page_size=page_size, language=language, start_date=start_date, historical=historical)
-            yield from page.get('data', [])
+        page = self._get_alerts_page(organization_id, scan_target_ids, rule, states, severities, page=1,
+                                     page_size=page_size, language=language, created_at_start=created_at_start,
+                                     created_at_end=created_at_end, updated_at_start=updated_at_start,
+                                     updated_at_end=updated_at_end)
+        yield from page.get("data", [])
+        for page_number in range(2, int(ceil(page.get("total", 0) / float(page_size))) + 1):
+            page = self._get_alerts_page(organization_id, scan_target_ids, rule, states, severities,
+                                         page=page_number, page_size=page_size, language=language,
+                                         created_at_start=created_at_start,
+                                         created_at_end=created_at_end, updated_at_start=updated_at_start,
+                                         updated_at_end=updated_at_end)
+            yield from page.get("data", [])
 
-    def _get_following_alerts_page(self,  organization_id: Union[UUID, str],
+    def _get_following_alerts_page(self, organization_id: Union[UUID, str],
                                    following_ids: Optional[Iterable[Union[UUID, str]]] = None,
+                                   rule: Optional[str] = None,
                                    states: Optional[Iterable[AlertState]] = None,
                                    severities: Optional[Iterable[AlertSeverity]] = None, page: int = 1,
                                    page_size: int = 100,
                                    language: Optional[Languages] = None,
-                                   start_date: Optional[str] = None,
-                                   historical: Optional[bool] = None) -> Dict:
+                                   created_at_start: Optional[str] = None,
+                                   created_at_end: Optional[str] = None,
+                                   updated_at_start: Optional[str] = None,
+                                   updated_at_end: Optional[str] = None) -> Dict:
         """
-        Internal method to retrieve a single page of alerts from organizations being followed.
+        Internal method to retrieve a single page of alerts from organizations being followed
         :param organization_id: the ID of the organization
         :param following_ids: optional list of scan target IDs to list alerts from, defaults to all
+        :param rule: to filter alerts from (rule), not passing the field will fetch all
         :param states: optional list of states to filter returned alerts, defaults to all
         :param severities: optional list of severities to filter returned alerts, defaults to all
         :param page: page number, starting from 1
-        :param page_size: page size in number of alerts
-        :param language: language the rule will be returned. Ignored when historical is enabled
-        :param start_date: search alerts from that date. Only works when historical is enabled
-        :param historical: return complete history of alerts
+        :param page_size: page size of alerts
+        :param language: language the rule will be returned
+        :param created_at_start: Search alerts by creation date - greater or equals than
+        :param created_at_end: Search alerts by creation date - less or equals than
+        :param updated_at_start: Search alerts by update date - greater or equals than
+        :param updated_at_end: Search alerts by update date - less or equals than
         :return: the decoded JSON response from the API
         """
         validate_int(page, min_value=1, required=True)
@@ -829,41 +937,55 @@ class Client:
                 following_ids = [following_ids]
             else:
                 validate_class(following_ids, Iterable)
-            body['followingIds'] = [validate_uuid(x) for x in following_ids]
+            body["followingIds"] = [validate_uuid(x) for x in following_ids]
+        if rule:
+            body["rule"] = rule
         if states:
             validate_class(states, Iterable)
-            body['states'] = [validate_class(
+            body["states"] = [validate_class(
                 x, AlertState).value for x in states]
         if severities:
             validate_class(severities, Iterable)
-            body['severities'] = [validate_class(
+            body["severities"] = [validate_class(
                 x, AlertSeverity).value for x in severities]
         if language:
-            body['lang'] = language
-        if start_date:
-            body['startDate'] = start_date
-        if historical:
-            body['historical'] = historical
+            body["lang"] = language
+        if created_at_start:
+            body["CreatedAtStart"] = created_at_start
+        if created_at_end:
+            body["CreatedAtEnd"] = created_at_end
+        if updated_at_start:
+            body["UpdatedAtStart"] = updated_at_start
+        if updated_at_end:
+            body["UpdatedAtEnd"] = updated_at_end
+
         return self._request("POST", "/alerts/following", body=body).json()
 
     def iter_following_alerts(self, organization_id: Union[UUID, str],
                               following_ids: Optional[Iterable[Union[UUID, str]]] = None,
+                              rule: Optional[str] = None,
                               states: Optional[Iterable[AlertState]] = None,
                               severities: Optional[Iterable[AlertSeverity]] = None, page_size: int = 100,
                               language: Optional[Languages] = None,
-                              start_date: Optional[str] = None,
-                              historical: Optional[bool] = None) -> Iterator[Dict]:
+                              created_at_start: Optional[str] = None,
+                              created_at_end: Optional[str] = None,
+                              updated_at_start: Optional[str] = None,
+                              updated_at_end: Optional[str] = None) -> Iterator[Dict]:
         """
         Iterates over the following alerts froms organizations being followed by transparently paginating on the API.
         <https://api.zanshin.tenchisecurity.com/#operation/listFollowingAlerts>
         :param organization_id: the ID of the organization
-        :param following_ids: optional list of IDs of organizations you are following to list alerts from, defaults to all
+        :param following_ids: optional list of IDs of organizations you are following to list alerts from, defaults to
+               all
+        :param rule: to filter alerts from (rule), not passing the field will fetch all
         :param states: optional list of states to filter returned alerts, defaults to all
         :param severities: optional list of severities to filter returned alerts, defaults to all
         :param page_size: the number of alerts to load from the API at a time
-        :param language: language the rule will be returned. Ignored when historical is enabled
-        :param start_date: search alerts from that date. Only works when historical is enabled
-        :param historical: return complete history of alerts
+        :param language: language the rule will be returned
+        :param created_at_start: Search alerts by creation date - greater or equals than
+        :param created_at_end: Search alerts by creation date - less or equals than
+        :param updated_at_start: Search alerts by update date - greater or equals than
+        :param updated_at_end: Search alerts by update date - less or equals than
         :return: an iterator over the JSON decoded alerts
         """
 
@@ -876,32 +998,168 @@ class Client:
             # workaround for API limitation
             following_ids = set()
             for org in self.iter_organizations():
-                following_ids |= {x['id']
-                                  for x in self.iter_organization_following(org['id'])}
+                following_ids |= {x["id"]
+                                  for x in self.iter_organization_following(org["id"])}
             following_ids = list(following_ids)
 
-        page = self._get_following_alerts_page(
-            organization_id, following_ids, states, severities, page=1, page_size=page_size, language=language, start_date=start_date, historical=historical)
-        yield from page.get('data', [])
+        page = self._get_following_alerts_page(organization_id, following_ids, rule, states, severities, page=1,
+                                               page_size=page_size,
+                                               language=language, created_at_start=created_at_start,
+                                               created_at_end=created_at_end,
+                                               updated_at_start=updated_at_start, updated_at_end=updated_at_end)
+        yield from page.get("data", [])
 
-        for page_number in range(2, int(ceil(page.get('total', 0) / float(page_size))) + 1):
-            page = self._get_following_alerts_page(organization_id, following_ids, states, severities, page=page_number,
-                                                   page_size=page_size, language=language, start_date=start_date, historical=historical)
-            yield from page.get('data', [])
+        for page_number in range(2, int(ceil(page.get("total", 0) / float(page_size))) + 1):
+            page = self._get_following_alerts_page(organization_id, following_ids, rule, states, severities,
+                                                   page=page_number,
+                                                   page_size=page_size, language=language,
+                                                   created_at_start=created_at_start,
+                                                   created_at_end=created_at_end, updated_at_start=updated_at_start,
+                                                   updated_at_end=updated_at_end)
+            yield from page.get("data", [])
+
+    def _get_alerts_history_page(self, organization_id: Union[UUID, str],
+                                 scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
+                                 page_size: int = 100,
+                                 language: Optional[Iterable[Languages]] = None,
+                                 cursor: Optional[str] = None) -> Dict:
+        """
+        Internal method to retrieve a single page of alerts history from an organization
+        :param organization_id: the ID of the organization
+        :param scan_target_ids: optional list of scan target IDs to list alerts from, defaults to all
+        :param page_size: page size of alerts
+        :param language: language the rule will be returned
+        :param cursor: Alert Cursor of the last alert consumed, when this value is passed, subsequent alert histories
+               will be returned.
+        :return: an iterator over the JSON decoded alerts
+        :return:
+        """
+        validate_int(page_size, min_value=1, required=True)
+        body = {
+            "organizationId": validate_uuid(organization_id),
+            "pageSize": page_size
+        }
+
+        if scan_target_ids:
+            if isinstance(scan_target_ids, str):
+                scan_target_ids = [scan_target_ids]
+            else:
+                validate_class(scan_target_ids, Iterable)
+            body["scanTargetIds"] = [validate_uuid(x) for x in scan_target_ids]
+        if language:
+            body["lang"] = language
+        if cursor:
+            body["cursor"] = cursor
+
+        return self._request("POST", "/alerts/history", body=body).json()
+
+    def iter_alerts_history(self, organization_id: Union[UUID, str],
+                            scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
+                            page_size: int = 100,
+                            language: Optional[Languages] = None,
+                            cursor: Optional[str] = None) -> Iterator[Dict]:
+        """
+        Iterates over the alerts" history of an organization by loading them, transparently paginating on the API.
+        <https://api.zanshin.tenchisecurity.com/#operation/listAllAlertsHistory>
+        :param organization_id: the ID of the organization
+        :param scan_target_ids: optional list of scan target IDs to list alerts from, defaults to all
+        :param page_size: the number of alerts to load from the API at a time
+        :param language: language the rule will be returned. Ignored when historical is enabled
+        :param cursor: Alert Cursor of the last alert consumed, when this value is passed, subsequent alert histories
+               will be returned.
+        :return: an iterator over the JSON decoded alerts
+        """
+
+        page = self._get_alerts_history_page(organization_id, scan_target_ids, page_size=page_size, language=language,
+                                             cursor=cursor)
+        data = page.get("data", [])
+        yield from data
+
+        while len(data) > 0:
+            cursor = data[len(data) - 1]["cursor"]
+            page = self._get_alerts_history_page(organization_id, scan_target_ids, page_size=page_size,
+                                                 language=language, cursor=cursor)
+            data = page.get("data", [])
+            yield from data
+
+    def _get_alerts_following_history_page(self, organization_id: Union[UUID, str],
+                                           following_ids: Optional[Iterable[Union[UUID, str]]] = None,
+                                           page_size: int = 100,
+                                           language: Optional[Iterable[Languages]] = None,
+                                           cursor: Optional[str] = None) -> Dict:
+        """
+        Internal method to retrieve a single page of alerts history from an organization
+        :param organization_id: the ID of the organization
+        :param following_ids: optional list of IDs of organizations you are following to list alerts from, defaults to
+               all
+        :param page_size: page size of alerts
+        :param language: language the rule will be returned
+        :param cursor: Alert Cursor of the last alert consumed, when this value is passed, subsequent alert histories
+               will be returned.
+        :return: an iterator over the JSON decoded alerts
+        :return:
+        """
+        validate_int(page_size, min_value=1, required=True)
+        body = {
+            "organizationId": validate_uuid(organization_id),
+            "pageSize": page_size
+        }
+
+        if following_ids:
+            if isinstance(following_ids, str):
+                following_ids = [following_ids]
+            else:
+                validate_class(following_ids, Iterable)
+            body["following_ids"] = [validate_uuid(x) for x in following_ids]
+        if language:
+            body["lang"] = language
+        if cursor:
+            body["cursor"] = cursor
+
+        return self._request("POST", "/alerts/history/following", body=body).json()
+
+    def iter_alerts_following_history(self, organization_id: Union[UUID, str],
+                                      following_ids: Optional[Iterable[Union[UUID, str]]] = None,
+                                      page_size: int = 100,
+                                      language: Optional[Languages] = None,
+                                      cursor: Optional[str] = None) -> Iterator[Dict]:
+        """
+        Iterates over the alerts" history of an organization by loading them, transparently paginating on the API
+        <https://api.zanshin.tenchisecurity.com/#operation/listAllAlertsHistoryFollowing>
+        :param organization_id: the ID of the organization
+        :param following_ids: optional list of IDs of organizations you are following to list alerts from, defaults to
+               all
+        :param page_size: the number of alerts to load from the API at a time
+        :param language: language the rule will be returned. Ignored when historical is enabled
+        :param cursor: Alert Cursor of the last alert consumed, when this value is passed, subsequent alert histories
+               will be returned
+        :return: an iterator over the JSON decoded alerts
+        """
+        page = self._get_alerts_following_history_page(organization_id, following_ids, page_size=page_size,
+                                                       language=language, cursor=cursor)
+        data = page.get("data", [])
+        yield from data
+
+        while len(data) > 0:
+            cursor = data[len(data) - 1]["cursor"]
+            page = self._get_alerts_following_history_page(organization_id, following_ids, page_size=page_size,
+                                                           language=language, cursor=cursor)
+            data = page.get("data", [])
+            yield from data
 
     def _get_grouped_alerts_page(self, organization_id: Union[UUID, str],
-                                scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
-                                states: Optional[Iterable[AlertState]] = None,
-                                severities: Optional[Iterable[AlertSeverity]] = None, page: int = 1,
-                                page_size: int = 100) -> Dict:
+                                 scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
+                                 states: Optional[Iterable[AlertState]] = None,
+                                 severities: Optional[Iterable[AlertSeverity]] = None, page: int = 1,
+                                 page_size: int = 100) -> Dict:
         """
-        Internal method to retrieve a single page of alerts from an organization.
+        Internal method to retrieve a single page of alerts from an organization
         :param organization_id: the ID of the organization
         :param scan_target_ids: optional list of scan target IDs to list alerts from, defaults to all
         :param states: optional list of states to filter returned alerts, defaults to all
         :param severities: optional list of severities to filter returned alerts, defaults to all
         :param page: page number, starting from 1
-        :param page_size: page size in number of alerts
+        :param page_size: page size of alerts
         :return:
         """
         validate_int(page, min_value=1, required=True)
@@ -916,21 +1174,22 @@ class Client:
                 scan_target_ids = [scan_target_ids]
             else:
                 validate_class(scan_target_ids, Iterable)
-            body['scanTargetIds'] = [validate_uuid(x) for x in scan_target_ids]
+            body["scanTargetIds"] = [validate_uuid(x) for x in scan_target_ids]
         if states:
             validate_class(states, Iterable)
-            body['states'] = [validate_class(
+            body["states"] = [validate_class(
                 x, AlertState).value for x in states]
         if severities:
             validate_class(severities, Iterable)
-            body['severities'] = [validate_class(
+            body["severities"] = [validate_class(
                 x, AlertSeverity).value for x in severities]
         return self._request("POST", "/alerts/rules", body=body).json()
 
     def iter_grouped_alerts(self, organization_id: Union[UUID, str],
                             scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
                             states: Optional[Iterable[AlertState]] = None,
-                            severities: Optional[Iterable[AlertSeverity]] = None, page_size: int = 100) -> Iterator[Dict]:
+                            severities: Optional[Iterable[AlertSeverity]] = None, page_size: int = 100) ->\
+            Iterator[Dict]:
         """
         Iterates over the grouped alerts of an organization by loading them, transparently paginating on the API.
         <https://api.zanshin.tenchisecurity.com/#operation/listAllAlertRules>
@@ -942,26 +1201,26 @@ class Client:
         :return: an iterator over the JSON decoded alerts
         """
         page = self._get_grouped_alerts_page(organization_id, scan_target_ids, states, severities, page=1,
-                                            page_size=page_size)
-        yield from page.get('data', [])
-        for page_number in range(2, int(ceil(page.get('total', 0) / float(page_size))) + 1):
+                                             page_size=page_size)
+        yield from page.get("data", [])
+        for page_number in range(2, int(ceil(page.get("total", 0) / float(page_size))) + 1):
             page = self._get_grouped_alerts_page(organization_id, scan_target_ids, states, severities,
-                                                page=page_number, page_size=page_size)
-            yield from page.get('data', [])
+                                                 page=page_number, page_size=page_size)
+            yield from page.get("data", [])
 
     def _get_grouped_following_alerts_page(self, organization_id: Union[UUID, str],
-                                            following_ids: Optional[Iterable[Union[UUID, str]]] = None,
-                                            states: Optional[Iterable[AlertState]] = None,
-                                            severities: Optional[Iterable[AlertSeverity]] = None, page: int = 1,
-                                            page_size: int = 100) -> Dict:
+                                           following_ids: Optional[Iterable[Union[UUID, str]]] = None,
+                                           states: Optional[Iterable[AlertState]] = None,
+                                           severities: Optional[Iterable[AlertSeverity]] = None, page: int = 1,
+                                           page_size: int = 100) -> Dict:
         """
-        Internal method to retrieve a single page of alerts from organizations being followed.
+        Internal method to retrieve a single page of alerts from organizations being followed
         :param organization_id: the ID of the organization
         :param following_ids: optional list of scan target IDs to list alerts from, defaults to all
         :param states: optional list of states to filter returned alerts, defaults to all
         :param severities: optional list of severities to filter returned alerts, defaults to all
         :param page: page number, starting from 1
-        :param page_size: page size in number of alerts
+        :param page_size: page size of alerts
         :return: the decoded JSON response from the API
         """
         validate_int(page, min_value=1, required=True)
@@ -976,27 +1235,30 @@ class Client:
                 following_ids = [following_ids]
             else:
                 validate_class(following_ids, Iterable)
-            body['followingIds'] = [validate_uuid(x) for x in following_ids]
+            body["followingIds"] = [validate_uuid(x) for x in following_ids]
         if states:
             validate_class(states, Iterable)
-            body['states'] = [validate_class(
+            body["states"] = [validate_class(
                 x, AlertState).value for x in states]
         if severities:
             validate_class(severities, Iterable)
-            body['severities'] = [validate_class(
+            body["severities"] = [validate_class(
                 x, AlertSeverity).value for x in severities]
 
         return self._request("POST", "/alerts/rules/following", body=body).json()
 
-    def iter_grouped_following_alerts(self,  organization_id: Union[UUID, str],
-                                    following_ids: Optional[Iterable[Union[UUID, str]]] = None,
-                                    states: Optional[Iterable[AlertState]] = None,
-                                    severities: Optional[Iterable[AlertSeverity]] = None, page_size: int = 100) -> Iterator[Dict]:
+    def iter_grouped_following_alerts(self, organization_id: Union[UUID, str],
+                                      following_ids: Optional[Iterable[Union[UUID, str]]] = None,
+                                      states: Optional[Iterable[AlertState]] = None,
+                                      severities: Optional[Iterable[AlertSeverity]] = None, page_size: int = 100) -> \
+            Iterator[Dict]:
         """
-        Iterates over the grouped following alerts froms organizations being followed by transparently paginating on the API.
+        Iterates over the grouped following alerts froms organizations being followed by transparently paginating on the
+        API.
         <https://api.zanshin.tenchisecurity.com/#operation/listAllAlertRulesFollowing>
         :param organization_id: the ID of the organization
-        :param following_ids: optional list of IDs of organizations you are following to list alerts from, defaults to all
+        :param following_ids: optional list of IDs of organizations you are following to list alerts from, defaults to
+               all
         :param states: optional list of states to filter returned alerts, defaults to all
         :param severities: optional list of severities to filter returned alerts, defaults to all
         :param page_size: the number of alerts to load from the API at a time
@@ -1012,18 +1274,18 @@ class Client:
             # workaround for API limitation
             following_ids = set()
             for org in self.iter_organizations():
-                following_ids |= {x['id']
-                                  for x in self.iter_organization_following(org['id'])}
+                following_ids |= {x["id"]
+                                  for x in self.iter_organization_following(org["id"])}
             following_ids = list(following_ids)
 
-        page = self._get_following_alerts_page(
+        page = self._get_grouped_following_alerts_page(
             organization_id, following_ids, states, severities, page=1, page_size=page_size)
-        yield from page.get('data', [])
+        yield from page.get("data", [])
 
-        for page_number in range(2, int(ceil(page.get('total', 0) / float(page_size))) + 1):
-            page = self._get_following_alerts_page(organization_id, following_ids, states, severities, page=page_number,
-                                                   page_size=page_size)
-            yield from page.get('data', [])
+        for page_number in range(2, int(ceil(page.get("total", 0) / float(page_size))) + 1):
+            page = self._get_grouped_following_alerts_page(organization_id, following_ids, states,
+                                                           severities, page=page_number, page_size=page_size)
+            yield from page.get("data", [])
 
     def get_alert(self, alert_id: Union[UUID, str]) -> Dict:
         """
@@ -1052,11 +1314,17 @@ class Client:
         """
         yield from self._request("GET", f"/alerts/{validate_uuid(alert_id)}/comments").json()
 
-    def update_alert(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str], alert_id: Union[UUID, str],
-                    state: Optional[AlertState], labels: Optional[Iterable[str]], comment: Optional[str]) -> Dict:
+    def update_alert(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str],
+                     alert_id: Union[UUID, str], state: Optional[AlertState], labels: Optional[Iterable[str]],
+                     comment: Optional[str]) -> Dict:
         """
         Update alert.
         <https://api.zanshin.tenchisecurity.com/#operation/editOrganizationScanTargetAlertById>
+        :param comment:
+        :param labels:
+        :param state:
+        :param scan_target_id:
+        :param organization_id:
         :param alert_id: the ID of the alert
         :return: the decoded JSON object returned by the API
         """
@@ -1067,12 +1335,17 @@ class Client:
             "comment": comment,
         }
 
-        return self._request("PUT", f"/organizations/{validate_uuid(organization_id)}/scantargets/{validate_uuid(scan_target_id)}/alerts/{validate_uuid(alert_id)}", body=body).json()
+        return self._request("PUT",
+                             f"/organizations/{validate_uuid(organization_id)}/scantargets/"
+                             f"{validate_uuid(scan_target_id)}/alerts/{validate_uuid(alert_id)}",
+                             body=body).json()
 
-    def create_alert_comment(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str], alert_id: Union[UUID, str], comment: str) -> Iterator[Dict]:
+    def create_alert_comment(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str],
+                             alert_id: Union[UUID, str], comment: str) -> Iterator[Dict]:
         """
         Iterates over the comment of an alert.
         <https://api.zanshin.tenchisecurity.com/#operation/listAllAlertComments>
+        :param comment:
         :param organization_id: the ID of the organization
         :param scan_target_id: the ID of the scan target
         :param alert_id: the ID of the alert
@@ -1083,7 +1356,10 @@ class Client:
             "comment": comment
         }
 
-        yield from self._request("POST", f"/organizations/{validate_uuid(organization_id)}/scantargets/{validate_uuid(scan_target_id)}/alerts/{validate_uuid(alert_id)}/comments", body=body).json()
+        return self._request("POST",
+                             f"/organizations/{validate_uuid(organization_id)}/scantargets/"
+                             f"{validate_uuid(scan_target_id)}/alerts/{validate_uuid(alert_id)}/comments",
+                             body=body).json()
 
     ###################################################
     # Summary
@@ -1107,34 +1383,36 @@ class Client:
                 scan_target_ids = [scan_target_ids]
             else:
                 validate_class(scan_target_ids, Iterable)
-            body['scanTargetIds'] = list(
+            body["scanTargetIds"] = list(
                 {validate_uuid(x) for x in scan_target_ids})
 
         return self._request("POST", "/alerts/summaries", body=body).json()
 
-    def get_following_alert_summaries(self, organization_id: Union[UUID, str], following_ids: Iterable[Union[UUID, str]]) -> Dict:
+    def get_following_alert_summaries(self, organization_id: Union[UUID, str],
+                                      following_ids: Optional[Iterable[Union[UUID, str]]] = None) -> Dict:
         """
         Gets a summary of the current state of alerts for followed organizations.
         <https://api.zanshin.tenchisecurity.com/#operation/alertFollowingSummary>
+        :param organization_id:
         :param following_ids: list of IDs of organizations being followed to summarize alerts from
         :return: JSON object containing the alert summaries
         """
 
-        if isinstance(following_ids, str):
-            following_ids = [following_ids]
-        else:
-            validate_class(following_ids, Iterable)
+        body = {"organizationId": validate_uuid(organization_id)}
 
-        body = {
-            "organizationId": validate_uuid(organization_id),
-            "followingIds": list({validate_uuid(x)
-                                  for x in following_ids})}
+        if following_ids:
+            if isinstance(following_ids, str):
+                following_ids = [following_ids]
+            else:
+                validate_class(following_ids, Iterable)
+            body["followingIds"] = list(
+                {validate_uuid(x) for x in following_ids})
 
         return self._request("POST", "/alerts/summaries/following", body=body).json()
 
     def get_scan_summaries(self, organization_id: Union[UUID, str],
-                            scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
-                            days: Optional[int] = 7) -> Dict:
+                           scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
+                           days: Optional[int] = 7) -> Dict:
         """
         Returns summaries of scan results over a period of time, summarizing number of alerts that changed states.
         <https://api.zanshin.tenchisecurity.com/#operation/scanSummary>
@@ -1154,56 +1432,63 @@ class Client:
                 scan_target_ids = [scan_target_ids]
             else:
                 validate_class(scan_target_ids, Iterable)
-            body['scanTargetIds'] = list(
+            body["scanTargetIds"] = list(
                 {validate_uuid(x) for x in scan_target_ids})
 
         return self._request("POST", "/alerts/summaries/scans", body=body).json()
 
-    def get_following_scan_summaries(self, organization_id: Union[UUID, str], following_ids: Iterable[Union[UUID, str]], days: Optional[int] = 7) -> Dict:
+    def get_following_scan_summaries(self, organization_id: Union[UUID, str],
+                                     following_ids: Optional[Iterable[Union[UUID, str]]] = None,
+                                     days: Optional[int] = 7) -> Dict:
         """
         Gets a summary of the current state of alerts for followed organizations.
         <https://api.zanshin.tenchisecurity.com/#operation/scanSummaryFollowing>
+        :param organization_id:
         :param following_ids: list of IDs of organizations being followed to summarize alerts from
         :param days: number of days to go back in time in historical search
         :return: JSON object containing the scan summaries
         """
 
-        if isinstance(following_ids, str):
-            following_ids = [following_ids]
-        else:
-            validate_class(following_ids, Iterable)
-
         body = {
             "organizationId": validate_uuid(organization_id),
-            "followingIds": list({validate_uuid(x) for x in following_ids}),
             "daysBefore": validate_int(days, min_value=1)
         }
+
+        if following_ids:
+            if isinstance(following_ids, str):
+                following_ids = [following_ids]
+            else:
+                validate_class(following_ids, Iterable)
+            body["followingIds"] = list(
+                {validate_uuid(x) for x in following_ids})
 
         return self._request("POST", "/alerts/summaries/scans/following", body=body).json()
 
     def __repr__(self):
-        return f'Connection(api_url="{self.api_url}", api_key="***{self._api_key[-6:]}", user_agent="{self.user_agent}, proxy_url={self._get_sanitized_proxy_url()}")'
+        return f"Connection(api_url='{self.api_url}', api_key='***{self._api_key[-6:]}', " \
+               f"user_agent='{self.user_agent}, proxy_url={self._get_sanitized_proxy_url()}')"
+
 
 def validate_int(value, min_value=None, max_value=None, required=False) -> Optional[int]:
     if value is None:
         if required:
-            raise ValueError('required integer parameter missing')
+            raise ValueError("required integer parameter missing")
         else:
             return value
     if not isinstance(value, int):
-        raise TypeError(f'{repr(value)} is not an integer')
+        raise TypeError(f"{repr(value)} is not an integer")
     if min_value and value < min_value:
-        raise ValueError(f'{repr(value)} shouldn\'t be lower than {min_value}')
+        raise ValueError(f"{repr(value)} shouldn\"t be lower than {min_value}")
     if max_value and value > max_value:
         raise ValueError(
-            f'{repr(value)} shouldn\'t be higher than {max_value}')
+            f"{repr(value)} shouldn\"t be higher than {max_value}")
     return value
 
 
 def validate_class(value, class_type):
     if not isinstance(value, class_type):
         raise TypeError(
-            f'{repr(value)} is not an instance of {class_type.__name__}')
+            f"{repr(value)} is not an instance of {class_type.__name__}")
     return value
 
 
@@ -1213,4 +1498,4 @@ def validate_uuid(uuid: Union[UUID, str]) -> str:
     elif isinstance(uuid, UUID):
         return str(uuid)
     else:
-        raise TypeError(f'{repr(uuid)} is not a valid UUID')
+        raise TypeError(f"{repr(uuid)} is not a valid UUID")
