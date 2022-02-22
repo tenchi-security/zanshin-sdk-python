@@ -11,8 +11,10 @@ class TestClient(unittest.TestCase):
     # setUp
     ###################################################
 
+    @patch("zanshinsdk.client.isfile")
     @patch("zanshinsdk.Client._request")
-    def setUp(self, request):
+    def setUp(self, request, mock_is_file):
+        mock_is_file.return_value = True
         _data = f"[default]\napi_key=api_key"
 
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
@@ -23,7 +25,9 @@ class TestClient(unittest.TestCase):
     # __init__
     ###################################################
 
-    def test_init_empty_profile(self):
+    @patch("zanshinsdk.client.isfile")
+    def test_init_empty_profile(self, mock_is_file):
+        mock_is_file.return_value = True
         _data = f"[default]\napi_key=api_key"
 
         try:
@@ -32,7 +36,9 @@ class TestClient(unittest.TestCase):
         except Exception as e:
             self.assertEqual(str(e), "no API key found")
 
-    def test_init_wrong_profile(self):
+    @patch("zanshinsdk.client.isfile")
+    def test_init_wrong_profile(self, mock_is_file):
+        mock_is_file.return_value = True
         _profile = "XYZ"
         _data = "[default]\napi_key=api_key"
 
@@ -42,7 +48,9 @@ class TestClient(unittest.TestCase):
         except Exception as e:
             self.assertEqual(str(e), f"profile {_profile} not found in {zanshinsdk.client.CONFIG_FILE}")
 
-    def test_init_api_url(self):
+    @patch("zanshinsdk.client.isfile")
+    def test_init_api_url(self, mock_is_file):
+        mock_is_file.return_value = True
         _api_url = "https://api.test"
         _data = f"[default]\napi_key=api_key"
 
@@ -51,7 +59,9 @@ class TestClient(unittest.TestCase):
 
         self.assertEqual(client._api_url, _api_url)
 
-    def test_init_invalid_api_url(self):
+    @patch("zanshinsdk.client.isfile")
+    def test_init_invalid_api_url(self, mock_is_file):
+        mock_is_file.return_value = True
         _api_url = "invalid://api.test"
         _data = f"[default]\napi_key=api_key"
 
@@ -61,7 +71,9 @@ class TestClient(unittest.TestCase):
         except Exception as e:
             self.assertEqual(str(e), f"Invalid API URL: {_api_url}")
 
-    def test_init_api_url_from_config(self):
+    @patch("zanshinsdk.client.isfile")
+    def test_init_api_url_from_config(self, mock_is_file):
+        mock_is_file.return_value = True
         _api_url = "https://api.test"
         _data = f"[default]\napi_key=api_key\napi_url={_api_url}"
 
@@ -70,7 +82,9 @@ class TestClient(unittest.TestCase):
 
         self.assertEqual(client._api_url, _api_url)
 
-    def test_init_proxy_url(self):
+    @patch("zanshinsdk.client.isfile")
+    def test_init_proxy_url(self, mock_is_file):
+        mock_is_file.return_value = True
         _proxy_url = "https://proxy.test"
         _data = f"[default]\napi_key=api_key"
 
@@ -79,7 +93,9 @@ class TestClient(unittest.TestCase):
 
         self.assertEqual(client._proxy_url, _proxy_url)
 
-    def test_init_invalid_proxy_url(self):
+    @patch("zanshinsdk.client.isfile")
+    def test_init_invalid_proxy_url(self, mock_is_file):
+        mock_is_file.return_value = True
         _proxy_url = "invalid://proxy.api.test"
         _data = f"[default]\napi_key=api_key"
 
@@ -89,7 +105,9 @@ class TestClient(unittest.TestCase):
         except Exception as e:
             self.assertEqual(str(e), f"Invalid proxy URL: {_proxy_url}")
 
-    def test_init_proxy_url_from_config(self):
+    @patch("zanshinsdk.client.isfile")
+    def test_init_proxy_url_from_config(self, mock_is_file):
+        mock_is_file.return_value = True
         _proxy_url = "https://proxy.test"
         _data = f"[default]\napi_key=api_key\nproxy_url={_proxy_url}"
 
@@ -98,7 +116,9 @@ class TestClient(unittest.TestCase):
 
         self.assertEqual(client._proxy_url, _proxy_url)
 
-    def test_init_user_agent(self):
+    @patch("zanshinsdk.client.isfile")
+    def test_init_user_agent(self, mock_is_file):
+        mock_is_file.return_value = True
         _user_agent = "test_agent"
         _data = f"[default]\napi_key=api_key"
 
@@ -107,7 +127,9 @@ class TestClient(unittest.TestCase):
 
         self.assertEqual(client._user_agent, f"{_user_agent} (Zanshin Python SDK v{zanshinsdk.__version__})")
 
-    def test_init_user_agent_from_config(self):
+    @patch("zanshinsdk.client.isfile")
+    def test_init_user_agent_from_config(self, mock_is_file):
+        mock_is_file.return_value = True
         _user_agent = "test_agent"
         _data = f"[default]\napi_key=api_key\nuser_agent={_user_agent}"
 
@@ -120,7 +142,9 @@ class TestClient(unittest.TestCase):
     # _update_client except
     ###################################################
 
-    def test_update_client_except(self):
+    @patch("zanshinsdk.client.isfile")
+    def test_update_client_except(self, mock_is_file):
+        mock_is_file.return_value = True
         _data = f"[default]\napi_key=api_key"
 
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
@@ -135,7 +159,9 @@ class TestClient(unittest.TestCase):
     # Properties
     ###################################################
 
-    def test_get_api_url(self):
+    @patch("zanshinsdk.client.isfile")
+    def test_get_api_url(self, mock_is_file):
+        mock_is_file.return_value = True
         _api_url = "https://api.test"
         _data = f"[default]\napi_key=api_key"
 
@@ -144,7 +170,9 @@ class TestClient(unittest.TestCase):
 
         self.assertEqual(client.api_url, _api_url)
 
-    def test_set_api_url(self):
+    @patch("zanshinsdk.client.isfile")
+    def test_set_api_url(self, mock_is_file):
+        mock_is_file.return_value = True
         _api_url = "https://api.test"
         _new_api_url = "https://new.api.test"
         _data = f"[default]\napi_key=api_key"
@@ -156,7 +184,9 @@ class TestClient(unittest.TestCase):
 
         self.assertEqual(client.api_url, _new_api_url)
 
-    def test_set_invalid_api_url(self):
+    @patch("zanshinsdk.client.isfile")
+    def test_set_invalid_api_url(self, mock_is_file):
+        mock_is_file.return_value = True
         _api_url = "https://api.test"
         _new_api_url = "invalid://new.api.test"
         _data = f"[default]\napi_key=api_key"
@@ -169,7 +199,9 @@ class TestClient(unittest.TestCase):
         except Exception as e:
             self.assertEqual(str(e), f"Invalid API URL: {_new_api_url}")
 
-    def test_set_none_api_url(self):
+    @patch("zanshinsdk.client.isfile")
+    def test_set_none_api_url(self, mock_is_file):
+        mock_is_file.return_value = True
         _api_key = "https://api.test"
         _data = f"[default]\napi_key=api_key"
 
@@ -181,7 +213,9 @@ class TestClient(unittest.TestCase):
         except Exception as e:
             self.assertEqual(str(e), f"API URL cannot be null")
 
-    def test_get_api_key(self):
+    @patch("zanshinsdk.client.isfile")
+    def test_get_api_key(self, mock_is_file):
+        mock_is_file.return_value = True
         _api_key = "api_key"
         _data = f"[default]\napi_key=api_key"
 
@@ -190,7 +224,9 @@ class TestClient(unittest.TestCase):
 
         self.assertEqual(client.api_key, _api_key)
 
-    def test_set_api_key(self):
+    @patch("zanshinsdk.client.isfile")
+    def test_set_api_key(self, mock_is_file):
+        mock_is_file.return_value = True
         _api_key = "api_key"
         _new_api_key = "new_api_key"
         _data = f"[default]\napi_key=api_key"
@@ -202,7 +238,9 @@ class TestClient(unittest.TestCase):
 
         self.assertEqual(client.api_key, _new_api_key)
 
-    def test_get_proxy_url(self):
+    @patch("zanshinsdk.client.isfile")
+    def test_get_proxy_url(self, mock_is_file):
+        mock_is_file.return_value = True
         _proxy_url = "https://proxy.test"
         _data = f"[default]\napi_key=api_key"
 
@@ -211,7 +249,9 @@ class TestClient(unittest.TestCase):
 
         self.assertEqual(client.proxy_url, _proxy_url)
 
-    def test_set_proxy_url(self):
+    @patch("zanshinsdk.client.isfile")
+    def test_set_proxy_url(self, mock_is_file):
+        mock_is_file.return_value = True
         _proxy_url = "https://proxy.test"
         _new_proxy_url = "https://new.proxy.test"
         _data = f"[default]\napi_key=api_key"
@@ -223,7 +263,9 @@ class TestClient(unittest.TestCase):
 
         self.assertEqual(client.proxy_url, _new_proxy_url)
 
-    def test_set_invalid_proxy_url(self):
+    @patch("zanshinsdk.client.isfile")
+    def test_set_invalid_proxy_url(self, mock_is_file):
+        mock_is_file.return_value = True
         _proxy_url = "https://proxy.test"
         _new_proxy_url = "invalid://new.proxy.test"
         _data = f"[default]\napi_key=api_key"
@@ -236,7 +278,9 @@ class TestClient(unittest.TestCase):
         except Exception as e:
             self.assertEqual(str(e), f"Invalid proxy URL: {_new_proxy_url}")
 
-    def test_set_equal_proxy_url(self):
+    @patch("zanshinsdk.client.isfile")
+    def test_set_equal_proxy_url(self, mock_is_file):
+        mock_is_file.return_value = True
         _proxy_url = "https://proxy.test"
         _data = f"[default]\napi_key=api_key"
 
@@ -247,7 +291,9 @@ class TestClient(unittest.TestCase):
 
         self.assertEqual(client.proxy_url, _proxy_url)
 
-    def test_set_none_proxy_url(self):
+    @patch("zanshinsdk.client.isfile")
+    def test_set_none_proxy_url(self, mock_is_file):
+        mock_is_file.return_value = True
         _proxy_url = "https://proxy.test"
         _data = f"[default]\napi_key=api_key"
 
@@ -258,7 +304,9 @@ class TestClient(unittest.TestCase):
 
         self.assertIsNone(client.proxy_url)
 
-    def test_get_user_agent(self):
+    @patch("zanshinsdk.client.isfile")
+    def test_get_user_agent(self, mock_is_file):
+        mock_is_file.return_value = True
         _user_agent = "test_agent"
         _data = f"[default]\napi_key=api_key"
 
@@ -267,7 +315,9 @@ class TestClient(unittest.TestCase):
 
         self.assertEqual(client.user_agent, f"{_user_agent} (Zanshin Python SDK v{zanshinsdk.__version__})")
 
-    def test_set_user_agent(self):
+    @patch("zanshinsdk.client.isfile")
+    def test_set_user_agent(self, mock_is_file):
+        mock_is_file.return_value = True
         _user_agent = "test_agent"
         _new_user_agent = "new_test_agent"
         _data = f"[default]\napi_key=api_key"
@@ -279,7 +329,9 @@ class TestClient(unittest.TestCase):
 
         self.assertEqual(client.user_agent, f"{_new_user_agent} (Zanshin Python SDK v{zanshinsdk.__version__})")
 
-    def test_get_sanitized_proxy_url_none(self):
+    @patch("zanshinsdk.client.isfile")
+    def test_get_sanitized_proxy_url_none(self, mock_is_file):
+        mock_is_file.return_value = True
         _data = f"[default]\napi_key=api_key"
 
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
@@ -287,7 +339,9 @@ class TestClient(unittest.TestCase):
 
         self.assertIsNone(client._get_sanitized_proxy_url())
 
-    def test_get_sanitized_proxy_url(self):
+    @patch("zanshinsdk.client.isfile")
+    def test_get_sanitized_proxy_url(self, mock_is_file):
+        mock_is_file.return_value = True
         _proxy_url = "https://username:password@proxy.test:8000"
         _data = f"[default]\napi_key=api_key"
 
@@ -300,8 +354,10 @@ class TestClient(unittest.TestCase):
     # Request
     ###################################################
 
+    @patch("zanshinsdk.client.isfile")
     @patch("zanshinsdk.client.httpx.Client.request")
-    def test_request(self, request):
+    def test_request(self, request, mock_is_file):
+        mock_is_file.return_value = True
         _api_url = "https://api.test"
         _data = f"[default]\napi_key=api_key"
 
@@ -321,8 +377,10 @@ class TestClient(unittest.TestCase):
             json=None
         )
 
+    @patch("zanshinsdk.client.isfile")
     @patch("zanshinsdk.client.httpx.Client.request")
-    def test_request_without_content(self, request):
+    def test_request_without_content(self, request, mock_is_file):
+        mock_is_file.return_value = True
         _api_url = "https://api.test"
         _data = f"[default]\napi_key=api_key"
 

@@ -1,4 +1,5 @@
 import logging
+from os.path import isfile
 from configparser import RawConfigParser
 from enum import Enum
 from math import ceil
@@ -86,7 +87,7 @@ class Client:
         self._logger: logging.Logger = logging.getLogger("zanshinsdk")
 
         # read configuration file
-        if profile and CONFIG_FILE.is_file():
+        if profile and isfile(CONFIG_FILE):
             parser = RawConfigParser()
             parser.read(str(CONFIG_FILE))
             if not parser.has_section(profile):
