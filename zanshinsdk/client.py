@@ -36,7 +36,31 @@ class ScanTargetKind(str, Enum):
     GCP = "GCP"
     AZURE = "AZURE"
     HUAWEI = "HUAWEI"
+    DOMAIN = "DOMAIN"
     ORACLE = "ORACLE"
+
+
+class ScanTargetAWS:
+    account: str
+
+
+class ScanTargetAZURE:
+    applicationId: str
+    subscriptionId: str
+    directoryId: str
+    secret: str
+
+
+class ScanTargetGCP:
+    projectId: str
+
+
+class ScanTargetHUAWEI:
+    accountId: str
+
+
+class ScanTargetDOMAIN:
+    domain: str
 
 
 class Roles(str, Enum):
@@ -56,7 +80,7 @@ class Client:
         :param profile: which configuration file section to use for settings, or None to ignore configuration file
         :param api_key: optional override of the API key to use
         :param api_url: optional override of the base URL of the Zanshin API to use
-        :param user_agent: optional override of the user agent to use in requests performed
+        :param user_agent: optional addition of the user agent to use in requests performed
         :param proxy_url: optional URL indicating which proxy server to use, or None for direct connections to the API
         """
         self._client = httpx.Client()
@@ -84,7 +108,7 @@ class Client:
         if api_url:
             self._api_url = api_url
         elif parser and parser.get(profile, "api_url", fallback=None):
-            self._api_key = parser.get(profile, "api_url")
+            self._api_url = parser.get(profile, "api_url")
         else:
             self._api_url = "https://api.zanshin.tenchisecurity.com"
 
@@ -189,7 +213,7 @@ class Client:
 
     def _get_sanitized_proxy_url(self) -> Optional[str]:
         """
-        Returns a sanitized proxy URL that doesn"t expose a password, if one is present.
+        Returns a sanitized proxy URL that doesn't expose a password, if one is present.
         :return:
         """
         if self.proxy_url:
@@ -360,7 +384,7 @@ class Client:
 
     def get_organization_member(self, organization_id: Union[UUID, str], member_id: Union[UUID, str]) -> Dict:
         """
-        Get details on a user"s organization membership.
+        Get details on a user's organization membership.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationMembers>
         :param organization_id: the ID of the organization
         :param member_id: the ID of the member
@@ -626,7 +650,9 @@ class Client:
         yield from self._request("GET", f"/organizations/{validate_uuid(organization_id)}/scantargets").json()
 
     def create_organization_scan_target(self, organization_id: Union[UUID, str], kind: ScanTargetKind, name: str,
-                                        credential: Dict[str, any], schedule: str = "0 0 * * *") -> Dict:
+                                        credential: Union[ScanTargetAWS, ScanTargetAZURE, ScanTargetGCP,
+                                                          ScanTargetHUAWEI, ScanTargetDOMAIN],
+                                        schedule: str = "0 0 * * *") -> Dict:
         """
         Create a new scan target in organization.
         <https://api.zanshin.tenchisecurity.com/#operation/createOrganizationScanTargets>
@@ -642,25 +668,17 @@ class Client:
         validate_class(kind, ScanTargetKind)
         validate_class(name, str)
         validate_class(schedule, str)
-        validate_class(credential, dict)
-
-        credential_keys = ""
 
         if kind == ScanTargetKind.AWS:
-            credential_keys = {"account"}
+            validate_class(credential, ScanTargetAWS)
         elif kind == ScanTargetKind.AZURE:
-            credential_keys = {"applicationId",
-                               "subscriptionId", "directoryId", "secret"}
+            validate_class(credential, ScanTargetAZURE)
         elif kind == ScanTargetKind.GCP:
-            credential_keys = {"projectId"}
+            validate_class(credential, ScanTargetGCP)
         elif kind == ScanTargetKind.HUAWEI:
-            credential_keys = {"accountId"}
-
-        if set(credential.keys()) != credential_keys:
-            raise ValueError(
-                f"credential should contain the following field(s): {', '.join(credential_keys)}")
-        for k in credential_keys:
-            validate_class(credential[k], str)
+            validate_class(credential, ScanTargetHUAWEI)
+        elif kind == ScanTargetKind.DOMAIN:
+            validate_class(credential, ScanTargetDOMAIN)
 
         body = {
             "name": name,
@@ -798,7 +816,7 @@ class Client:
                          severities: Optional[Iterable[AlertSeverity]] = None,
                          page: int = 1,
                          page_size: int = 100,
-                         language: Optional[Iterable[Languages]] = None,
+                         language: Optional[Languages] = None,
                          created_at_start: Optional[str] = None,
                          created_at_end: Optional[str] = None,
                          updated_at_start: Optional[str] = None,
@@ -827,24 +845,25 @@ class Client:
             "page": page,
             "pageSize": page_size
         }
-
         if scan_target_ids:
             if isinstance(scan_target_ids, str):
                 scan_target_ids = [scan_target_ids]
-            else:
-                validate_class(scan_target_ids, Iterable)
+            validate_class(scan_target_ids, Iterable)
             body["scanTargetIds"] = [validate_uuid(x) for x in scan_target_ids]
         if rule:
             body["rule"] = rule
         if states:
+            if isinstance(states, str):
+                states = [states]
             validate_class(states, Iterable)
-            body["states"] = [validate_class(
-                x, AlertState).value for x in states]
+            body["states"] = [validate_class(x, AlertState).value for x in states]
         if severities:
+            if isinstance(severities, str):
+                severities = [severities]
             validate_class(severities, Iterable)
-            body["severities"] = [validate_class(
-                x, AlertSeverity).value for x in severities]
+            body["severities"] = [validate_class(x, AlertSeverity).value for x in severities]
         if language:
+            validate_class(language, Languages)
             body["lang"] = language
         if created_at_start:
             body["CreatedAtStart"] = created_at_start
@@ -935,20 +954,22 @@ class Client:
         if following_ids:
             if isinstance(following_ids, str):
                 following_ids = [following_ids]
-            else:
-                validate_class(following_ids, Iterable)
+            validate_class(following_ids, Iterable)
             body["followingIds"] = [validate_uuid(x) for x in following_ids]
         if rule:
             body["rule"] = rule
         if states:
+            if isinstance(states, str):
+                states = [states]
             validate_class(states, Iterable)
-            body["states"] = [validate_class(
-                x, AlertState).value for x in states]
+            body["states"] = [validate_class(x, AlertState).value for x in states]
         if severities:
+            if isinstance(severities, str):
+                severities = [severities]
             validate_class(severities, Iterable)
-            body["severities"] = [validate_class(
-                x, AlertSeverity).value for x in severities]
+            body["severities"] = [validate_class(x, AlertSeverity).value for x in severities]
         if language:
+            validate_class(language, Languages)
             body["lang"] = language
         if created_at_start:
             body["CreatedAtStart"] = created_at_start
@@ -989,26 +1010,12 @@ class Client:
         :return: an iterator over the JSON decoded alerts
         """
 
-        if following_ids:
-            if isinstance(following_ids, str):
-                following_ids = [following_ids]
-            else:
-                validate_class(following_ids, Iterable)
-        else:
-            # workaround for API limitation
-            following_ids = set()
-            for org in self.iter_organizations():
-                following_ids |= {x["id"]
-                                  for x in self.iter_organization_following(org["id"])}
-            following_ids = list(following_ids)
-
         page = self._get_following_alerts_page(organization_id, following_ids, rule, states, severities, page=1,
                                                page_size=page_size,
                                                language=language, created_at_start=created_at_start,
                                                created_at_end=created_at_end,
                                                updated_at_start=updated_at_start, updated_at_end=updated_at_end)
         yield from page.get("data", [])
-
         for page_number in range(2, int(ceil(page.get("total", 0) / float(page_size))) + 1):
             page = self._get_following_alerts_page(organization_id, following_ids, rule, states, severities,
                                                    page=page_number,
@@ -1043,10 +1050,10 @@ class Client:
         if scan_target_ids:
             if isinstance(scan_target_ids, str):
                 scan_target_ids = [scan_target_ids]
-            else:
-                validate_class(scan_target_ids, Iterable)
+            validate_class(scan_target_ids, Iterable)
             body["scanTargetIds"] = [validate_uuid(x) for x in scan_target_ids]
         if language:
+            validate_class(language, Languages)
             body["lang"] = language
         if cursor:
             body["cursor"] = cursor
@@ -1059,7 +1066,7 @@ class Client:
                             language: Optional[Languages] = None,
                             cursor: Optional[str] = None) -> Iterator[Dict]:
         """
-        Iterates over the alerts" history of an organization by loading them, transparently paginating on the API.
+        Iterates over the alert's history of an organization by loading them, transparently paginating on the API.
         <https://api.zanshin.tenchisecurity.com/#operation/listAllAlertsHistory>
         :param organization_id: the ID of the organization
         :param scan_target_ids: optional list of scan target IDs to list alerts from, defaults to all
@@ -1108,10 +1115,10 @@ class Client:
         if following_ids:
             if isinstance(following_ids, str):
                 following_ids = [following_ids]
-            else:
-                validate_class(following_ids, Iterable)
-            body["following_ids"] = [validate_uuid(x) for x in following_ids]
+            validate_class(following_ids, Iterable)
+            body["followingIds"] = [validate_uuid(x) for x in following_ids]
         if language:
+            validate_class(language, Languages)
             body["lang"] = language
         if cursor:
             body["cursor"] = cursor
@@ -1124,7 +1131,7 @@ class Client:
                                       language: Optional[Languages] = None,
                                       cursor: Optional[str] = None) -> Iterator[Dict]:
         """
-        Iterates over the alerts" history of an organization by loading them, transparently paginating on the API
+        Iterates over the alert's history of an organization by loading them, transparently paginating on the API
         <https://api.zanshin.tenchisecurity.com/#operation/listAllAlertsHistoryFollowing>
         :param organization_id: the ID of the organization
         :param following_ids: optional list of IDs of organizations you are following to list alerts from, defaults to
@@ -1172,17 +1179,18 @@ class Client:
         if scan_target_ids:
             if isinstance(scan_target_ids, str):
                 scan_target_ids = [scan_target_ids]
-            else:
-                validate_class(scan_target_ids, Iterable)
+            validate_class(scan_target_ids, Iterable)
             body["scanTargetIds"] = [validate_uuid(x) for x in scan_target_ids]
         if states:
+            if isinstance(states, str):
+                states = [states]
             validate_class(states, Iterable)
-            body["states"] = [validate_class(
-                x, AlertState).value for x in states]
+            body["states"] = [validate_class(x, AlertState).value for x in states]
         if severities:
+            if isinstance(severities, str):
+                severities = [severities]
             validate_class(severities, Iterable)
-            body["severities"] = [validate_class(
-                x, AlertSeverity).value for x in severities]
+            body["severities"] = [validate_class(x, AlertSeverity).value for x in severities]
         return self._request("POST", "/alerts/rules", body=body).json()
 
     def iter_grouped_alerts(self, organization_id: Union[UUID, str],
@@ -1233,17 +1241,18 @@ class Client:
         if following_ids:
             if isinstance(following_ids, str):
                 following_ids = [following_ids]
-            else:
-                validate_class(following_ids, Iterable)
+            validate_class(following_ids, Iterable)
             body["followingIds"] = [validate_uuid(x) for x in following_ids]
         if states:
+            if isinstance(states, str):
+                states = [states]
             validate_class(states, Iterable)
-            body["states"] = [validate_class(
-                x, AlertState).value for x in states]
+            body["states"] = [validate_class(x, AlertState).value for x in states]
         if severities:
+            if isinstance(severities, str):
+                severities = [severities]
             validate_class(severities, Iterable)
-            body["severities"] = [validate_class(
-                x, AlertSeverity).value for x in severities]
+            body["severities"] = [validate_class(x, AlertSeverity).value for x in severities]
 
         return self._request("POST", "/alerts/rules/following", body=body).json()
 
@@ -1265,23 +1274,9 @@ class Client:
         :return: an iterator over the JSON decoded alerts
         """
 
-        if following_ids:
-            if isinstance(following_ids, str):
-                following_ids = [following_ids]
-            else:
-                validate_class(following_ids, Iterable)
-        else:
-            # workaround for API limitation
-            following_ids = set()
-            for org in self.iter_organizations():
-                following_ids |= {x["id"]
-                                  for x in self.iter_organization_following(org["id"])}
-            following_ids = list(following_ids)
-
-        page = self._get_grouped_following_alerts_page(
-            organization_id, following_ids, states, severities, page=1, page_size=page_size)
+        page = self._get_grouped_following_alerts_page(organization_id, following_ids, states,
+                                                       severities, page=1, page_size=page_size)
         yield from page.get("data", [])
-
         for page_number in range(2, int(ceil(page.get("total", 0) / float(page_size))) + 1):
             page = self._get_grouped_following_alerts_page(organization_id, following_ids, states,
                                                            severities, page=page_number, page_size=page_size)
@@ -1381,10 +1376,8 @@ class Client:
         if scan_target_ids:
             if isinstance(scan_target_ids, str):
                 scan_target_ids = [scan_target_ids]
-            else:
-                validate_class(scan_target_ids, Iterable)
-            body["scanTargetIds"] = list(
-                {validate_uuid(x) for x in scan_target_ids})
+            validate_class(scan_target_ids, Iterable)
+            body["scanTargetIds"] = [validate_uuid(x) for x in scan_target_ids]
 
         return self._request("POST", "/alerts/summaries", body=body).json()
 
@@ -1403,10 +1396,8 @@ class Client:
         if following_ids:
             if isinstance(following_ids, str):
                 following_ids = [following_ids]
-            else:
-                validate_class(following_ids, Iterable)
-            body["followingIds"] = list(
-                {validate_uuid(x) for x in following_ids})
+            validate_class(following_ids, Iterable)
+            body["followingIds"] = [validate_uuid(x) for x in following_ids]
 
         return self._request("POST", "/alerts/summaries/following", body=body).json()
 
@@ -1430,10 +1421,8 @@ class Client:
         if scan_target_ids:
             if isinstance(scan_target_ids, str):
                 scan_target_ids = [scan_target_ids]
-            else:
-                validate_class(scan_target_ids, Iterable)
-            body["scanTargetIds"] = list(
-                {validate_uuid(x) for x in scan_target_ids})
+            validate_class(scan_target_ids, Iterable)
+            body["scanTargetIds"] = [validate_uuid(x) for x in scan_target_ids]
 
         return self._request("POST", "/alerts/summaries/scans", body=body).json()
 
@@ -1457,16 +1446,14 @@ class Client:
         if following_ids:
             if isinstance(following_ids, str):
                 following_ids = [following_ids]
-            else:
-                validate_class(following_ids, Iterable)
-            body["followingIds"] = list(
-                {validate_uuid(x) for x in following_ids})
+            validate_class(following_ids, Iterable)
+            body["followingIds"] = [validate_uuid(x) for x in following_ids]
 
         return self._request("POST", "/alerts/summaries/scans/following", body=body).json()
 
     def __repr__(self):
         return f"Connection(api_url='{self.api_url}', api_key='***{self._api_key[-6:]}', " \
-               f"user_agent='{self.user_agent}, proxy_url={self._get_sanitized_proxy_url()}')"
+               f"user_agent='{self.user_agent}', proxy_url='{self._get_sanitized_proxy_url()}')"
 
 
 def validate_int(value, min_value=None, max_value=None, required=False) -> Optional[int]:
@@ -1478,10 +1465,9 @@ def validate_int(value, min_value=None, max_value=None, required=False) -> Optio
     if not isinstance(value, int):
         raise TypeError(f"{repr(value)} is not an integer")
     if min_value and value < min_value:
-        raise ValueError(f"{repr(value)} shouldn\"t be lower than {min_value}")
+        raise ValueError(f"{value} shouldn\'t be lower than {min_value}")
     if max_value and value > max_value:
-        raise ValueError(
-            f"{repr(value)} shouldn\"t be higher than {max_value}")
+        raise ValueError(f"{value} shouldn\'t be higher than {max_value}")
     return value
 
 
@@ -1493,9 +1479,10 @@ def validate_class(value, class_type):
 
 
 def validate_uuid(uuid: Union[UUID, str]) -> str:
-    if isinstance(uuid, str):
-        return str(UUID(uuid))
-    elif isinstance(uuid, UUID):
-        return str(uuid)
-    else:
+    try:
+        if isinstance(uuid, str):
+            return str(UUID(uuid))
+        elif isinstance(uuid, UUID):
+            return str(uuid)
+    except:
         raise TypeError(f"{repr(uuid)} is not a valid UUID")

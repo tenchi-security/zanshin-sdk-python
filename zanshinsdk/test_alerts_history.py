@@ -41,7 +41,7 @@ class TestAlertsHistoryIterator(unittest.TestCase):
         mock_is_file.return_value = True
 
         data = '{"organization_id":"822f4225-43e9-4922-b6b8-8b0620bdb1e3", "scan_target_ids": "", "cursor": ' \
-               '"8b0620bdb1e3"} '
+               '"8b0620bdb1e3"}'
 
         with patch("__main__.__builtins__.open", mock_open(read_data=data)) as mock_file:
             self.file_persistent._load()
