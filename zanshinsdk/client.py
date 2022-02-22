@@ -37,7 +37,6 @@ class ScanTargetKind(str, Enum):
     AZURE = "AZURE"
     HUAWEI = "HUAWEI"
     DOMAIN = "DOMAIN"
-    ORACLE = "ORACLE"
 
 
 class ScanTargetAWS:
