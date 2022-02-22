@@ -239,8 +239,7 @@ class Client:
         :param body: request body to pass along to httpx.Client.request
         :return: the requests.Response object returned by httpx.Client.request
         """
-        response = self._client.request(
-            method=method, url=self.api_url + path, params=params, json=body)
+        response = self._client.request(method=method, url=self.api_url + path, params=params, json=body)
 
         if response.request.content:
             self._logger.debug("%s %s (%d bytes in request body) status code %d", response.request.method,

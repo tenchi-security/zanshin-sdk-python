@@ -1,5 +1,6 @@
-from unittest.mock import patch, mock_open
+from unittest.mock import patch, call, mock_open
 from uuid import UUID
+from httpx import Response, Request
 
 import unittest
 import zanshinsdk
@@ -294,6 +295,52 @@ class TestClient(unittest.TestCase):
             client = zanshinsdk.Client(proxy_url=_proxy_url)
 
         self.assertIsNotNone(client._get_sanitized_proxy_url())
+
+    ###################################################
+    # Request
+    ###################################################
+
+    @patch("zanshinsdk.client.httpx.Client.request")
+    def test_request(self, request):
+        _api_url = "https://api.test"
+        _data = f"[default]\napi_key=api_key"
+
+        with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
+            client = zanshinsdk.Client(api_url=_api_url)
+
+        req = Request(method="GET", url=f"{_api_url}/path", content="{}")
+        value = Response(request=req, status_code=200)
+        request.return_value = value
+        client._client.request = request
+        client._request("GET", "/path")
+
+        client._client.request.assert_called_once_with(
+            method="GET",
+            url=f"{_api_url}/path",
+            params=None,
+            json=None
+        )
+
+    @patch("zanshinsdk.client.httpx.Client.request")
+    def test_request_without_content(self, request):
+        _api_url = "https://api.test"
+        _data = f"[default]\napi_key=api_key"
+
+        with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
+            client = zanshinsdk.Client(api_url=_api_url)
+
+        req = Request(method="GET", url=f"{_api_url}/path")
+        value = Response(request=req, status_code=200)
+        request.return_value = value
+        client._client.request = request
+        client._request("GET", "/path")
+
+        client._client.request.assert_called_once_with(
+            method="GET",
+            url=f"{_api_url}/path",
+            params=None,
+            json=None
+        )
 
     ###################################################
     # Account
@@ -987,20 +1034,29 @@ class TestClient(unittest.TestCase):
             }
         )
 
-    def test_iter_alerts(self):
+    @patch("zanshinsdk.client.Client._get_alerts_page")
+    def test_iter_alerts(self, request):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         page = 1
-        page_size = 100
+        page_size = 1
 
-        try:
-            next(self.sdk.iter_alerts(organization_id, page_size=page_size))
-        except StopIteration:
-            pass
+        request.return_value = {
+            "data": [""],
+            "total": 2,
+        }
 
-        self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts",
-            body={"organizationId": organization_id, "page": page, "pageSize": page_size}
-        )
+        self.sdk._get_alerts_page = request
+        iterator = self.sdk.iter_alerts(organization_id, page_size=page_size)
+
+        next(iterator)
+        next(iterator)
+
+        self.sdk._get_alerts_page.assert_has_calls([
+            call(organization_id, None, None, None, None, page=page, page_size=page_size, language=None,
+                 created_at_start=None, created_at_end=None, updated_at_start=None, updated_at_end=None),
+            call(organization_id, None, None, None, None, page=page+1, page_size=page_size, language=None,
+                 created_at_start=None, created_at_end=None, updated_at_start=None, updated_at_end=None)
+        ])
 
     def test_get_following_alerts_page(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
@@ -1152,20 +1208,29 @@ class TestClient(unittest.TestCase):
             }
         )
 
-    def test_iter_following_alerts(self):
+    @patch("zanshinsdk.client.Client._get_following_alerts_page")
+    def test_iter_following_alerts(self, request):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         page = 1
-        page_size = 100
+        page_size = 1
 
-        try:
-            next(self.sdk.iter_following_alerts(organization_id, page_size=page_size))
-        except StopIteration:
-            pass
+        request.return_value = {
+            "data": [""],
+            "total": 2,
+        }
 
-        self.sdk._request.assert_called_with(
-            "POST", f"/alerts/following",
-            body={"organizationId": organization_id, "page": page, "pageSize": page_size}
-        )
+        self.sdk._get_following_alerts_page = request
+        iterator = self.sdk.iter_following_alerts(organization_id, page_size=page_size)
+
+        next(iterator)
+        next(iterator)
+
+        self.sdk._get_following_alerts_page.assert_has_calls([
+            call(organization_id, None, None, None, None, page=page, page_size=page_size, language=None,
+                 created_at_start=None, created_at_end=None, updated_at_start=None, updated_at_end=None),
+            call(organization_id, None, None, None, None, page=page+1, page_size=page_size, language=None,
+                 created_at_start=None, created_at_end=None, updated_at_start=None, updated_at_end=None)
+        ])
 
     def test_get_alerts_history_page(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
@@ -1224,19 +1289,25 @@ class TestClient(unittest.TestCase):
             }
         )
 
-    def test_iter_alerts_history(self):
+    @patch("zanshinsdk.client.Client._get_alerts_history_page")
+    def test_iter_alerts_history(self, request):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        page_size = 100
+        page_size = 1
 
-        try:
-            next(self.sdk.iter_alerts_history(organization_id, page_size=page_size))
-        except StopIteration:
-            pass
+        request.return_value = {
+            "data": [{"cursor": 1}],
+        }
 
-        self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/history",
-            body={"organizationId": organization_id, "pageSize": page_size}
-        )
+        self.sdk._get_alerts_history_page = request
+        iterator = self.sdk.iter_alerts_history(organization_id, page_size=page_size)
+
+        next(iterator)
+        next(iterator)
+
+        self.sdk._get_alerts_history_page.assert_has_calls([
+            call(organization_id, None, page_size=page_size, language=None, cursor=None),
+            call(organization_id, None, page_size=page_size, language=None, cursor=1),
+        ])
 
     def test_get_alerts_following_history_page(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
@@ -1295,19 +1366,25 @@ class TestClient(unittest.TestCase):
             }
         )
 
-    def test_iter_alerts_following_history(self):
+    @patch("zanshinsdk.client.Client._get_alerts_following_history_page")
+    def test_iter_alerts_following_history(self, request):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        page_size = 100
+        page_size = 1
 
-        try:
-            next(self.sdk.iter_alerts_following_history(organization_id, page_size=page_size))
-        except StopIteration:
-            pass
+        request.return_value = {
+            "data": [{"cursor": 1}],
+        }
 
-        self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/history/following",
-            body={"organizationId": organization_id, "pageSize": page_size}
-        )
+        self.sdk._get_alerts_following_history_page = request
+        iterator = self.sdk.iter_alerts_following_history(organization_id, page_size=page_size)
+
+        next(iterator)
+        next(iterator)
+
+        self.sdk._get_alerts_following_history_page.assert_has_calls([
+            call(organization_id, None, page_size=page_size, language=None, cursor=None),
+            call(organization_id, None, page_size=page_size, language=None, cursor=1),
+        ])
 
     def test_get_grouped_alerts_page(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
@@ -1441,20 +1518,27 @@ class TestClient(unittest.TestCase):
             }
         )
 
-    def test_iter_grouped_alerts(self):
+    @patch("zanshinsdk.client.Client._get_grouped_alerts_page")
+    def test_iter_grouped_alerts(self, request):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         page = 1
-        page_size = 100
+        page_size = 1
 
-        try:
-            next(self.sdk.iter_grouped_alerts(organization_id, page_size=page_size))
-        except StopIteration:
-            pass
+        request.return_value = {
+            "data": [""],
+            "total": 2
+        }
 
-        self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/rules",
-            body={"organizationId": organization_id, "page": page, "pageSize": page_size}
-        )
+        self.sdk._get_grouped_alerts_page = request
+        iterator = self.sdk.iter_grouped_alerts(organization_id, page_size=page_size)
+
+        next(iterator)
+        next(iterator)
+
+        self.sdk._get_grouped_alerts_page.assert_has_calls([
+            call(organization_id, None, None, None, page=page, page_size=page_size),
+            call(organization_id, None, None, None, page=page+1, page_size=page_size),
+        ])
 
     def test_get_grouped_following_alerts_page(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
@@ -1594,20 +1678,27 @@ class TestClient(unittest.TestCase):
             }
         )
 
-    def test_iter_grouped_following_alerts(self):
+    @patch("zanshinsdk.client.Client._get_grouped_following_alerts_page")
+    def test_iter_grouped_following_alerts(self, request):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         page = 1
-        page_size = 100
+        page_size = 1
 
-        try:
-            next(self.sdk.iter_grouped_following_alerts(organization_id, page_size=page_size))
-        except StopIteration:
-            pass
+        request.return_value = {
+            "data": [""],
+            "total": 2
+        }
 
-        self.sdk._request.assert_called_with(
-            "POST", f"/alerts/rules/following",
-            body={"organizationId": organization_id, "page": page, "pageSize": page_size}
-        )
+        self.sdk._get_grouped_following_alerts_page = request
+        iterator = self.sdk.iter_grouped_following_alerts(organization_id, page_size=page_size)
+
+        next(iterator)
+        next(iterator)
+
+        self.sdk._get_grouped_following_alerts_page.assert_has_calls([
+            call(organization_id, None, None, None, page=page, page_size=page_size),
+            call(organization_id, None, None, None, page=page+1, page_size=page_size),
+        ])
 
     def test_get_alert(self):
         alert_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
