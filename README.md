@@ -48,6 +48,10 @@ print(dumps(me, indent=4))
 
 All operations call `raise_for_status` on the httpx [Response object](https://www.python-httpx.org/api/#response) internally, so any 4xx or 5xx will raise [exceptions](https://www.python-httpx.org/exceptions/).
 
+## Tests
+
+To run all tests just call `python -m unittest discover -v` on the project root directory. Make sure there's a `[default]` profile configured, else some tests will fail.
+
 # Support
 
 If you are a Zanshin customer and have any questions regarding the use of the service, its API or this SDK package, please get in touch via e-mail at support {at} tenchisecurity {dot} com or via the support widget on the [Zanshin Portal](https://zanshin.tenchisecurity.com).
