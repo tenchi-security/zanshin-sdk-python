@@ -779,8 +779,7 @@ class TestClient(unittest.TestCase):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         kind = zanshinsdk.ScanTargetKind.AWS
         name = "ScanTargetTest"
-        credential = zanshinsdk.ScanTargetAWS()
-        credential.account = "123456"
+        credential = zanshinsdk.ScanTargetAWS("123456")
         schedule = "0 0 * * *"
 
         self.sdk.create_organization_scan_target(organization_id, kind, name, credential, schedule)
@@ -794,11 +793,7 @@ class TestClient(unittest.TestCase):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         kind = zanshinsdk.ScanTargetKind.AZURE
         name = "ScanTargetTest"
-        credential = zanshinsdk.ScanTargetAZURE()
-        credential.applicationId = "1234567890",
-        credential.directoryId = "0123456789",
-        credential.subscriptionId = "2345678901",
-        credential.secret = "SECRET"
+        credential = zanshinsdk.ScanTargetAZURE("1234567890", "0123456789", "2345678901", "SECRET")
         schedule = "0 0 * * *"
 
         self.sdk.create_organization_scan_target(organization_id, kind, name, credential, schedule)
@@ -812,8 +807,7 @@ class TestClient(unittest.TestCase):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         kind = zanshinsdk.ScanTargetKind.GCP
         name = "ScanTargetTest"
-        credential = zanshinsdk.ScanTargetGCP()
-        credential.projectId = "123456"
+        credential = zanshinsdk.ScanTargetGCP("123456")
         schedule = "0 0 * * *"
 
         self.sdk.create_organization_scan_target(organization_id, kind, name, credential, schedule)
@@ -827,8 +821,7 @@ class TestClient(unittest.TestCase):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         kind = zanshinsdk.ScanTargetKind.HUAWEI
         name = "ScanTargetTest"
-        credential = zanshinsdk.ScanTargetHUAWEI()
-        credential.accountId = "123456"
+        credential = zanshinsdk.ScanTargetHUAWEI("123456")
         schedule = "0 0 * * *"
 
         self.sdk.create_organization_scan_target(organization_id, kind, name, credential, schedule)
@@ -842,8 +835,7 @@ class TestClient(unittest.TestCase):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         kind = zanshinsdk.ScanTargetKind.DOMAIN
         name = "ScanTargetTest"
-        credential = zanshinsdk.ScanTargetDOMAIN()
-        credential.domain = "123456"
+        credential = zanshinsdk.ScanTargetDOMAIN("domain.com")
         schedule = "0 0 * * *"
 
         self.sdk.create_organization_scan_target(organization_id, kind, name, credential, schedule)
