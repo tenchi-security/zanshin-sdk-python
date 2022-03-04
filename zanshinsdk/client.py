@@ -40,27 +40,30 @@ class ScanTargetKind(str, Enum):
     DOMAIN = "DOMAIN"
 
 
-class ScanTargetAWS:
-    account: str
+class ScanTargetAWS(dict):
+    def __init__(self, account):
+        dict.__init__(self, account=account)
 
 
-class ScanTargetAZURE:
-    applicationId: str
-    subscriptionId: str
-    directoryId: str
-    secret: str
+class ScanTargetAZURE(dict):
+    def __init__(self, application_id, subscription_id, directory_id, secret):
+        dict.__init__(self, applicationId=application_id, subscriptionId=subscription_id,
+                      directoryId=directory_id, secret=secret)
 
 
-class ScanTargetGCP:
-    projectId: str
+class ScanTargetGCP(dict):
+    def __init__(self, project_id):
+        dict.__init__(self, projectId=project_id)
 
 
-class ScanTargetHUAWEI:
-    accountId: str
+class ScanTargetHUAWEI(dict):
+    def __init__(self, account_id):
+        dict.__init__(self, accountId=account_id)
 
 
-class ScanTargetDOMAIN:
-    domain: str
+class ScanTargetDOMAIN(dict):
+    def __init__(self, domain):
+        dict.__init__(self, domain=domain)
 
 
 class Roles(str, Enum):
