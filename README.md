@@ -63,7 +63,7 @@ With `pip install zanshinsdk[with_boto3]` you'll automatically install [boto3](h
 
 ## Testing
 
-To run all tests call `python -m unittest discover -v` on the project root directory. Make sure there's a `[default]` profile configured, else some tests will fail.
+To run all tests call `make test` on the project root directory. Make sure there's a `[default]` profile configured, else some tests will fail.
 Also, be sure to install `boto3` and `moto[all]` or some integration tests will fail.
 
 # Support
