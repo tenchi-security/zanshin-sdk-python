@@ -2174,16 +2174,27 @@ class TestClient(unittest.TestCase):
 
         new_scan_target=self.sdk.onboard_scan_target(
             boto3_profile, region, organization_id, kind, name, credential, schedule)
+        
+        # Assert that Scan Target was created
         self.assertEqual(created_scan_target_id, new_scan_target['id'])
 
+        # Assert that Scan Target was called with correct parameters
         self.sdk._request.assert_any_call(
             "POST",
             f"/organizations/{organization_id}/scantargets",
             body={"name": name, "kind": kind, "schedule": schedule,
              "credential": {"account": aws_account_id}}
         )
+        # Assert that we checked Scan Target to start scan
         self.sdk._request.assert_any_call(
             "POST",
             f"/organizations/{organization_id}/scantargets/{created_scan_target_id}/check",
         )
+        
+        # Assert CloudFormation Stack was created successfully
+        zanshin_cloudformation_stack_name = 'tenchi-zanshin-service-role'
+        cloudformation =  boto3.client('cloudformation', region_name='us-east-1')
+        zanshin_stack = cloudformation.describe_stacks(StackName=zanshin_cloudformation_stack_name)['Stacks'][0]
+        self.assertEquals('CREATE_COMPLETE', zanshin_stack['StackStatus'])
+        self.assertEquals(zanshin_cloudformation_stack_name, zanshin_stack['StackName'])
 
