@@ -2136,9 +2136,9 @@ class TestClient(unittest.TestCase):
     @mock_cloudformation
     @mock_s3
     def test_onboard_scan_target_aws(self, request, mock_is_file):
-        import boto3, json
-        
-        
+        import boto3
+        import json
+
         # Setup test data
         aws_account_id = "123456789012"
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
@@ -2152,7 +2152,7 @@ class TestClient(unittest.TestCase):
 
         # Mock AWS Credentials for Boto3
         self.mock_aws_credentials()
-        
+
         # Mock request to create new Scan Target
         mock_is_file.return_value = True
         _data = f"[default]\napi_key=api_key"
@@ -2160,41 +2160,44 @@ class TestClient(unittest.TestCase):
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             request.return_value = Mock(status_code=200, json=lambda: {
                                         "id": created_scan_target_id})
-            self.sdk = zanshinsdk.Client()
-            self.sdk._request = request
+            client = zanshinsdk.Client()
+            client._client.request = request
 
         # Create Mocked S3 tenchi-assets bucket
         with open('zanshinsdk/dummy_cloudformation_zanshin_service_role_template.json', 'r') as dummy_template_file:
             DUMMY_TEMPLATE = json.load(dummy_template_file)
             s3 = boto3.client('s3', region_name='us-east-2')
             s3.create_bucket(Bucket='tenchi-assets',
-                            CreateBucketConfiguration={'LocationConstraint': 'us-east-2'})
+                             CreateBucketConfiguration={'LocationConstraint': 'us-east-2'})
             s3.put_object(Bucket='tenchi-assets',
-                        Key='zanshin-service-role.template', Body=json.dumps(DUMMY_TEMPLATE))
+                          Key='zanshin-service-role.template', Body=json.dumps(DUMMY_TEMPLATE))
 
-        new_scan_target=self.sdk.onboard_scan_target(
+        new_scan_target = client.onboard_scan_target(
             boto3_profile, region, organization_id, kind, name, credential, schedule)
-        
+
         # Assert that Scan Target was created
         self.assertEqual(created_scan_target_id, new_scan_target['id'])
 
         # Assert that Scan Target was called with correct parameters
-        self.sdk._request.assert_any_call(
+        client._client.request.assert_any_call(
             "POST",
             f"/organizations/{organization_id}/scantargets",
             body={"name": name, "kind": kind, "schedule": schedule,
-             "credential": {"account": aws_account_id}}
+                  "credential": {"account": aws_account_id}}
         )
         # Assert that we checked Scan Target to start scan
-        self.sdk._request.assert_any_call(
+        client._client.request.assert_any_call(
             "POST",
             f"/organizations/{organization_id}/scantargets/{created_scan_target_id}/check",
         )
-        
+
         # Assert CloudFormation Stack was created successfully
         zanshin_cloudformation_stack_name = 'tenchi-zanshin-service-role'
-        cloudformation =  boto3.client('cloudformation', region_name='us-east-1')
-        zanshin_stack = cloudformation.describe_stacks(StackName=zanshin_cloudformation_stack_name)['Stacks'][0]
+        cloudformation = boto3.client(
+            'cloudformation', region_name='us-east-1')
+        zanshin_stack = cloudformation.describe_stacks(
+            StackName=zanshin_cloudformation_stack_name)['Stacks'][0]
         self.assertEqual('CREATE_COMPLETE', zanshin_stack['StackStatus'])
-        self.assertEqual(zanshin_cloudformation_stack_name, zanshin_stack['StackName'])
+        self.assertEqual(zanshin_cloudformation_stack_name,
+                         zanshin_stack['StackName'])
 
