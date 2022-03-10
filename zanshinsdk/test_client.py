@@ -2195,6 +2195,6 @@ class TestClient(unittest.TestCase):
         zanshin_cloudformation_stack_name = 'tenchi-zanshin-service-role'
         cloudformation =  boto3.client('cloudformation', region_name='us-east-1')
         zanshin_stack = cloudformation.describe_stacks(StackName=zanshin_cloudformation_stack_name)['Stacks'][0]
-        self.assertEquals('CREATE_COMPLETE', zanshin_stack['StackStatus'])
-        self.assertEquals(zanshin_cloudformation_stack_name, zanshin_stack['StackName'])
+        self.assertEqual('CREATE_COMPLETE', zanshin_stack['StackStatus'])
+        self.assertEqual(zanshin_cloudformation_stack_name, zanshin_stack['StackName'])
 

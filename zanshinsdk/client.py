@@ -1475,6 +1475,7 @@ class Client:
             For AWS Scan Target:
             If boto3 is installed, creates a Scan Target for the given organization and perform the onboard.
             :param boto3_profile: the profile name that boto3 will use.
+            :param region: the AWS Region to deploy the CloudFormation Template of Zanshin Service Role.
             :param organization_id: the ID of the organization to have the new Scan Target.
             :param kind: the Kind of scan target (AWS, GCP, AZURE, DOMAIN)
             :param name: the name of the new scan target.
