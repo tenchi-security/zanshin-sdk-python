@@ -1,9 +1,13 @@
-from unittest.mock import patch, call, mock_open
+import os
+from unittest.mock import patch, call, mock_open, Mock
 from uuid import UUID
 from httpx import Response, Request
 
 import unittest
 import zanshinsdk
+
+from moto import mock_sts, mock_cloudformation, mock_s3
+from pathlib import Path
 
 
 class TestClient(unittest.TestCase):
@@ -20,6 +24,14 @@ class TestClient(unittest.TestCase):
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             self.sdk = zanshinsdk.Client()
             self.sdk._request = request
+        
+        self.HAVE_BOTO3 = False
+        try:
+            import boto3
+            self.HAVE_BOTO3 = True
+        except ModuleNotFoundError:
+            pass
+            self.HAVE_BOTO3 = False
 
     ###################################################
     # __init__
@@ -137,6 +149,15 @@ class TestClient(unittest.TestCase):
             client = zanshinsdk.Client()
 
         self.assertEqual(client._user_agent, f"{_user_agent} (Zanshin Python SDK v{zanshinsdk.__version__})")
+
+    ###################################################
+    # __mock_aws_credentials__
+    ###################################################
+
+    def mock_aws_credentials(self):
+        """Mocked AWS Credentials for moto."""
+        moto_credentials_file_path = Path(__file__).parent.absolute() / 'dummy_aws_credentials'
+        os.environ['AWS_SHARED_CREDENTIALS_FILE'] = str(moto_credentials_file_path)
 
     ###################################################
     # _update_client except
@@ -2060,3 +2081,109 @@ class TestClient(unittest.TestCase):
             zanshinsdk.client.validate_uuid(_uuid)
         except Exception as e:
             self.assertEqual(str(e), f"{repr(_uuid)} is not a valid UUID")
+  
+    def test_onboard_scan_target_unsupported_scan_target_kind(self):
+        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
+        kind = zanshinsdk.ScanTargetKind.AZURE
+        name = "OnboardTesting-it"
+        credential = zanshinsdk.ScanTargetAZURE("4321", "1234", "1234", "s3cr3t")
+        schedule = "0 0 * * *"
+        region = "us-east-1"
+        boto3_profile='foo'
+
+        try:
+            self.sdk.onboard_scan_target(boto3_profile, region, organization_id, kind, name, credential, schedule)
+        except Exception as e:
+            self.assertEqual(str(e), "Onboard doesn't support AZURE environment yet")
+    
+    @unittest.skipIf('HAVE_BOTO3', "requires not have boto3")
+    def test_onboard_scan_target_aws_missing_boto3(self):
+        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
+        kind = zanshinsdk.ScanTargetKind.AWS
+        name = "OnboardTesting-it"
+        credential = zanshinsdk.ScanTargetAWS("4321")
+        schedule = "0 0 * * *"
+        region = "us-east-1"
+        boto3_profile='foo'
+
+        try:
+            self.sdk.onboard_scan_target(boto3_profile, region, organization_id, kind, name, credential, schedule)
+        except Exception as e:
+            self.assertEqual(str(e), "boto3 not present. boto3 is required to perform AWS onboard.")
+
+    @unittest.skipUnless('HAVE_BOTO3', "requires boto3")
+    @mock_sts
+    def test_onboard_scan_target_aws_invalid_credentials(self):
+        self.mock_aws_credentials()
+        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
+        kind = zanshinsdk.ScanTargetKind.AWS
+        name = "OnboardTesting-it"
+        credential = zanshinsdk.ScanTargetAWS("4321")
+        schedule = "0 0 * * *"
+        region = "us-east-1"
+        boto3_profile='non_default'
+
+        try:
+            self.sdk.onboard_scan_target(boto3_profile, region, organization_id, kind, name, credential, schedule)
+        except Exception as e:
+            self.assertEqual(str(e), "boto3 session is invalid. Working boto3 session is required.")
+
+    
+    @unittest.skipUnless('HAVE_BOTO3', "requires boto3")
+    @patch("zanshinsdk.client.isfile")
+    @patch("zanshinsdk.Client._request")
+    @mock_sts
+    @mock_cloudformation
+    @mock_s3
+    def test_onboard_scan_target_aws(self, request, mock_is_file):
+        import boto3, json
+        
+        
+        # Setup test data
+        aws_account_id = "123456789012"
+        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
+        created_scan_target_id = "14f79567-6b68-4e3a-b2f2-4f1383546251"
+        kind = zanshinsdk.ScanTargetKind.AWS
+        name = "OnboardTesting-it"
+        credential = zanshinsdk.ScanTargetAWS(aws_account_id)
+        schedule = "0 0 * * *"
+        region = "us-east-1"
+        boto3_profile = 'foo'
+
+        # Mock AWS Credentials for Boto3
+        self.mock_aws_credentials()
+        
+        # Mock request to create new Scan Target
+        mock_is_file.return_value = True
+        _data = f"[default]\napi_key=api_key"
+
+        with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
+            request.return_value = Mock(status_code=200, json=lambda: {
+                                        "id": created_scan_target_id})
+            self.sdk = zanshinsdk.Client()
+            self.sdk._request = request
+
+        # Create Mocked S3 tenchi-assets bucket
+        with open('zanshinsdk/dummy_cloudformation_zanshin_service_role_template.json', 'r') as dummy_template_file:
+            DUMMY_TEMPLATE = json.load(dummy_template_file)
+            s3 = boto3.client('s3', region_name='us-east-2')
+            s3.create_bucket(Bucket='tenchi-assets',
+                            CreateBucketConfiguration={'LocationConstraint': 'us-east-2'})
+            s3.put_object(Bucket='tenchi-assets',
+                        Key='zanshin-service-role.template', Body=json.dumps(DUMMY_TEMPLATE))
+
+        new_scan_target=self.sdk.onboard_scan_target(
+            boto3_profile, region, organization_id, kind, name, credential, schedule)
+        self.assertEqual(created_scan_target_id, new_scan_target['id'])
+
+        self.sdk._request.assert_any_call(
+            "POST",
+            f"/organizations/{organization_id}/scantargets",
+            body={"name": name, "kind": kind, "schedule": schedule,
+             "credential": {"account": aws_account_id}}
+        )
+        self.sdk._request.assert_any_call(
+            "POST",
+            f"/organizations/{organization_id}/scantargets/{created_scan_target_id}/check",
+        )
+

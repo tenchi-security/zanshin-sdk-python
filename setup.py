@@ -4,6 +4,10 @@ from setuptools import setup
 
 from zanshinsdk import __version__
 
+extras = {
+    'with_boto3': ['boto3>=1.21.12']
+}
+
 setup(
     name='zanshinsdk',
     description='Python SDK to access the Tenchi Security Zanshin API v1',
@@ -14,9 +18,10 @@ setup(
     url='https://github.com/tenchi-security/zanshin-sdk-python',
     license='Apache Software License',
     install_requires=['httpx==0.19.0'],
-    tests_require=['pytest==6.2.5'],
+    tests_require=['pytest==6.2.5', 'moto[all]==3.0.7'],
     setup_requires=['pytest-runner==5.3.1'],
     packages=['zanshinsdk'],
+    extras_require=extras,
     # include_package_data=True,
     platforms='any',
     classifiers=[
