@@ -39,7 +39,6 @@ Returns
 
 ```python
 from zanshinsdk import Client, ScanTargetKind, ScanTargetAWS
-import boto3
 
 client = Client()
 
