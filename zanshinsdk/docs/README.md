@@ -20,6 +20,7 @@ Currently using the Zanshin SDK you're only able to onboard **AWS Scan Targets**
 > :warning: This method will deploy a CloudFormation stack in your AWS account. So it's required that you have `boto3` installed in your system, as well as privileges to create CloudFormation stacks and create IAM roles in the given AWS Account.
 > You must set up a [boto3 profile](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html#using-a-configuration-file).
 
+
 Parameters:
 - boto3_profile: the profile name that boto3 will use.
 - organization_id: the ID of the organization to have the new Scan Target.
@@ -54,5 +55,28 @@ boto3_profile = 'aws_profile'
 my_new_scan_target = client.onboard_scan_target(boto3_profile, region, organization_id, kind, name, credential, schedule)
 
 ```
-
+---
+#### Minimum required AWS IAM Privileges
+The minimum required privileges that you need in your boto3 profile to deploy sucessfully the CloudFormation for Zanshin Tenchi Service Role are below:
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": [
+                "cloudformation:CreateStack",
+                "cloudformation:DescribeStacks",
+                "iam:GetRole",
+                "iam:CreateRole",
+                "iam:CreatePolicy",
+                "iam:CreatePolicyVersion",
+                "iam:PutRolePolicy",
+                "iam:AttachRolePolicy"
+            ],
+            "Effect": "Allow",
+            "Resource": "*"
+        }
+    ]
+}
+```
 
