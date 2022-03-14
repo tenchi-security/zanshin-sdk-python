@@ -56,27 +56,57 @@ my_new_scan_target = client.onboard_scan_target(boto3_profile, region, organizat
 
 ```
 ---
+
 #### Minimum required AWS IAM Privileges
+
 The minimum required privileges that you need in your boto3 profile to deploy sucessfully the CloudFormation for Zanshin Tenchi Service Role are below:
 ```json
 {
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Action": [
-                "cloudformation:CreateStack",
-                "cloudformation:DescribeStacks",
-                "iam:GetRole",
-                "iam:CreateRole",
-                "iam:CreatePolicy",
-                "iam:CreatePolicyVersion",
-                "iam:PutRolePolicy",
-                "iam:AttachRolePolicy"
-            ],
-            "Effect": "Allow",
-            "Resource": "*"
-        }
-    ]
+	"Version": "2012-10-17",
+	"Statement": [{
+			"Sid": "PrivCloudFormation",
+			"Action": [
+				"cloudformation:CreateStack",
+				"cloudformation:DescribeStacks"
+			],
+			"Effect": "Allow",
+			"Resource": "*"
+
+		},
+		{
+			"Sid": "IAMRole",
+			"Action": [
+				"iam:GetRole",
+				"iam:CreateRole",
+				"iam:PutRolePolicy",
+				"iam:AttachRolePolicy"
+			],
+			"Effect": "Allow",
+			"Resource": "arn:aws:iam::<your AWS account ID|*>:role/Tenchi-Zanshin-Service-Role",
+			"Condition": {
+				"ForAnyValue:StringEquals": {
+					"aws:CalledVia": "cloudformation.amazonaws.com"
+				}
+			}
+		},
+		{
+			"Sid": "IAMPolicy",
+			"Action": [
+				"iam:CreatePolicy",
+				"iam:CreatePolicyVersion"
+			],
+			"Effect": "Allow",
+			"Resource": "*",
+			"Condition": {
+				"ForAnyValue:StringEquals": {
+					"aws:CalledVia": "cloudformation.amazonaws.com"
+				}
+			}
+		}
+	]
 }
 ```
+
+> **Attention**
+> :warning: Make sure to substitute the `your AWS account ID` to the correct value.
 
