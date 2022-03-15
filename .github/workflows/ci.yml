@@ -27,6 +27,8 @@ jobs:
           pip install flake8 pytest
           pip install httpx
           pip install coverage
+          pip install boto3
+          pip install moto[all]
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Lint with flake8

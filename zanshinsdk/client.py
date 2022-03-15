@@ -1,3 +1,5 @@
+import sys
+import time
 import logging
 from os.path import isfile
 from configparser import RawConfigParser
@@ -7,6 +9,7 @@ from pathlib import Path
 from typing import Dict, Optional, Iterator, Iterable, Union
 from urllib.parse import urlparse
 from uuid import UUID
+from importlib.util import find_spec, module_from_spec
 
 import httpx
 
@@ -665,7 +668,9 @@ class Client:
             * For AWS scan targets, provide the account ID in the *account* field
             * For Azure scan targets, provide *applicationId*, *subscriptionId*, *directoryId* and *secret* fields.
             * For GCP scan targets, provide a *projectId* field
+            * For DOMAIN scan targets, provide a URL in the *domain* field
         :param schedule: schedule in cron format
+        :return: a dict representing the newly created scan target
         """
         validate_class(kind, ScanTargetKind)
         validate_class(name, str)
@@ -687,7 +692,7 @@ class Client:
             "kind": kind,
             "credential": credential,
             "schedule": schedule
-        }
+        }        
         return self._request("POST", f"/organizations/{validate_uuid(organization_id)}/scantargets",
                              body=body).json()
 
@@ -1456,6 +1461,144 @@ class Client:
     def __repr__(self):
         return f"Connection(api_url='{self.api_url}', api_key='***{self._api_key[-6:]}', " \
                f"user_agent='{self.user_agent}', proxy_url='{self._get_sanitized_proxy_url()}')"
+
+    ###################################################
+    # Onboard Scan Targets
+    ###################################################
+
+    def onboard_scan_target(self, boto3_profile: str, region: str, organization_id: Union[UUID, str], kind: ScanTargetKind,
+                            name: str, credential: Union[ScanTargetAWS, ScanTargetAZURE,
+                            ScanTargetGCP, ScanTargetHUAWEI, ScanTargetDOMAIN],
+                            schedule: str = "0 0 * * *") -> Dict:
+            """
+            Currently supports only AWS Scan Targets.
+            For AWS Scan Target:
+            If boto3 is installed, creates a Scan Target for the given organization and perform the onboard.
+            :param boto3_profile: the profile name that boto3 will use.
+            :param region: the AWS Region to deploy the CloudFormation Template of Zanshin Service Role.
+            :param organization_id: the ID of the organization to have the new Scan Target.
+            :param kind: the Kind of scan target (AWS, GCP, AZURE, DOMAIN)
+            :param name: the name of the new scan target.
+            :param credential: credentials to access the cloud account to be scanned:
+                * For AWS scan targets, provide the account ID in the *account* field.
+                * For Azure scan targets, provide *applicationId*, *subscriptionId*, *directoryId* and *secret* fields.
+                * For GCP scan targets, provide a *projectId* field.
+                * For DOMAIN scan targets, provide a URL in the *domain* field.
+            :param schedule: schedule in cron format.
+            :return: JSON object containing newly created scan target .
+            """
+
+            self._check_scantarget_is_aws(kind)
+            boto3 = self._check_boto3_installation()
+            boto3_session = self._check_aws_credentials_are_valid(boto3_profile, boto3)
+
+            new_scan_target = self.create_organization_scan_target(
+                organization_id, kind, name, credential, schedule)
+            new_scan_target_id = new_scan_target['id']
+
+            zanshin_stack_name = 'tenchi-zanshin-service-role'
+            try:
+                cloudformation_client = self._deploy_cloudformation_zanshin_service_role(
+                    boto3_session, region, new_scan_target_id, zanshin_stack_name)
+                retries = 0
+                max_retry = 10
+                wait_between_retries = 10
+                zanshin_stack = self._get_cloudformation_stack_status(
+                    zanshin_stack_name, cloudformation_client)
+
+                while zanshin_stack['StackStatus'] != 'CREATE_COMPLETE':
+                    if not retries:
+                        self._logger.debug(
+                            f"Failed to confirm CloudFormation Stack {zanshin_stack_name} completion. Retrying.")
+                    if retries >= max_retry:
+                        raise RuntimeError('CloudFormation Stack wasn\'t deployed')
+                    time.sleep(wait_between_retries)
+                    self._logger.debug(
+                            f"Checking CloudFormation Stack {zanshin_stack_name}...")
+                    retries += 1
+                    zanshin_stack = self._get_cloudformation_stack_status(
+                        zanshin_stack_name, cloudformation_client)
+
+            except Exception as error:
+                print('err', error)
+                raise ValueError(
+                    f"Failed to confirm CloudFormation Stack {zanshin_stack_name} completion.")
+
+            self.check_organization_scan_target(
+                organization_id=organization_id, scan_target_id=new_scan_target_id)
+            return self.get_organization_scan_target(organization_id=organization_id, scan_target_id=new_scan_target_id)
+
+    def _deploy_cloudformation_zanshin_service_role(self, boto3_session:object, region:str, new_scan_target_id:str, zanshin_stack_name:str):
+        """
+        Instantiate boto3 client for CloudFormation, and create the Stack containing Zanshin Service Role.
+        :return: boto3 cloudformation client.
+        """
+        try:
+            cloudformation_client = boto3_session.client('cloudformation', region_name=region)
+            cloudformation_client.create_stack(
+                StackName=zanshin_stack_name,
+                TemplateURL='https://s3.amazonaws.com/tenchi-assets/zanshin-service-role.template',
+                Parameters=[{
+                            'ParameterKey': 'ExternalId',
+                            'ParameterValue': new_scan_target_id
+                            }],
+                Capabilities=[
+                    'CAPABILITY_IAM', 'CAPABILITY_NAMED_IAM'
+                ],
+            )
+
+            return cloudformation_client
+        except Exception as e:  
+            self._logger.error('Unable to deploy CloudFormation zanshin-tenchi-service-role. The onboard won\'t succeed.')
+            raise e
+
+    def _get_cloudformation_stack_status(self, zanshin_stack_name, cloudformation_client):
+        """
+        Fetch CloudFormation Stack details. Assumes that there's only one Stack with given name.
+        :return: cloudformation stack.
+        """
+        zanshin_stack = cloudformation_client.describe_stacks(
+            StackName=zanshin_stack_name)['Stacks'][0]
+
+        return zanshin_stack
+
+    def _check_aws_credentials_are_valid(self, boto3_profile, boto3):
+        """
+        Check if boto3 informed credentials are valid performing aws sts get-caller-identity. In case problem, raises ValueError.
+        :return: boto3 session.
+        """
+        try:
+            boto3_session = boto3.Session(profile_name=boto3_profile)
+            sts = boto3_session.client('sts')
+            sts.get_caller_identity()
+            return boto3_session
+        except Exception as e:
+            raise ValueError(
+                "boto3 session is invalid. Working boto3 session is required.")
+
+    def _check_scantarget_is_aws(self, kind):
+        """
+        Check if informed Scan Target is of AWS Kind. If not, raises NotImplementedError.
+        """
+        if kind != ScanTargetKind.AWS:
+            raise NotImplementedError(
+                f"Onboard doesn't support {kind} environment yet")
+
+    def _check_boto3_installation(self):
+        """
+        Check if boto3 is installed in the current environment. If not, raises ImportError.
+        :return: boto3 module if present.
+        """
+        package_name = 'boto3'
+        spec = find_spec(package_name)
+        if spec is None:
+            raise ImportError(
+                f"{package_name} not present. {package_name} is required to perform AWS onboard.")
+
+        module = module_from_spec(spec)
+        sys.modules[package_name] = module
+        spec.loader.exec_module(module)
+        return module
 
 
 def validate_int(value, min_value=None, max_value=None, required=False) -> Optional[int]:

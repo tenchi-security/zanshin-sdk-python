@@ -46,7 +46,25 @@ me = client.get_me()    # calls /me API endpoint
 print(dumps(me, indent=4))
 ```
 
+For more examples, checkout the [docs](zanshinsdk/docs/README.md).
+
 All operations call `raise_for_status` on the httpx [Response object](https://www.python-httpx.org/api/#response) internally, so any 4xx or 5xx will raise [exceptions](https://www.python-httpx.org/exceptions/).
+
+## Installing
+
+To install the SDK, you can use `pip`. You have two options to install ZanshinSDK:
+- *Essentials*
+  
+Using `pip install zanshinsdk` will install the SDK with all features exception ability to perform onboarding of new Scan Targets. For this, you'll need to install boto3.
+
+- *With Boto3*
+
+With `pip install zanshinsdk[with_boto3]` you'll automatically install [boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html) along with ZanshinSDK. This will enable you to perform Onboard of new Scan Targets via SDK.
+
+## Testing
+
+To run all tests call `make test` on the project root directory. Make sure there's a `[default]` profile configured, else some tests will fail.
+Also, be sure to install `boto3` and `moto[all]` or some integration tests will fail.
 
 # Support
 

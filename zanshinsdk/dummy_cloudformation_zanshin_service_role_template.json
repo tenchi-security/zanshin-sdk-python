@@ -1,0 +1,61 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Tenchi Zanshin Service Role",
+    "Parameters": {
+       "ExternalId": {
+          "Type": "String",
+          "Description": "Enter External Id"
+       }
+    },
+    "Resources": {
+       "ZanshinServiceRole": {
+          "Type": "AWS::IAM::Role",
+          "Properties": {
+             "RoleName": "Tenchi-Zanshin-Service-Role",
+             "Description": "Tenchi Zanshin Service Role",
+             "MaxSessionDuration": 43200,
+             "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                   {
+                      "Sid": "ZanshinV1",
+                      "Effect": "Allow",
+                      "Action": "sts:AssumeRole",
+                      "Principal": {
+                         "AWS": "arn:aws:iam::123456789012:root"
+                      },
+                      "Condition": {
+                         "StringEquals": {
+                            "sts:ExternalId": null
+                         }
+                      }
+                   }
+                ]
+             },
+             "ManagedPolicyArns": [
+                "arn:aws:iam::aws:policy/SecurityAudit",
+                "arn:aws:iam::aws:policy/job-function/ViewOnlyAccess",
+                "arn:aws:iam::aws:policy/ServiceQuotasReadOnlyAccess"
+             ],
+             "Policies": [
+                {
+                   "PolicyName": "ZanshinViewPrivileges",
+                   "PolicyDocument": {
+                      "Version": "2012-10-17",
+                      "Statement": [
+                         {
+                            "Effect": "Allow",
+                            "Action": [
+                               "ses:Describe*",
+                               "xray:GetEncryptionConfig"
+                            ],
+                            "Resource": "*"
+                         }
+                      ]
+                   }
+                }
+             ]
+          }
+       }
+    }
+ }
