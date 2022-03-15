@@ -1,4 +1,4 @@
-|PyPI version shields.io| |PyPI pyversions|
+|Coverage badge| |PyPI version shields.io| |PyPI pyversions|
 
 Zanshin Python SDK
 ==================
@@ -35,8 +35,7 @@ These are the supported options:
 -  ``user_agent`` (optional) allows you to override the default
    user-agent header used by the SDK when making API requests.
 -  ``api_url`` (optional) directs the SDK to use a different API
-   endpoint than the default
-   (`https://api.zanshin.tenchisecurity.com <https://api.zanshin.tenchisecurity.com>`__).
+   endpoint than the default (https://api.zanshin.tenchisecurity.com).
 
 This is what a minimal configuration file looks like:
 
@@ -71,10 +70,39 @@ in use:
    me = client.get_me()    # calls /me API endpoint
    print(dumps(me, indent=4))
 
+For more examples, checkout the `docs <zanshinsdk/docs/README.md>`__.
+
 All operations call ``raise_for_status`` on the httpx `Response
 object <https://www.python-httpx.org/api/#response>`__ internally, so
 any 4xx or 5xx will raise
 `exceptions <https://www.python-httpx.org/exceptions/>`__.
+
+Installing
+----------
+
+To install the SDK, you can use ``pip``. You have two options to install
+ZanshinSDK:
+
+-  *Essentials*
+
+Using ``pip install zanshinsdk`` will install the SDK with all features
+exception ability to perform onboarding of new Scan Targets. For this,
+you'll need to install boto3.
+
+-  *With Boto3*
+
+With ``pip install zanshinsdk[with_boto3]`` you'll automatically install
+`boto3 <https://boto3.amazonaws.com/v1/documentation/api/latest/index.html>`__
+along with ZanshinSDK. This will enable you to perform Onboard of new
+Scan Targets via SDK.
+
+Testing
+-------
+
+To run all tests call ``make test`` on the project root directory. Make
+sure there's a ``[default]`` profile configured, else some tests will
+fail. Also, be sure to install ``boto3`` and ``moto[all]`` or some
+integration tests will fail.
 
 Support
 =======
@@ -84,6 +112,7 @@ of the service, its API or this SDK package, please get in touch via
 e-mail at support {at} tenchisecurity {dot} com or via the support
 widget on the `Zanshin Portal <https://zanshin.tenchisecurity.com>`__.
 
+.. |Coverage badge| image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/wiki/tenchi-security/zanshin-sdk-python/python-coverage-comment-action-badge.json
 .. |PyPI version shields.io| image:: https://img.shields.io/pypi/v/zanshinsdk.svg
    :target: https://pypi.python.org/pypi/zanshinsdk/
 .. |PyPI pyversions| image:: https://img.shields.io/pypi/pyversions/zanshinsdk.svg
