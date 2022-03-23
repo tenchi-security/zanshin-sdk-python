@@ -5,7 +5,7 @@ from setuptools import setup
 from zanshinsdk import __version__
 
 extras = {
-    'with_boto3': ['boto3>=1.21.12']
+    'with_boto3': ['boto3>=1.21.21']
 }
 
 setup(
@@ -17,9 +17,9 @@ setup(
     version=__version__,
     url='https://github.com/tenchi-security/zanshin-sdk-python',
     license='Apache Software License',
-    install_requires=['httpx==0.19.0'],
-    tests_require=['pytest==6.2.5', 'moto[all]==3.0.7'],
-    setup_requires=['pytest-runner==5.3.1'],
+    install_requires=['httpx==0.22.0'],
+    tests_require=['pytest==7.1.1', 'moto[all]==3.1.1'],
+    setup_requires=['pytest-runner==6.0.0'],
     packages=['zanshinsdk'],
     extras_require=extras,
     # include_package_data=True,
