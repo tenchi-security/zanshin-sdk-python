@@ -2373,7 +2373,6 @@ class TestClient(unittest.TestCase):
         schedule = "0 0 * * *"
         region = "us-east-1"
         
-        import boto3
         boto3_session = boto3.Session(
                 aws_access_key_id='EXAMPLE_NON_EXISTING_KEY',
                 aws_secret_access_key='&x@mP|e$3cReT',
