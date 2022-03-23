@@ -1466,15 +1466,14 @@ class Client:
     # Onboard Scan Targets
     ###################################################
 
-    def onboard_scan_target(self, boto3_profile: str, region: str, organization_id: Union[UUID, str], kind: ScanTargetKind,
-                            name: str, credential: Union[ScanTargetAWS, ScanTargetAZURE,
-                            ScanTargetGCP, ScanTargetHUAWEI, ScanTargetDOMAIN],
-                            schedule: str = "0 0 * * *") -> Dict:
+    def onboard_scan_target(self, region: str, organization_id: Union[UUID, str], kind: ScanTargetKind, name: str,
+                            credential: Union[ScanTargetAWS, ScanTargetAZURE, ScanTargetGCP, ScanTargetHUAWEI,
+                            ScanTargetDOMAIN], boto3_session: any = None,
+                            boto3_profile: str = "default", schedule: str = "0 0 * * *") -> Dict:
             """
             Currently supports only AWS Scan Targets.
             For AWS Scan Target:
             If boto3 is installed, creates a Scan Target for the given organization and perform the onboard.
-            :param boto3_profile: the profile name that boto3 will use.
             :param region: the AWS Region to deploy the CloudFormation Template of Zanshin Service Role.
             :param organization_id: the ID of the organization to have the new Scan Target.
             :param kind: the Kind of scan target (AWS, GCP, AZURE, DOMAIN)
@@ -1484,48 +1483,57 @@ class Client:
                 * For Azure scan targets, provide *applicationId*, *subscriptionId*, *directoryId* and *secret* fields.
                 * For GCP scan targets, provide a *projectId* field.
                 * For DOMAIN scan targets, provide a URL in the *domain* field.
+
             :param schedule: schedule in cron format.
+            :param boto3_profile: boto3 profile name used for CloudFormation Deployment. If none, uses \"default\" profile.
+            :param boto3_session: boto3 session used for CloudFormation Deployment. If informed, will ignore boto3_profile.
             :return: JSON object containing newly created scan target .
             """
 
             self._check_scantarget_is_aws(kind)
             boto3 = self._check_boto3_installation()
-            boto3_session = self._check_aws_credentials_are_valid(boto3_profile, boto3)
+            if not boto3_session:
+                boto3_session = self._get_session_from_boto3_profile(boto3_profile=boto3_profile, boto3=boto3)
+            
+            self._check_aws_credentials_are_valid(boto3_session=boto3_session)
+
+            if len(name) < 3:
+                name = f"{name}_{credential['account']}"
 
             new_scan_target = self.create_organization_scan_target(
-                organization_id, kind, name, credential, schedule)
+                    organization_id, kind, name, credential, schedule)
             new_scan_target_id = new_scan_target['id']
 
             zanshin_stack_name = 'tenchi-zanshin-service-role'
             try:
                 cloudformation_client = self._deploy_cloudformation_zanshin_service_role(
-                    boto3_session, region, new_scan_target_id, zanshin_stack_name)
+                        boto3_session, region, new_scan_target_id, zanshin_stack_name)
                 retries = 0
                 max_retry = 10
                 wait_between_retries = 10
                 zanshin_stack = self._get_cloudformation_stack_status(
-                    zanshin_stack_name, cloudformation_client)
+                        zanshin_stack_name, cloudformation_client)
 
                 while zanshin_stack['StackStatus'] != 'CREATE_COMPLETE':
                     if not retries:
                         self._logger.debug(
-                            f"Failed to confirm CloudFormation Stack {zanshin_stack_name} completion. Retrying.")
+                                f"Failed to confirm CloudFormation Stack {zanshin_stack_name} completion. Retrying.")
                     if retries >= max_retry:
                         raise RuntimeError('CloudFormation Stack wasn\'t deployed')
                     time.sleep(wait_between_retries)
                     self._logger.debug(
-                            f"Checking CloudFormation Stack {zanshin_stack_name}...")
+                                f"Checking CloudFormation Stack {zanshin_stack_name}...")
                     retries += 1
                     zanshin_stack = self._get_cloudformation_stack_status(
-                        zanshin_stack_name, cloudformation_client)
+                            zanshin_stack_name, cloudformation_client)
 
             except Exception as error:
                 print('err', error)
                 raise ValueError(
-                    f"Failed to confirm CloudFormation Stack {zanshin_stack_name} completion.")
+                        f"Failed to confirm CloudFormation Stack {zanshin_stack_name} completion.")
 
             self.check_organization_scan_target(
-                organization_id=organization_id, scan_target_id=new_scan_target_id)
+                    organization_id=organization_id, scan_target_id=new_scan_target_id)
             return self.get_organization_scan_target(organization_id=organization_id, scan_target_id=new_scan_target_id)
 
     def _deploy_cloudformation_zanshin_service_role(self, boto3_session:object, region:str, new_scan_target_id:str, zanshin_stack_name:str):
@@ -1562,16 +1570,23 @@ class Client:
 
         return zanshin_stack
 
-    def _check_aws_credentials_are_valid(self, boto3_profile, boto3):
+    def _get_session_from_boto3_profile(self, boto3_profile, boto3):
         """
-        Check if boto3 informed credentials are valid performing aws sts get-caller-identity. In case problem, raises ValueError.
-        :return: boto3 session.
+        Return boto3_session from boto3_profile informed
+        :return: boto3_session.
+        """
+        return boto3.Session(profile_name=boto3_profile)
+        
+    
+    def _check_aws_credentials_are_valid(self, boto3_session):
+        """
+        Check if boto3 informed credentials are valid performing aws sts get-caller-identity. In case of
+        problem, raises ValueError.
+        
         """
         try:
-            boto3_session = boto3.Session(profile_name=boto3_profile)
             sts = boto3_session.client('sts')
             sts.get_caller_identity()
-            return boto3_session
         except Exception as e:
             raise ValueError(
                 "boto3 session is invalid. Working boto3 session is required.")

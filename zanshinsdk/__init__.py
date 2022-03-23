@@ -1,4 +1,4 @@
-__version__ = "1.2.0"
+__version__ = "1.2.1"
 
 from zanshinsdk.client import Client, AlertState, AlertSeverity, ScanTargetKind, Languages, ScanTargetAWS, \
     ScanTargetAZURE, ScanTargetGCP, ScanTargetHUAWEI, ScanTargetDOMAIN, Roles, validate_uuid

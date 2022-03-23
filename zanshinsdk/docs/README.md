@@ -21,38 +21,58 @@ Currently using the Zanshin SDK you're only able to onboard **AWS Scan Targets**
 > You must set up a [boto3 profile](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html#using-a-configuration-file).
 
 
+**Currently supports only AWS Scan Targets.**
+
+_For AWS Scan Target:_
+	
+If boto3 is installed, creates a Scan Target for the given organization and perform the onboard.
+
 Parameters:
-- boto3_profile: the profile name that boto3 will use.
-- organization_id: the ID of the organization to have the new Scan Target.
-- kind: the Kind of scan target (AWS, GCP, AZURE, DOMAIN).
-- name: the name of the new scan target.
-- credential: credentials to access the cloud account to be scanned:
-    * For AWS scan targets, provide the account ID in the *account* field
-    * For Azure scan targets, provide *applicationId*, *subscriptionId*, *directoryId* and *secret* fields.
-    * For GCP scan targets, provide a *projectId* field
-    * For DOMAIN scan targets, provide a URL in the *domain* field
-- schedule: schedule in cron format for when the scan will happen.
 
-Returns
-- JSON object containing newly created scan target.
+- :param region: the AWS Region to deploy the CloudFormation Template of Zanshin Service Role.
+- :param organization_id: the ID of the organization to have the new Scan Target.
+- :param kind: the Kind of scan target (AWS, GCP, AZURE, DOMAIN)
+- :param name: the name of the new scan target.
+- :param credential: credentials to access the cloud account to be scanned:
+	* For AWS scan targets, provide the account ID in the *account* field.
+	* For Azure scan targets, provide *applicationId*, *subscriptionId*, *directoryId* and *secret* fields.
+	* For GCP scan targets, provide a *projectId* field.
+	* For DOMAIN scan targets, provide a URL in the *domain* field.
 
-**Example**
+- :param schedule: schedule in cron format.
+- :param boto3_profile: boto3 profile name used for CloudFormation Deployment. If none, uses \"default\" profile.
+- :param boto3_session: boto3 session used for CloudFormation Deployment. If informed, will ignore boto3_profile.
+
+Return:
+
+- :return: JSON object containing newly created scan target .
+
+
+**Usage**
 
 ```python
 from zanshinsdk import Client, ScanTargetKind, ScanTargetAWS
+import boto3
 
 client = Client()
 
-organization_id = "bd0e..." # Zanshin Organization ID to include the Scan Target to.
+# Zanshin Organization ID to include the Scan Target to.
+organization_id = "bd0..."
 kind = ScanTargetKind.AWS
 name = "AWS Account included via SDK"
-credential = ScanTargetAWS("123456789012") # ID of AWS Account to onboard.
-schedule = "0 0 * * *" # When the scan will happen.
+credential = ScanTargetAWS("418069676198")  # ID of AWS Account to onboard.
+schedule = "0 0 * * *"  # Schedule time that the scan will happen.
 region = "us-east-1" # Region to run the CloudFormation Stack responsible for onboarding.
+boto3_session = boto3.Session( # Boto3 session with adequate privileges
+    aws_access_key_id="ASIAEXAMPLEKEY",
+    aws_secret_access_key="eJs3cret",
+    aws_session_token="IQSessionToken",
+)
 
-boto3_profile = 'aws_profile'
+my_new_scan_target = client.onboard_scan_target(region=region, organization_id=organization_id, kind=kind, 
+                                                name=name, credential=credential, boto3_session=boto3_session, 
+                                                schedule=schedule)
 
-my_new_scan_target = client.onboard_scan_target(boto3_profile, region, organization_id, kind, name, credential, schedule)
 
 ```
 ---
