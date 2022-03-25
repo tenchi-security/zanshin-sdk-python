@@ -1,8 +1,9 @@
 from pathlib import Path
+from os.path import join
 
 from setuptools import setup
 
-from zanshinsdk import __version__
+exec(open(join('zanshinsdk','version.py')).read())
 
 extras = {
     'with_boto3': ['boto3>=1.21.21']
