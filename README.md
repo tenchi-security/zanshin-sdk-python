@@ -9,7 +9,43 @@ This SDK is used to implement a command-line utility, which is available on [Git
 
 ## Configuration File
 
-The way the SDK handles credentials is by using a configuration file in the format created by the Python [RawConfigParser](https://docs.python.org/3/library/configparser.html#configparser.RawConfigParser) class. 
+There are three ways that the SDK handles credentials. The order of evaluation is:
+- [**1st** Client Parameters](#client-parameters)
+- [**2nd** Environment Variables](#environment-variables)
+- [**3rd** Config File](#config-file)
+
+### Client Parameters
+
+When calling the `Client` class, you can pass the values API Key, API URL, Proxy URL and User Agent you want to use as below:
+
+```python
+from zanshinsdk import Client
+
+client = Client(api_key="my_zanshin_api_key")
+
+print(client.get_me())
+```
+
+> :warning: These values will overwrite anything you set as Environment Variables or in the Config File.
+
+### Environment Variables
+
+You can use the following Environment Variables to configure Zanshin SDK:
+- `ZANSHIN_API_KEY`: Will setup your Zanshin credentials
+- `ZANSHIN_API_URL`: Will define the API URL. Default is `https://api.zanshin.tenchisecurity.com` 
+- `ZANSHIN_PROXY_URL`: Configure a Proxy URL
+- `ZANSHIN_USER_AGENT`: If you want to overwrite the User Agent when calling Zanshin API
+
+#### Usage
+
+```shell
+export ZANSHIN_API_KEY="eyJhbGciOiJIU..."
+```
+
+> :warning: These Environment Variables will overwrite anything you set on the Config File.
+
+### Config File
+Second is by using a configuration file in the format created by the Python [RawConfigParser](https://docs.python.org/3/library/configparser.html#configparser.RawConfigParser) class. 
 
 The file is located at `~/.tenchi/config`, where `~` is the [current user's home directory](https://docs.python.org/3/library/pathlib.html#pathlib.Path.home).
 

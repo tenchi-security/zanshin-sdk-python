@@ -14,7 +14,7 @@ from importlib.util import find_spec, module_from_spec
 
 import httpx
 
-from zanshinsdk import __version__ as sdk_version
+from zanshinsdk.version import __version__ as sdk_version
 
 CONFIG_DIR = Path.home() / ".tenchi"
 CONFIG_FILE = CONFIG_DIR / "config"
@@ -97,7 +97,7 @@ class Client:
             api_key=api_key, api_url=api_url, proxy_url=proxy_url, user_agent=user_agent)
 
         # read configuration file if env variable not set
-        if profile and isfile(CONFIG_FILE):
+        if profile and isfile(CONFIG_FILE) and all(value is None for value in [api_key, api_url, user_agent, proxy_url]):
             parser = RawConfigParser()
             parser.read(str(CONFIG_FILE))
             if not parser.has_section(profile):

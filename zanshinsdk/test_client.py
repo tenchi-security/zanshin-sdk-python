@@ -137,7 +137,7 @@ class TestClient(unittest.TestCase):
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             client = zanshinsdk.Client(user_agent=_user_agent)
 
-        self.assertEqual(client._user_agent, f"{_user_agent} (Zanshin Python SDK v{zanshinsdk.__version__})")
+        self.assertEqual(client._user_agent, f"{_user_agent} (Zanshin Python SDK v{zanshinsdk.version.__version__})")
 
     @patch("zanshinsdk.client.isfile")
     def test_init_user_agent_from_config(self, mock_is_file):
@@ -148,7 +148,7 @@ class TestClient(unittest.TestCase):
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             client = zanshinsdk.Client()
 
-        self.assertEqual(client._user_agent, f"{_user_agent} (Zanshin Python SDK v{zanshinsdk.__version__})")
+        self.assertEqual(client._user_agent, f"{_user_agent} (Zanshin Python SDK v{zanshinsdk.version.__version__})")
 
     ###################################################
     # __mock_aws_credentials__
@@ -334,7 +334,7 @@ class TestClient(unittest.TestCase):
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             client = zanshinsdk.Client(user_agent=_user_agent)
 
-        self.assertEqual(client.user_agent, f"{_user_agent} (Zanshin Python SDK v{zanshinsdk.__version__})")
+        self.assertEqual(client.user_agent, f"{_user_agent} (Zanshin Python SDK v{zanshinsdk.version.__version__})")
 
     @patch("zanshinsdk.client.isfile")
     def test_set_user_agent(self, mock_is_file):
@@ -348,7 +348,7 @@ class TestClient(unittest.TestCase):
 
         client.user_agent = _new_user_agent
 
-        self.assertEqual(client.user_agent, f"{_new_user_agent} (Zanshin Python SDK v{zanshinsdk.__version__})")
+        self.assertEqual(client.user_agent, f"{_new_user_agent} (Zanshin Python SDK v{zanshinsdk.version.__version__})")
 
     @patch("zanshinsdk.client.isfile")
     def test_get_sanitized_proxy_url_none(self, mock_is_file):
@@ -2022,7 +2022,7 @@ class TestClient(unittest.TestCase):
 
     def test__repr__(self):
         _response = f"Connection(api_url='https://api.zanshin.tenchisecurity.com', api_key='***pi_key', " \
-                    f"user_agent='Zanshin Python SDK v{zanshinsdk.__version__}', proxy_url='None')"
+                    f"user_agent='Zanshin Python SDK v{zanshinsdk.version.__version__}', proxy_url='None')"
         self.assertEqual(self.sdk.__repr__(), _response)
 
     ###################################################
