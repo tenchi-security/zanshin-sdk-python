@@ -43,3 +43,4 @@ setup(
         'Topic :: Software Development :: Libraries',
     ]
 )
+# flake8: noqa
