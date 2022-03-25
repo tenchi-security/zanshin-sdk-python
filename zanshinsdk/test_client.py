@@ -46,7 +46,7 @@ class TestClient(unittest.TestCase):
             with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
                 zanshinsdk.Client(profile="")
         except Exception as e:
-            self.assertEqual(str(e), "no API key found")
+            self.assertIn("profile  not found", str(e))
 
     @patch("zanshinsdk.client.isfile")
     def test_init_wrong_profile(self, mock_is_file):

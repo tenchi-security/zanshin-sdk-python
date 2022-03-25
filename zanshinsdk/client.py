@@ -97,7 +97,8 @@ class Client:
             api_key=api_key, api_url=api_url, proxy_url=proxy_url, user_agent=user_agent)
 
         # read configuration file if env variable not set
-        if profile and isfile(CONFIG_FILE) and all(value is None for value in [api_key, api_url, user_agent, proxy_url]):
+        # if profile and isfile(CONFIG_FILE) and not all(value is None for value in [api_key, api_url, user_agent, proxy_url]):
+        if profile and isfile(CONFIG_FILE) or all(value is None for value in [api_key, api_url, user_agent, proxy_url]):
             parser = RawConfigParser()
             parser.read(str(CONFIG_FILE))
             if not parser.has_section(profile):
