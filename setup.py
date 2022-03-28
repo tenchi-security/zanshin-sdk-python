@@ -1,8 +1,9 @@
 from pathlib import Path
+from os.path import join
 
 from setuptools import setup
 
-from zanshinsdk import __version__
+exec(open(join('zanshinsdk','version.py')).read())
 
 extras = {
     'with_boto3': ['boto3>=1.21.21']
@@ -27,7 +28,6 @@ setup(
     classifiers=[
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
@@ -42,3 +42,4 @@ setup(
         'Topic :: Software Development :: Libraries',
     ]
 )
+# flake8: noqa
