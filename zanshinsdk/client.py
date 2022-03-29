@@ -94,11 +94,10 @@ class Client:
         self._logger: logging.Logger = logging.getLogger("zanshinsdk")
 
         (api_key, api_url, user_agent, proxy_url) = self._get_config_from_env_if_not_exists(
-            api_key=api_key, api_url=api_url, proxy_url=proxy_url, user_agent=user_agent)
+            api_key=api_key, api_url=api_url, user_agent=user_agent, proxy_url=proxy_url)
 
-        # read configuration file if env variable not set
-        # if profile and isfile(CONFIG_FILE) and not all(value is None for value in [api_key, api_url, user_agent, proxy_url]):
-        if profile and isfile(CONFIG_FILE) or all(value is None for value in [api_key, api_url, user_agent, proxy_url]):
+        # read configuration file if no env variable is set
+        if profile and isfile(CONFIG_FILE) or all(value is None for value in [api_key, api_url, user_agent]):
             parser = RawConfigParser()
             parser.read(str(CONFIG_FILE))
             if not parser.has_section(profile):
@@ -155,24 +154,29 @@ class Client:
 
         self._update_client()
 
-    def _get_config_from_env_if_not_exists(self, api_key: str, api_url: str, proxy_url: str, user_agent: str):
+    def _get_config_from_env_if_not_exists(self, api_key: str, api_url: str, user_agent: str, proxy_url: str):
         """
         If api_key, api_url_, proxy_url, or user_agent are not set, try to get them from Environment Variables
         If any configuration value is set, ignore the Environment Variables
         """
         env_zanshin_api_key = environ['ZANSHIN_API_KEY'] if 'ZANSHIN_API_KEY' in environ else None
         env_zanshin_api_url = environ['ZANSHIN_API_URL'] if 'ZANSHIN_API_URL' in environ else None
-        env_zanshin_proxy_url = environ['ZANSHIN_PROXY_URL'] if 'ZANSHIN_PROXY_URL' in environ else None
         env_zanshin_user_agent = environ['ZANSHIN_USER_AGENT'] if 'ZANSHIN_USER_AGENT' in environ else None
+        if 'HTTPS_PROXY' in environ:
+            env_proxy_url = environ['HTTPS_PROXY']
+        elif 'HTTP_PROXY' in environ:
+            env_proxy_url = environ['HTTP_PROXY']
+        else:
+            env_proxy_url = None
 
         if not api_key and env_zanshin_api_key:
             api_key = env_zanshin_api_key
         if not api_url and env_zanshin_api_url:
             api_url = env_zanshin_api_url
-        if not proxy_url and env_zanshin_proxy_url:
-            proxy_url = env_zanshin_proxy_url
         if not user_agent and env_zanshin_user_agent:
             user_agent = env_zanshin_user_agent
+        if not proxy_url and env_proxy_url:
+            proxy_url = env_proxy_url
         return api_key, api_url, user_agent, proxy_url
 
     def _update_client(self):

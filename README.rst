@@ -11,11 +11,68 @@ This SDK is used to implement a command-line utility, which is available
 on `Github <https://github.com/tenchi-security/zanshin-cli>`__ and on
 `PyPI <https://pypi.python.org/pypi/zanshincli/>`__.
 
-Configuration File
-------------------
+Setting up Credentials
+----------------------
 
-The way the SDK handles credentials is by using a configuration file in
-the format created by the Python
+There are three ways that the SDK handles credentials. The order of
+evaluation is:
+
+-  `1st Client Parameters <#client-parameters>`__
+-  `2nd Environment Variables <#environment-variables>`__
+-  `3rd Config File <#config-file>`__
+
+Client Parameters
+~~~~~~~~~~~~~~~~~
+
+When calling the ``Client`` class, you can pass the values API Key, API
+URL, Proxy URL and User Agent you want to use as below:
+
+.. code:: python
+
+   from zanshinsdk import Client
+
+   client = Client(api_key="my_zanshin_api_key")
+
+   print(client.get_me())
+
+..
+
+   ⚠️ These values will overwrite anything you set as Environment
+   Variables or in the Config File.
+
+Environment Variables
+~~~~~~~~~~~~~~~~~~~~~
+
+You can use the following Environment Variables to configure Zanshin
+SDK:
+
+-  ``ZANSHIN_API_KEY``: Will setup your Zanshin credentials
+-  ``ZANSHIN_API_URL``: Will define the API URL. Default is
+   ``https://api.zanshin.tenchisecurity.com``
+-  ``ZANSHIN_USER_AGENT``: If you want to overwrite the User Agent when
+   calling Zanshin API
+-  ``HTTP_PROXY | HTTPS_PROXY``: Zanshin SDK uses HTTPX under the hood,
+   checkout the `Environment
+   Variables <https://www.python-httpx.org/environment_variables/#proxies>`__
+   section of their documentation for more use cases
+
+Usage
+^^^^^
+
+.. code:: shell
+
+   export ZANSHIN_API_KEY="eyJhbGciOiJIU..."
+
+..
+
+   ⚠️ These Environment Variables will overwrite anything you set on the
+   Config File.
+
+Config File
+~~~~~~~~~~~
+
+Second is by using a configuration file in the format created by the
+Python
 `RawConfigParser <https://docs.python.org/3/library/configparser.html#configparser.RawConfigParser>`__
 class.
 
