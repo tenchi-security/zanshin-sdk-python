@@ -579,6 +579,26 @@ class TestClient(unittest.TestCase):
             "DELETE", f"/organizations/{organization_id}/members/{member_id}"
         )
 
+    def test_reset_organization_member_mfa(self):
+        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
+        member_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
+
+        self.sdk.reset_organization_member_mfa(organization_id, member_id)
+
+        self.sdk._request.assert_called_once_with(
+            "POST", f"/organizations/{organization_id}/members/{member_id}/mfa/reset"
+        )
+
+    def test_reset_delete_organization_password(self):
+        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
+        member_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
+
+        self.sdk.reset_delete_organization_password(organization_id, member_id)
+
+        self.sdk._request.assert_called_once_with(
+            "POST", f"/organizations/{organization_id}/members/{member_id}/password/reset"
+        )
+
     ###################################################
     # Organization Member Invite
     ###################################################

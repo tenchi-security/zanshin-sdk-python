@@ -457,6 +457,30 @@ class Client:
                              f"/organizations/{validate_uuid(organization_id)}/members/"
                              f"{validate_uuid(member_id)}").json()
 
+    def reset_organization_member_mfa(self, organization_id: Union[UUID, str], member_id: Union[UUID, str]) -> bool:
+        """
+        Reset organization member MFA.
+        <https://api.zanshin.tenchisecurity.com/#operation/resetOrganizationMemberMfaById>
+        :param organization_id: the ID of the organization
+        :param member_id: the ID of the member
+        :return: a boolean if success
+        """
+        return self._request("POST",
+                             f"/organizations/{validate_uuid(organization_id)}/members/"
+                             f"{validate_uuid(member_id)}/mfa/reset").json()
+
+    def reset_delete_organization_password(self, organization_id: Union[UUID, str], member_id: Union[UUID, str]) -> bool:
+        """
+        Reset organization member Password.
+        <https://api.zanshin.tenchisecurity.com/#operation/resetOrganizationMemberPasswordById>
+        :param organization_id: the ID of the organization
+        :param member_id: the ID of the member
+        :return: a boolean if success
+        """
+        return self._request("POST",
+                             f"/organizations/{validate_uuid(organization_id)}/members/"
+                             f"{validate_uuid(member_id)}/password/reset").json()
+
     ###################################################
     # Organization Member Invite
     ###################################################
