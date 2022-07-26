@@ -1,9 +1,15 @@
 from pathlib import Path
 from os.path import join
+import re
 
 from setuptools import setup
+from chardet import detect
 
-exec(open(join('zanshinsdk','version.py'), encoding="utf8").read())
+def get_version():
+    version_py = join('zanshinsdk','version.py')
+    regex = re.compile('__version__\s*=\s*[\'\"](?P<version>[\d\.]+)')
+    encoding = detect(open(version_py, 'rb').read())['encoding']
+    return regex.finditer(open(version_py, 'r', encoding=encoding).read()).__next__().group('version')
 
 extras = {
     'with_boto3': ['boto3>=1.21.21']
@@ -15,7 +21,7 @@ setup(
     long_description=Path('README.rst').read_text(),
     author='Tenchi Security',
     author_email='contact@tenchisecurity.com',
-    version=__version__,
+    version=get_version(),
     url='https://github.com/tenchi-security/zanshin-sdk-python',
     license='Apache Software License',
     install_requires=['httpx==0.23.0'],
