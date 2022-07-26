@@ -3,7 +3,7 @@ from os.path import join
 
 from setuptools import setup
 
-exec(open(join('zanshinsdk','version.py')).read())
+exec(open(join('zanshinsdk','version.py'), encoding="utf8").read())
 
 extras = {
     'with_boto3': ['boto3>=1.21.21']
