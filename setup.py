@@ -3,13 +3,11 @@ from os.path import join
 import re
 
 from setuptools import setup
-from chardet import detect
 
 def get_version():
     version_py = join('zanshinsdk','version.py')
     regex = re.compile('__version__\s*=\s*[\'\"](?P<version>[\d\.]+)')
-    encoding = detect(open(version_py, 'rb').read())['encoding']
-    return regex.finditer(open(version_py, 'r', encoding=encoding).read()).__next__().group('version')
+    return regex.finditer(open(version_py, 'r', encoding='utf8').read()).__next__().group('version')
 
 extras = {
     'with_boto3': ['boto3>=1.21.21']
