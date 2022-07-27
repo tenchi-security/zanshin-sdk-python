@@ -16,7 +16,7 @@ extras = {
 setup(
     name='zanshinsdk',
     description='Python SDK to access the Tenchi Security Zanshin API v1',
-    long_description=Path('README.rst').read_text(),
+    long_description=Path('README.rst').read_text(encoding="utf8"),
     author='Tenchi Security',
     author_email='contact@tenchisecurity.com',
     version=get_version(),
