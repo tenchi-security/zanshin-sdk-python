@@ -24,7 +24,7 @@ class TestClient(unittest.TestCase):
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             self.sdk = zanshinsdk.Client()
             self.sdk._request = request
-        
+
         self.HAVE_BOTO3 = False
         try:
             import boto3
@@ -1145,7 +1145,7 @@ class TestClient(unittest.TestCase):
         self.sdk._get_alerts_page.assert_has_calls([
             call(organization_id, None, None, None, None, page=page, page_size=page_size, language=None,
                  created_at_start=None, created_at_end=None, updated_at_start=None, updated_at_end=None),
-            call(organization_id, None, None, None, None, page=page+1, page_size=page_size, language=None,
+            call(organization_id, None, None, None, None, page=page + 1, page_size=page_size, language=None,
                  created_at_start=None, created_at_end=None, updated_at_start=None, updated_at_end=None)
         ])
 
@@ -1319,7 +1319,7 @@ class TestClient(unittest.TestCase):
         self.sdk._get_following_alerts_page.assert_has_calls([
             call(organization_id, None, None, None, None, page=page, page_size=page_size, language=None,
                  created_at_start=None, created_at_end=None, updated_at_start=None, updated_at_end=None),
-            call(organization_id, None, None, None, None, page=page+1, page_size=page_size, language=None,
+            call(organization_id, None, None, None, None, page=page + 1, page_size=page_size, language=None,
                  created_at_start=None, created_at_end=None, updated_at_start=None, updated_at_end=None)
         ])
 
@@ -1628,7 +1628,7 @@ class TestClient(unittest.TestCase):
 
         self.sdk._get_grouped_alerts_page.assert_has_calls([
             call(organization_id, None, None, None, page=page, page_size=page_size),
-            call(organization_id, None, None, None, page=page+1, page_size=page_size),
+            call(organization_id, None, None, None, page=page + 1, page_size=page_size),
         ])
 
     def test_get_grouped_following_alerts_page(self):
@@ -1788,7 +1788,7 @@ class TestClient(unittest.TestCase):
 
         self.sdk._get_grouped_following_alerts_page.assert_has_calls([
             call(organization_id, None, None, None, page=page, page_size=page_size),
-            call(organization_id, None, None, None, page=page+1, page_size=page_size),
+            call(organization_id, None, None, None, page=page + 1, page_size=page_size),
         ])
 
     def test_get_alert(self):
@@ -2101,7 +2101,7 @@ class TestClient(unittest.TestCase):
             zanshinsdk.client.validate_uuid(_uuid)
         except Exception as e:
             self.assertEqual(str(e), f"{repr(_uuid)} is not a valid UUID")
-  
+
     def test_onboard_scan_target_unsupported_scan_target_kind(self):
         """
         Call onboard_scan_target with an scan target different than AWS. Currently we support only AWS for
@@ -2128,14 +2128,14 @@ class TestClient(unittest.TestCase):
         credential = zanshinsdk.ScanTargetAZURE("4321", "1234", "1234", "s3cr3t")
         schedule = "0 0 * * *"
         region = "us-east-1"
-        boto3_profile='foo'
+        boto3_profile = 'foo'
 
         try:
             self.sdk.onboard_scan_target(
                 region, organization_id, kind, name, credential, None, boto3_profile, schedule)
         except Exception as e:
             self.assertEqual(str(e), "Onboard doesn't support AZURE environment yet")
-    
+
     @unittest.skipIf('HAVE_BOTO3', "requires not have boto3")
     def test_onboard_scan_target_aws_missing_boto3(self):
         """
@@ -2163,7 +2163,7 @@ class TestClient(unittest.TestCase):
         credential = zanshinsdk.ScanTargetAWS("4321")
         schedule = "0 0 * * *"
         region = "us-east-1"
-        boto3_profile='foo'
+        boto3_profile = 'foo'
 
         try:
             self.sdk.onboard_scan_target(
@@ -2199,17 +2199,16 @@ class TestClient(unittest.TestCase):
         credential = zanshinsdk.ScanTargetAWS("4321")
         schedule = "0 0 * * *"
         region = "us-east-1"
-        boto3_profile='non_default'
+        boto3_profile = 'non_default'
 
         try:
             self.sdk.onboard_scan_target(region=region, organization_id=organization_id, kind=kind,
-                                         name=name, credential=credential, boto3_profile=boto3_profile, 
+                                         name=name, credential=credential, boto3_profile=boto3_profile,
                                          schedule=schedule)
         except Exception as e:
             self.assertEqual(
                 str(e), "The config profile (non_default) could not be found")
-    
-    
+
     @unittest.skipUnless('HAVE_BOTO3', "requires boto3")
     def test_onboard_scan_target_aws_invalid_credentials_boto3_session(self):
         """
@@ -2230,19 +2229,19 @@ class TestClient(unittest.TestCase):
                 region, organization_id, kind, name, credential, None, boto3_profile, schedule)
         raises:
         >>> boto3 session is invalid. Working boto3 session is required.
-        """        
+        """
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         kind = zanshinsdk.ScanTargetKind.AWS
         name = "OnboardTesting-it"
         credential = zanshinsdk.ScanTargetAWS("4321")
         region = "us-east-1"
-        
+
         import boto3
         boto3_session = boto3.Session(
-                aws_access_key_id='EXAMPLE_NON_EXISTING_KEY',
-                aws_secret_access_key='&x@mP|e$3cReT',
-                aws_session_token='session_token'
-            )
+            aws_access_key_id='EXAMPLE_NON_EXISTING_KEY',
+            aws_secret_access_key='&x@mP|e$3cReT',
+            aws_session_token='session_token'
+        )
 
         try:
             self.sdk.onboard_scan_target(region=region, organization_id=organization_id, kind=kind,
@@ -2251,7 +2250,6 @@ class TestClient(unittest.TestCase):
             self.assertEqual(
                 str(e), "boto3 session is invalid. Working boto3 session is required.")
 
-    
     @unittest.skipUnless('HAVE_BOTO3', "requires boto3")
     @patch("zanshinsdk.client.isfile")
     @patch("zanshinsdk.Client._request")
@@ -2302,7 +2300,7 @@ class TestClient(unittest.TestCase):
 
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             request.return_value = Mock(status_code=200, json=lambda: {
-                                        "id": created_scan_target_id})
+                "id": created_scan_target_id})
             client = zanshinsdk.Client()
             client._client.request = request
 
@@ -2314,7 +2312,6 @@ class TestClient(unittest.TestCase):
                              CreateBucketConfiguration={'LocationConstraint': 'us-east-2'})
             s3.put_object(Bucket='tenchi-assets',
                           Key='zanshin-service-role.template', Body=json.dumps(DUMMY_TEMPLATE))
-
 
         # Call method onboard_scan_target with boto3_profile
         new_scan_target = client.onboard_scan_target(
@@ -2347,12 +2344,10 @@ class TestClient(unittest.TestCase):
                          zanshin_stack['StackName'])
 
         # Clean Up CloudFormation 
-        cf_stacks =cloudformation.describe_stacks(StackName=zanshin_cloudformation_stack_name)
+        cf_stacks = cloudformation.describe_stacks(StackName=zanshin_cloudformation_stack_name)
         for cf_stack in cf_stacks['Stacks']:
             cloudformation.delete_stack(StackName=cf_stack['StackName'])
 
-    
-    
     @unittest.skipUnless('HAVE_BOTO3', "requires boto3")
     @patch("zanshinsdk.client.isfile")
     @patch("zanshinsdk.Client._request")
@@ -2392,12 +2387,12 @@ class TestClient(unittest.TestCase):
         credential = zanshinsdk.ScanTargetAWS(aws_account_id)
         schedule = "0 0 * * *"
         region = "us-east-1"
-        
+
         boto3_session = boto3.Session(
-                aws_access_key_id='EXAMPLE_NON_EXISTING_KEY',
-                aws_secret_access_key='&x@mP|e$3cReT',
-                aws_session_token='session_token'
-            )
+            aws_access_key_id='EXAMPLE_NON_EXISTING_KEY',
+            aws_secret_access_key='&x@mP|e$3cReT',
+            aws_session_token='session_token'
+        )
 
         # Mock request to create new Scan Target
         mock_is_file.return_value = True
@@ -2405,7 +2400,7 @@ class TestClient(unittest.TestCase):
 
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             request.return_value = Mock(status_code=200, json=lambda: {
-                                        "id": created_scan_target_id})
+                "id": created_scan_target_id})
             client = zanshinsdk.Client()
             client._client.request = request
 
@@ -2417,7 +2412,6 @@ class TestClient(unittest.TestCase):
                              CreateBucketConfiguration={'LocationConstraint': 'us-east-2'})
             s3.put_object(Bucket='tenchi-assets',
                           Key='zanshin-service-role.template', Body=json.dumps(DUMMY_TEMPLATE))
-
 
         # Call method onboard_scan_target with boto3_session instead of boto3_profile
         new_scan_target = client.onboard_scan_target(
@@ -2449,8 +2443,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual(zanshin_cloudformation_stack_name,
                          zanshin_stack['StackName'])
 
-         # Clean Up CloudFormation 
-        cf_stacks =cloudformation.describe_stacks(StackName=zanshin_cloudformation_stack_name)
+        # Clean Up CloudFormation
+        cf_stacks = cloudformation.describe_stacks(StackName=zanshin_cloudformation_stack_name)
         for cf_stack in cf_stacks['Stacks']:
             cloudformation.delete_stack(StackName=cf_stack['StackName'])
-

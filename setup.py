@@ -4,13 +4,15 @@ import re
 
 from setuptools import setup
 
+
 def get_version():
-    version_py = join('zanshinsdk','version.py')
+    version_py = join('zanshinsdk', 'version.py')
     regex = re.compile('__version__\s*=\s*[\'\"](?P<version>[\d\.]+)')
     return regex.finditer(open(version_py, 'r', encoding='utf8').read()).__next__().group('version')
 
+
 extras = {
-    'with_boto3': ['boto3>=1.21.21']
+    'with_boto3': ['moto[all]~=3.1.16']
 }
 
 setup(
@@ -23,7 +25,7 @@ setup(
     url='https://github.com/tenchi-security/zanshin-sdk-python',
     license='Apache Software License',
     install_requires=['httpx==0.23.0'],
-    tests_require=['pytest==7.1.1', 'moto[all]==3.1.1'],
+    tests_require=['pytest==7.1.2', 'moto[all]==3.1.16'],
     setup_requires=['pytest-runner==6.0.0'],
     packages=['zanshinsdk'],
     extras_require=extras,
