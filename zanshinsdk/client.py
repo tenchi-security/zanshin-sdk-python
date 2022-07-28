@@ -850,7 +850,7 @@ class Client:
         """
         yield from self._request("GET",
                                  f"/organizations/{validate_uuid(organization_id)}/scantargets/"
-                                 f"{validate_uuid(scan_target_id)}/scans").json()
+                                 f"{validate_uuid(scan_target_id)}/scans").json().get("data", [])
 
     def get_organization_scan_target_scan(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str],
                                           scan_id: Union[UUID, str]) -> Dict:
