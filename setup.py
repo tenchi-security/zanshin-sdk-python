@@ -4,10 +4,12 @@ import re
 
 from setuptools import setup
 
+
 def get_version():
-    version_py = join('zanshinsdk','version.py')
+    version_py = join('zanshinsdk', 'version.py')
     regex = re.compile('__version__\s*=\s*[\'\"](?P<version>[\d\.]+)')
     return regex.finditer(open(version_py, 'r', encoding='utf8').read()).__next__().group('version')
+
 
 extras = {
     'with_boto3': ['moto[all]~=3.1.16']
