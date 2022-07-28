@@ -1643,6 +1643,7 @@ class Client:
             sts = boto3_session.client('sts')
             sts.get_caller_identity()
         except Exception as e:
+            self._logger.exception('boto3 session is invalid')
             raise ValueError(
                 "boto3 session is invalid. Working boto3 session is required.")
 
