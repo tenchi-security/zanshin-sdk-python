@@ -952,9 +952,22 @@ class TestClient(unittest.TestCase):
     ###################################################
     # Organization Scan Target Scan
     ###################################################
+    def test_iter_organization_scan_target_scans_request(self):
+        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
+        scan_target_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
+
+        try:
+            next(self.sdk.iter_organization_scan_target_scans(organization_id, scan_target_id))
+        except StopIteration:
+            pass
+
+        self.sdk._request.assert_called_once_with(
+            "GET", f"/organizations/{organization_id}/scantargets/{scan_target_id}/scans"
+        )
+        
     @patch("zanshinsdk.client.isfile")
     @patch("zanshinsdk.Client._request")
-    def test_iter_organization_scan_target_scans(self, request, mock_is_file):
+    def test_iter_organization_scan_target_scans_response(self, request, mock_is_file):
         organization_id = "f59fd172-d968-4e94-9cc7-bc1ed33155f1"
         scan_target_id = "0c89dc67-eeec-4004-8ca4-98669047417a"
         scan_data = {
@@ -1012,18 +1025,18 @@ class TestClient(unittest.TestCase):
             "slot": "2022-07-10T00:04:07.953Z",
             "organizationId": organization_id
         }
-    
+
         mock_is_file.return_value = True
         with patch("__main__.__builtins__.open", mock_open(read_data="[default]\napi_key=api_key")):
-            request.return_value = Mock(status_code=200, json=lambda: {"data":[scan_data]})
+            request.return_value = Mock(status_code=200, json=lambda: {"data": [scan_data]})
             client = zanshinsdk.Client()
             client._client.request = request
-            
+
             iter = client.iter_organization_scan_target_scans(organization_id, scan_target_id)
 
         self.assertDictEqual(iter.__next__(), scan_data)
         self.assertRaises(StopIteration, iter.__next__)
-        
+
     def test_get_organization_scan_target_scan(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         scan_target_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
