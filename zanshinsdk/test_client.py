@@ -955,8 +955,8 @@ class TestClient(unittest.TestCase):
     @patch("zanshinsdk.client.isfile")
     @patch("zanshinsdk.Client._request")
     def test_iter_organization_scan_target_scans(self, request, mock_is_file):
-        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        scan_target_id = "14f79567-6b68-4e3a-b2f2-4f1383546251"
+        organization_id = "f59fd172-d968-4e94-9cc7-bc1ed33155f1"
+        scan_target_id = "0c89dc67-eeec-4004-8ca4-98669047417a"
         scan_data = {
             "summary": {
                 "infos": {
@@ -1005,13 +1005,12 @@ class TestClient(unittest.TestCase):
                     "CRITICAL": 23
                 }
             },
-            "execution": "arn:aws:states:us-east-2:725859313743:execution:zanshin-prod-engine:fb6b466d-aaac-4f23-b625-2d8bc6e7f2ba-20220710-000407953",
             "updatedAt": "2022-07-10T00:10:24.593646",
             "status": "DONE",
             "createdAt": "2022-07-10T00:04:08.076Z",
-            "scanTargetId": "fb6b466d-aaac-4f23-b625-2d8bc6e7f2ba",
+            "scanTargetId": scan_target_id,
             "slot": "2022-07-10T00:04:07.953Z",
-            "organizationId": "004b6fb2-5cf8-456e-a895-52574638612b"
+            "organizationId": organization_id
         }
     
         mock_is_file.return_value = True
