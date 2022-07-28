@@ -19,7 +19,7 @@ class TestClient(unittest.TestCase):
     @patch("zanshinsdk.Client._request")
     def setUp(self, request, mock_is_file):
         mock_is_file.return_value = True
-        _data = f"[default]\napi_key=api_key"
+        _data = "[default]\napi_key=api_key"
 
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             self.sdk = zanshinsdk.Client()
@@ -40,7 +40,7 @@ class TestClient(unittest.TestCase):
     @patch("zanshinsdk.client.isfile")
     def test_init_empty_profile(self, mock_is_file):
         mock_is_file.return_value = True
-        _data = f"[default]\napi_key=api_key"
+        _data = "[default]\napi_key=api_key"
 
         try:
             with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
@@ -64,7 +64,7 @@ class TestClient(unittest.TestCase):
     def test_init_api_url(self, mock_is_file):
         mock_is_file.return_value = True
         _api_url = "https://api.test"
-        _data = f"[default]\napi_key=api_key"
+        _data = "[default]\napi_key=api_key"
 
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             client = zanshinsdk.Client(api_url=_api_url)
@@ -75,7 +75,7 @@ class TestClient(unittest.TestCase):
     def test_init_invalid_api_url(self, mock_is_file):
         mock_is_file.return_value = True
         _api_url = "invalid://api.test"
-        _data = f"[default]\napi_key=api_key"
+        _data = "[default]\napi_key=api_key"
 
         try:
             with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
@@ -98,7 +98,7 @@ class TestClient(unittest.TestCase):
     def test_init_proxy_url(self, mock_is_file):
         mock_is_file.return_value = True
         _proxy_url = "https://proxy.test"
-        _data = f"[default]\napi_key=api_key"
+        _data = "[default]\napi_key=api_key"
 
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             client = zanshinsdk.Client(proxy_url=_proxy_url)
@@ -109,7 +109,7 @@ class TestClient(unittest.TestCase):
     def test_init_invalid_proxy_url(self, mock_is_file):
         mock_is_file.return_value = True
         _proxy_url = "invalid://proxy.api.test"
-        _data = f"[default]\napi_key=api_key"
+        _data = "[default]\napi_key=api_key"
 
         try:
             with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
@@ -132,7 +132,7 @@ class TestClient(unittest.TestCase):
     def test_init_user_agent(self, mock_is_file):
         mock_is_file.return_value = True
         _user_agent = "test_agent"
-        _data = f"[default]\napi_key=api_key"
+        _data = "[default]\napi_key=api_key"
 
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             client = zanshinsdk.Client(user_agent=_user_agent)
@@ -166,7 +166,7 @@ class TestClient(unittest.TestCase):
     @patch("zanshinsdk.client.isfile")
     def test_update_client_except(self, mock_is_file):
         mock_is_file.return_value = True
-        _data = f"[default]\napi_key=api_key"
+        _data = "[default]\napi_key=api_key"
 
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             client = zanshinsdk.Client()
@@ -184,7 +184,7 @@ class TestClient(unittest.TestCase):
     def test_get_api_url(self, mock_is_file):
         mock_is_file.return_value = True
         _api_url = "https://api.test"
-        _data = f"[default]\napi_key=api_key"
+        _data = "[default]\napi_key=api_key"
 
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             client = zanshinsdk.Client(api_url=_api_url)
@@ -196,7 +196,7 @@ class TestClient(unittest.TestCase):
         mock_is_file.return_value = True
         _api_url = "https://api.test"
         _new_api_url = "https://new.api.test"
-        _data = f"[default]\napi_key=api_key"
+        _data = "[default]\napi_key=api_key"
 
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             client = zanshinsdk.Client(api_url=_api_url)
@@ -210,7 +210,7 @@ class TestClient(unittest.TestCase):
         mock_is_file.return_value = True
         _api_url = "https://api.test"
         _new_api_url = "invalid://new.api.test"
-        _data = f"[default]\napi_key=api_key"
+        _data = "[default]\napi_key=api_key"
 
         try:
             with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
@@ -224,7 +224,7 @@ class TestClient(unittest.TestCase):
     def test_set_none_api_url(self, mock_is_file):
         mock_is_file.return_value = True
         _api_key = "https://api.test"
-        _data = f"[default]\napi_key=api_key"
+        _data = "[default]\napi_key=api_key"
 
         try:
             with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
@@ -238,7 +238,7 @@ class TestClient(unittest.TestCase):
     def test_get_api_key(self, mock_is_file):
         mock_is_file.return_value = True
         _api_key = "api_key"
-        _data = f"[default]\napi_key=api_key"
+        _data = "[default]\napi_key=api_key"
 
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             client = zanshinsdk.Client(api_key=_api_key)
@@ -250,7 +250,7 @@ class TestClient(unittest.TestCase):
         mock_is_file.return_value = True
         _api_key = "api_key"
         _new_api_key = "new_api_key"
-        _data = f"[default]\napi_key=api_key"
+        _data = "[default]\napi_key=api_key"
 
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             client = zanshinsdk.Client(api_key=_api_key)
@@ -263,7 +263,7 @@ class TestClient(unittest.TestCase):
     def test_get_proxy_url(self, mock_is_file):
         mock_is_file.return_value = True
         _proxy_url = "https://proxy.test"
-        _data = f"[default]\napi_key=api_key"
+        _data = "[default]\napi_key=api_key"
 
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             client = zanshinsdk.Client(proxy_url=_proxy_url)
@@ -275,7 +275,7 @@ class TestClient(unittest.TestCase):
         mock_is_file.return_value = True
         _proxy_url = "https://proxy.test"
         _new_proxy_url = "https://new.proxy.test"
-        _data = f"[default]\napi_key=api_key"
+        _data = "[default]\napi_key=api_key"
 
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             client = zanshinsdk.Client(proxy_url=_proxy_url)
@@ -289,7 +289,7 @@ class TestClient(unittest.TestCase):
         mock_is_file.return_value = True
         _proxy_url = "https://proxy.test"
         _new_proxy_url = "invalid://new.proxy.test"
-        _data = f"[default]\napi_key=api_key"
+        _data = "[default]\napi_key=api_key"
 
         try:
             with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
@@ -303,7 +303,7 @@ class TestClient(unittest.TestCase):
     def test_set_equal_proxy_url(self, mock_is_file):
         mock_is_file.return_value = True
         _proxy_url = "https://proxy.test"
-        _data = f"[default]\napi_key=api_key"
+        _data = "[default]\napi_key=api_key"
 
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             client = zanshinsdk.Client(proxy_url=_proxy_url)
@@ -316,7 +316,7 @@ class TestClient(unittest.TestCase):
     def test_set_none_proxy_url(self, mock_is_file):
         mock_is_file.return_value = True
         _proxy_url = "https://proxy.test"
-        _data = f"[default]\napi_key=api_key"
+        _data = "[default]\napi_key=api_key"
 
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             client = zanshinsdk.Client(proxy_url=_proxy_url)
@@ -329,7 +329,7 @@ class TestClient(unittest.TestCase):
     def test_get_user_agent(self, mock_is_file):
         mock_is_file.return_value = True
         _user_agent = "test_agent"
-        _data = f"[default]\napi_key=api_key"
+        _data = "[default]\napi_key=api_key"
 
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             client = zanshinsdk.Client(user_agent=_user_agent)
@@ -341,7 +341,7 @@ class TestClient(unittest.TestCase):
         mock_is_file.return_value = True
         _user_agent = "test_agent"
         _new_user_agent = "new_test_agent"
-        _data = f"[default]\napi_key=api_key"
+        _data = "[default]\napi_key=api_key"
 
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             client = zanshinsdk.Client(user_agent=_user_agent)
@@ -353,7 +353,7 @@ class TestClient(unittest.TestCase):
     @patch("zanshinsdk.client.isfile")
     def test_get_sanitized_proxy_url_none(self, mock_is_file):
         mock_is_file.return_value = True
-        _data = f"[default]\napi_key=api_key"
+        _data = "[default]\napi_key=api_key"
 
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             client = zanshinsdk.Client()
@@ -364,7 +364,7 @@ class TestClient(unittest.TestCase):
     def test_get_sanitized_proxy_url(self, mock_is_file):
         mock_is_file.return_value = True
         _proxy_url = "https://username:password@proxy.test:8000"
-        _data = f"[default]\napi_key=api_key"
+        _data = "[default]\napi_key=api_key"
 
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             client = zanshinsdk.Client(proxy_url=_proxy_url)
@@ -380,7 +380,7 @@ class TestClient(unittest.TestCase):
     def test_request(self, request, mock_is_file):
         mock_is_file.return_value = True
         _api_url = "https://api.test"
-        _data = f"[default]\napi_key=api_key"
+        _data = "[default]\napi_key=api_key"
 
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             client = zanshinsdk.Client(api_url=_api_url)
@@ -403,7 +403,7 @@ class TestClient(unittest.TestCase):
     def test_request_without_content(self, request, mock_is_file):
         mock_is_file.return_value = True
         _api_url = "https://api.test"
-        _data = f"[default]\napi_key=api_key"
+        _data = "[default]\napi_key=api_key"
 
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             client = zanshinsdk.Client(api_url=_api_url)
@@ -952,20 +952,79 @@ class TestClient(unittest.TestCase):
     ###################################################
     # Organization Scan Target Scan
     ###################################################
-
-    def test_iter_organization_scan_target_scans(self):
+    @patch("zanshinsdk.client.isfile")
+    @patch("zanshinsdk.Client._request")
+    def test_iter_organization_scan_target_scans(self, request, mock_is_file):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        scan_target_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
+        scan_target_id = "14f79567-6b68-4e3a-b2f2-4f1383546251"
+        scan_data = {
+            "summary": {
+                "infos": {
+                    "NEW": {
+                        "HIGH": 0,
+                        "INFO": 0,
+                        "MEDIUM": 0,
+                        "LOW": 0,
+                        "CRITICAL": 0
+                    },
+                    "COLLECTED": 6726,
+                    "REOPEN": {
+                        "HIGH": 0,
+                        "INFO": 0,
+                        "MEDIUM": 0,
+                        "LOW": 0,
+                        "CRITICAL": 0
+                    },
+                    "CLOSED": {
+                        "HIGH": 0,
+                        "INFO": 0,
+                        "MEDIUM": 0,
+                        "LOW": 0,
+                        "CRITICAL": 0
+                    },
+                    "UNKNOWN": 485,
+                    "FAIL": 642,
+                    "OPEN": {
+                        "HIGH": 0,
+                        "MEDIUM": 0,
+                        "INFO": 0,
+                        "LOW": 0,
+                        "CRITICAL": 0
+                    }
+                },
+                "states": {
+                    "CLOSED": 442,
+                    "OPEN": 638,
+                    "RISK_ACCEPTED": 4
+                },
+                "severities": {
+                    "HIGH": 55,
+                    "INFO": 49,
+                    "MEDIUM": 283,
+                    "LOW": 232,
+                    "CRITICAL": 23
+                }
+            },
+            "execution": "arn:aws:states:us-east-2:725859313743:execution:zanshin-prod-engine:fb6b466d-aaac-4f23-b625-2d8bc6e7f2ba-20220710-000407953",
+            "updatedAt": "2022-07-10T00:10:24.593646",
+            "status": "DONE",
+            "createdAt": "2022-07-10T00:04:08.076Z",
+            "scanTargetId": "fb6b466d-aaac-4f23-b625-2d8bc6e7f2ba",
+            "slot": "2022-07-10T00:04:07.953Z",
+            "organizationId": "004b6fb2-5cf8-456e-a895-52574638612b"
+        }
+    
+        mock_is_file.return_value = True
+        with patch("__main__.__builtins__.open", mock_open(read_data="[default]\napi_key=api_key")):
+            request.return_value = Mock(status_code=200, json=lambda: {"data":[scan_data]})
+            client = zanshinsdk.Client()
+            client._client.request = request
+            
+            iter = client.iter_organization_scan_target_scans(organization_id, scan_target_id)
 
-        try:
-            next(self.sdk.iter_organization_scan_target_scans(organization_id, scan_target_id))
-        except StopIteration:
-            pass
-
-        self.sdk._request.assert_called_once_with(
-            "GET", f"/organizations/{organization_id}/scantargets/{scan_target_id}/scans"
-        )
-
+        self.assertDictEqual(iter.__next__(), scan_data)
+        self.assertRaises(StopIteration, iter.__next__)
+        
     def test_get_organization_scan_target_scan(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         scan_target_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
@@ -2296,7 +2355,7 @@ class TestClient(unittest.TestCase):
 
         # Mock request to create new Scan Target
         mock_is_file.return_value = True
-        _data = f"[default]\napi_key=api_key"
+        _data = "[default]\napi_key=api_key"
 
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             request.return_value = Mock(status_code=200, json=lambda: {
@@ -2396,7 +2455,7 @@ class TestClient(unittest.TestCase):
 
         # Mock request to create new Scan Target
         mock_is_file.return_value = True
-        _data = f"[default]\napi_key=api_key"
+        _data = "[default]\napi_key=api_key"
 
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             request.return_value = Mock(status_code=200, json=lambda: {
