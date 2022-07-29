@@ -1,15 +1,6 @@
 from pathlib import Path
-from os.path import join
-import re
 
 from setuptools import setup
-
-
-def get_version():
-    version_py = join('zanshinsdk', 'version.py')
-    regex = re.compile('__version__\s*=\s*[\'\"](?P<version>[\d\.]+)')
-    return regex.finditer(open(version_py, 'r', encoding='utf8').read()).__next__().group('version')
-
 
 extras = {
     'with_boto3': ['moto[all]~=3.1.16']
@@ -21,7 +12,7 @@ setup(
     long_description=Path('README.rst').read_text(encoding="utf8"),
     author='Tenchi Security',
     author_email='contact@tenchisecurity.com',
-    version=get_version(),
+    version='__PACKAGE_VERSION__',
     url='https://github.com/tenchi-security/zanshin-sdk-python',
     license='Apache Software License',
     install_requires=['httpx==0.23.0'],
