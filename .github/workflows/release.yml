@@ -6,24 +6,50 @@ on:
 
 jobs:
   deploy:
+    name: Test and Deploy to PyPI
+
     runs-on: ubuntu-latest
+
     timeout-minutes: 10
 
     steps:
       - uses: actions/checkout@v2
 
-      - uses: actions/setup-python@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.10"
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install --upgrade setuptools wheel twine pandoc
-          python setup.py develop
+          python -m pip install --upgrade pip setuptools wheel
+          sed -i 's/__PACKAGE_VERSION__/${{ github.event.release.tag_name }}/g' zanshinsdk/version.py setup.py
+          python setup.py install
 
-      - name: Build and publish
+      - name: Unit tests
+        run: |
+          pip install -r requirements.txt
+          make test
+
+      - name: Generate updated documentation
+        run: |
+          sudo apt-get install -y pandoc
+          rm -f README.rst
+          make README.rst
+
+      - name: Build and publish to PyPI Test
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
+          TWINE_REPOSITORY_URL: "https://test.pypi.org/legacy/"
+        run: |
+          sudo apt-get install -y twine
+          make pypi
+
+      - name: Build and publish to PyPI
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+          TWINE_REPOSITORY_URL: "https://upload.pypi.org/legacy/"
         run: |
-          sed -i 's/__PACKAGE_VERSION__/${{ github.event.release.tag_name }}/g' zanshinsdk/version.py setup.py 
           make pypi

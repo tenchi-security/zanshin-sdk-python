@@ -7,11 +7,10 @@ README.rst: README.md
 
 pypi: README.rst sdist
 	python setup.py clean
-	twine upload --repository pypi dist/*
-
-pypitest: README.rst sdist
-	python setup.py clean
-	twine upload --repository pypitest dist/*
+	test -n "$(TWINE_REPOSITORY_URL)"  # TWINE_REPOSITORY_URL must be set
+	test -n "$(TWINE_USERNAME)"  # TWINE_USERNAME must be set
+	test -n "$(TWINE_PASSWORD)"  # TWINE_PASSWORD must be set
+	twine upload dist/*
 
 lint:
 	flake8 zanshinsdk --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
