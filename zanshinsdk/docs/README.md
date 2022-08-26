@@ -10,8 +10,10 @@ Scan Targets can be of four kinds
 - Azure Subscriptions
 - Google Cloud Projects
 - Domains
+- Oracle Cloud Infrastructure 
 
-### onboard_scan_target
+
+### 1. onboard_scan_target
 
 This method automatically creates a new Scan Targets to the Zanshin Organization informed in parameters and performs the onbard creating the roles required in your AWS Account.
 
@@ -31,13 +33,14 @@ Parameters:
 
 - :param region: the AWS Region to deploy the CloudFormation Template of Zanshin Service Role.
 - :param organization_id: the ID of the organization to have the new Scan Target.
-- :param kind: the Kind of scan target (AWS, GCP, AZURE, DOMAIN)
+- :param kind: the Kind of scan target (AWS, GCP, AZURE, DOMAIN, ORACLE)
 - :param name: the name of the new scan target.
 - :param credential: credentials to access the cloud account to be scanned:
 	* For AWS scan targets, provide the account ID in the *account* field.
 	* For Azure scan targets, provide *applicationId*, *subscriptionId*, *directoryId* and *secret* fields.
 	* For GCP scan targets, provide a *projectId* field.
 	* For DOMAIN scan targets, provide a URL in the *domain* field.
+	* For ORACLE scan targets, provide *compartmentId*, *keyValue*, *keyFingerprint*, *region*, *tenancyId* and *userId*
 
 - :param schedule: schedule in cron format.
 - :param boto3_profile: boto3 profile name used for CloudFormation Deployment. If none, uses \"default\" profile.
@@ -61,7 +64,7 @@ organization_id = "bd0..."
 kind = ScanTargetKind.AWS
 name = "AWS Account included via SDK"
 credential = ScanTargetAWS("418069676198")  # ID of AWS Account to onboard.
-schedule = "0 0 * * *"  # Schedule time that the scan will happen.
+schedule = "24h"  # Schedule time that the scan will happen.
 region = "us-east-1" # Region to run the CloudFormation Stack responsible for onboarding.
 boto3_session = boto3.Session( # Boto3 session with adequate privileges
     aws_access_key_id="ASIAEXAMPLEKEY",

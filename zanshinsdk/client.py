@@ -42,6 +42,7 @@ class ScanTargetKind(str, Enum):
     AZURE = "AZURE"
     HUAWEI = "HUAWEI"
     DOMAIN = "DOMAIN"
+    ORACLE = "ORACLE"
 
 
 class ScanTargetAWS(dict):
@@ -68,6 +69,11 @@ class ScanTargetHUAWEI(dict):
 class ScanTargetDOMAIN(dict):
     def __init__(self, domain):
         dict.__init__(self, domain=domain)
+
+class ScanTargetORACLE(dict):
+    def __init__(self, compartmentId, keyValue, keyFingerprint, region, tenancyId, userId):
+        dict.__init__(self, compartmentId=compartmentId, keyValue=keyValue, 
+                      keyFingerprint=keyFingerprint, region=region, tenancyId=tenancyId, userId=userId)
 
 
 class Roles(str, Enum):
@@ -710,8 +716,8 @@ class Client:
 
     def create_organization_scan_target(self, organization_id: Union[UUID, str], kind: ScanTargetKind, name: str,
                                         credential: Union[ScanTargetAWS, ScanTargetAZURE, ScanTargetGCP,
-                                                          ScanTargetHUAWEI, ScanTargetDOMAIN],
-                                        schedule: str = "0 0 * * *") -> Dict:
+                                                          ScanTargetHUAWEI, ScanTargetDOMAIN, ScanTargetORACLE],
+                                        schedule: str = "24h") -> Dict:
         """
         Create a new scan target in organization.
         <https://api.zanshin.tenchisecurity.com/#operation/createOrganizationScanTargets>
@@ -723,6 +729,7 @@ class Client:
             * For Azure scan targets, provide *applicationId*, *subscriptionId*, *directoryId* and *secret* fields.
             * For GCP scan targets, provide a *projectId* field
             * For DOMAIN scan targets, provide a URL in the *domain* field
+            * For ORACLE scan targets, provide *compartmentId*, *keyValue*, *keyFingerprint*, *region*, *tenancyId* and *userId*
         :param schedule: schedule in cron format
         :return: a dict representing the newly created scan target
         """
@@ -740,6 +747,8 @@ class Client:
             validate_class(credential, ScanTargetHUAWEI)
         elif kind == ScanTargetKind.DOMAIN:
             validate_class(credential, ScanTargetDOMAIN)
+        elif kind == ScanTargetKind.ORACLE:
+            validate_class(credential, ScanTargetORACLE)
 
         body = {
             "name": name,
@@ -1523,7 +1532,7 @@ class Client:
     def onboard_scan_target(self, region: str, organization_id: Union[UUID, str], kind: ScanTargetKind, name: str,
                             credential: Union[ScanTargetAWS, ScanTargetAZURE, ScanTargetGCP, ScanTargetHUAWEI,
                                               ScanTargetDOMAIN], boto3_session: any = None,
-                            boto3_profile: str = "default", schedule: str = "0 0 * * *") -> Dict:
+                            boto3_profile: str = "default", schedule: str = "24h") -> Dict:
         """
         Currently supports only AWS Scan Targets.
         For AWS Scan Target:

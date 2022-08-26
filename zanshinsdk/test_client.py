@@ -821,7 +821,7 @@ class TestClient(unittest.TestCase):
         kind = zanshinsdk.ScanTargetKind.AWS
         name = "ScanTargetTest"
         credential = zanshinsdk.ScanTargetAWS("123456")
-        schedule = "0 0 * * *"
+        schedule = "24h"
 
         self.sdk.create_organization_scan_target(organization_id, kind, name, credential, schedule)
 
@@ -835,7 +835,7 @@ class TestClient(unittest.TestCase):
         kind = zanshinsdk.ScanTargetKind.AZURE
         name = "ScanTargetTest"
         credential = zanshinsdk.ScanTargetAZURE("1234567890", "0123456789", "2345678901", "SECRET")
-        schedule = "0 0 * * *"
+        schedule = "24h"
 
         self.sdk.create_organization_scan_target(organization_id, kind, name, credential, schedule)
 
@@ -849,7 +849,7 @@ class TestClient(unittest.TestCase):
         kind = zanshinsdk.ScanTargetKind.GCP
         name = "ScanTargetTest"
         credential = zanshinsdk.ScanTargetGCP("123456")
-        schedule = "0 0 * * *"
+        schedule = "24h"
 
         self.sdk.create_organization_scan_target(organization_id, kind, name, credential, schedule)
 
@@ -863,7 +863,7 @@ class TestClient(unittest.TestCase):
         kind = zanshinsdk.ScanTargetKind.HUAWEI
         name = "ScanTargetTest"
         credential = zanshinsdk.ScanTargetHUAWEI("123456")
-        schedule = "0 0 * * *"
+        schedule = "24h"
 
         self.sdk.create_organization_scan_target(organization_id, kind, name, credential, schedule)
 
@@ -877,7 +877,21 @@ class TestClient(unittest.TestCase):
         kind = zanshinsdk.ScanTargetKind.DOMAIN
         name = "ScanTargetTest"
         credential = zanshinsdk.ScanTargetDOMAIN("domain.com")
-        schedule = "0 0 * * *"
+        schedule = "24h"
+
+        self.sdk.create_organization_scan_target(organization_id, kind, name, credential, schedule)
+
+        self.sdk._request.assert_called_once_with(
+            "POST", f"/organizations/{organization_id}/scantargets",
+            body={"name": name, "kind": kind, "credential": credential, "schedule": schedule}
+        )
+
+    def test_create_organization_scan_target_ORACLE(self):
+        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
+        kind = zanshinsdk.ScanTargetKind.ORACLE
+        name = "ScanTargetTest"
+        credential = zanshinsdk.ScanTargetORACLE('0000000000000000000000000000000000000000000000000000', '0000000000000000000000000000000000000000000000000000', '1a:1a:aa:1a:11:11:aa:11:11:11:1a:1a:1a:a:1a:1a','us-ashburn-1', 'ocid1.tenancy.oc1..aaaaaaaa0000000000000000000000000000000000000000000000000000', 'ocid1.user.oc1..aaaaaaaa0000000000000000000000000000000000000000000000000000')
+        schedule = "24h"
 
         self.sdk.create_organization_scan_target(organization_id, kind, name, credential, schedule)
 
@@ -900,7 +914,7 @@ class TestClient(unittest.TestCase):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         scan_target_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
         name = "ScanTargetTest"
-        schedule = "0 0 * * *"
+        schedule = "24h"
 
         self.sdk.update_organization_scan_target(organization_id, scan_target_id, name, schedule)
 
@@ -2197,7 +2211,7 @@ class TestClient(unittest.TestCase):
         kind = zanshinsdk.ScanTargetKind.AZURE
         name = "OnboardTesting-it"
         credential = zanshinsdk.ScanTargetAZURE("4321", "1234", "1234", "s3cr3t")
-        schedule = "0 0 * * *"
+        schedule = "24h"
         region = "us-east-1"
         boto3_profile = 'foo'
 
@@ -2232,7 +2246,7 @@ class TestClient(unittest.TestCase):
         kind = zanshinsdk.ScanTargetKind.AWS
         name = "OnboardTesting-it"
         credential = zanshinsdk.ScanTargetAWS("4321")
-        schedule = "0 0 * * *"
+        schedule = "24h"
         region = "us-east-1"
         boto3_profile = 'foo'
 
@@ -2268,7 +2282,7 @@ class TestClient(unittest.TestCase):
         kind = zanshinsdk.ScanTargetKind.AWS
         name = "OnboardTesting-it"
         credential = zanshinsdk.ScanTargetAWS("4321")
-        schedule = "0 0 * * *"
+        schedule = "24h"
         region = "us-east-1"
         boto3_profile = 'non_default'
 
@@ -2358,7 +2372,7 @@ class TestClient(unittest.TestCase):
         kind = zanshinsdk.ScanTargetKind.AWS
         name = "OnboardTesting-it"
         credential = zanshinsdk.ScanTargetAWS(aws_account_id)
-        schedule = "0 0 * * *"
+        schedule = "24h"
         region = "us-east-1"
         boto3_profile = 'foo'
 
@@ -2456,7 +2470,7 @@ class TestClient(unittest.TestCase):
         kind = zanshinsdk.ScanTargetKind.AWS
         name = "OnboardTesting-it"
         credential = zanshinsdk.ScanTargetAWS(aws_account_id)
-        schedule = "0 0 * * *"
+        schedule = "24h"
         region = "us-east-1"
 
         boto3_session = boto3.Session(
