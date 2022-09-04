@@ -27,6 +27,7 @@ class AlertState(str, Enum):
     RISK_ACCEPTED = "RISK_ACCEPTED"
     CLOSED = "CLOSED"
     MITIGATING_CONTROL = "MITIGATING_CONTROL"
+    FALSE_POSITIVE = "FALSE_POSITIVE"
 
 
 class AlertSeverity(str, Enum):
