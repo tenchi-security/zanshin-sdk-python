@@ -26,6 +26,7 @@ class AlertState(str, Enum):
     IN_PROGRESS = "IN_PROGRESS"
     RISK_ACCEPTED = "RISK_ACCEPTED"
     CLOSED = "CLOSED"
+    MITIGATING_CONTROL = "MITIGATING_CONTROL"
 
 
 class AlertSeverity(str, Enum):
@@ -914,7 +915,7 @@ class Client:
         if rule:
             body["rule"] = rule
         if states:
-            if isinstance(states, str):
+            if isinstance(states, str) or isinstance(states, AlertState):
                 states = [states]
             validate_class(states, Iterable)
             body["states"] = [validate_class(x, AlertState).value for x in states]
@@ -1020,7 +1021,7 @@ class Client:
         if rule:
             body["rule"] = rule
         if states:
-            if isinstance(states, str):
+            if isinstance(states, str) or isinstance(states, AlertState):
                 states = [states]
             validate_class(states, Iterable)
             body["states"] = [validate_class(x, AlertState).value for x in states]
@@ -1243,7 +1244,7 @@ class Client:
             validate_class(scan_target_ids, Iterable)
             body["scanTargetIds"] = [validate_uuid(x) for x in scan_target_ids]
         if states:
-            if isinstance(states, str):
+            if isinstance(states, str) or isinstance(states, AlertState):
                 states = [states]
             validate_class(states, Iterable)
             body["states"] = [validate_class(x, AlertState).value for x in states]
@@ -1305,7 +1306,7 @@ class Client:
             validate_class(following_ids, Iterable)
             body["followingIds"] = [validate_uuid(x) for x in following_ids]
         if states:
-            if isinstance(states, str):
+            if isinstance(states, str) or isinstance(states, AlertState):
                 states = [states]
             validate_class(states, Iterable)
             body["states"] = [validate_class(x, AlertState).value for x in states]
