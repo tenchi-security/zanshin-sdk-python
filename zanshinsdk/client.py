@@ -25,10 +25,11 @@ class AlertState(str, Enum):
     ACTIVE = "ACTIVE"
     IN_PROGRESS = "IN_PROGRESS"
     RISK_ACCEPTED = "RISK_ACCEPTED"
+    MITIGATING_CONTROL = "MITIGATING_CONTROL"
+    FALSE_POSITIVE = "FALSE_POSITIVE"
     CLOSED = "CLOSED"
     MITIGATING_CONTROL = "MITIGATING_CONTROL"
     FALSE_POSITIVE = "FALSE_POSITIVE"
-
 
 class AlertSeverity(str, Enum):
     CRITICAL = "CRITICAL"
@@ -44,6 +45,7 @@ class ScanTargetKind(str, Enum):
     AZURE = "AZURE"
     HUAWEI = "HUAWEI"
     DOMAIN = "DOMAIN"
+    ORACLE = "ORACLE"
 
 
 class ScanTargetAWS(dict):
@@ -70,6 +72,11 @@ class ScanTargetHUAWEI(dict):
 class ScanTargetDOMAIN(dict):
     def __init__(self, domain):
         dict.__init__(self, domain=domain)
+
+
+class ScanTargetORACLE(dict):
+    def __init__(self, compartment_id, region, tenancy_id, user_id, key_fingerprint):
+        dict.__init__(self, compartment_id=compartment_id, region=region, tenancy_id=tenancy_id, user_id=user_id, key_fingerprint=key_fingerprint)
 
 
 class Roles(str, Enum):
@@ -712,7 +719,7 @@ class Client:
 
     def create_organization_scan_target(self, organization_id: Union[UUID, str], kind: ScanTargetKind, name: str,
                                         credential: Union[ScanTargetAWS, ScanTargetAZURE, ScanTargetGCP,
-                                                          ScanTargetHUAWEI, ScanTargetDOMAIN],
+                                                          ScanTargetHUAWEI, ScanTargetDOMAIN, ScanTargetORACLE],
                                         schedule: str = "0 0 * * *") -> Dict:
         """
         Create a new scan target in organization.
@@ -742,6 +749,8 @@ class Client:
             validate_class(credential, ScanTargetHUAWEI)
         elif kind == ScanTargetKind.DOMAIN:
             validate_class(credential, ScanTargetDOMAIN)
+        elif kind == ScanTargetKind.ORACLE:
+            validate_class(credential, ScanTargetORACLE)
 
         body = {
             "name": name,
@@ -1387,11 +1396,15 @@ class Client:
         :return: the decoded JSON object returned by the API
         """
 
-        body = {
-            "state": state,
-            "labels": labels,
-            "comment": comment,
-        }
+        body = dict()
+        if state:
+            body['state'] = state
+
+        if labels:
+            body['labels'] = labels
+
+        if comment:
+            body['comment'] = comment
 
         return self._request("PUT",
                              f"/organizations/{validate_uuid(organization_id)}/scantargets/"
@@ -1639,7 +1652,7 @@ class Client:
         """
         Check if boto3 informed credentials are valid performing aws sts get-caller-identity. In case of
         problem, raises ValueError.
-        
+
         """
         try:
             sts = boto3_session.client('sts')
