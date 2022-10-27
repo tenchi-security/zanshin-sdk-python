@@ -2538,3 +2538,4 @@ class TestScanTargetSchedule(unittest.TestCase):
         self.assertRaises(TypeError, zanshinsdk.ScanTargetSchedule.from_value, 1)
         self.assertRaises(TypeError, zanshinsdk.ScanTargetSchedule.from_value, 1.0)
         self.assertRaises(ValueError, zanshinsdk.ScanTargetSchedule.from_value, "foo")
+        self.assertRaises(ValueError, zanshinsdk.ScanTargetSchedule.from_value, '0 */8 * * *')
