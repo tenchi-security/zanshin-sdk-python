@@ -821,7 +821,7 @@ class TestClient(unittest.TestCase):
         kind = zanshinsdk.ScanTargetKind.AWS
         name = "ScanTargetTest"
         credential = zanshinsdk.ScanTargetAWS("123456")
-        schedule = "0 0 * * *"
+        schedule = "24h"
 
         self.sdk.create_organization_scan_target(organization_id, kind, name, credential, schedule)
 
@@ -835,7 +835,7 @@ class TestClient(unittest.TestCase):
         kind = zanshinsdk.ScanTargetKind.AZURE
         name = "ScanTargetTest"
         credential = zanshinsdk.ScanTargetAZURE("1234567890", "0123456789", "2345678901", "SECRET")
-        schedule = "0 0 * * *"
+        schedule = "24h"
 
         self.sdk.create_organization_scan_target(organization_id, kind, name, credential, schedule)
 
@@ -849,7 +849,7 @@ class TestClient(unittest.TestCase):
         kind = zanshinsdk.ScanTargetKind.GCP
         name = "ScanTargetTest"
         credential = zanshinsdk.ScanTargetGCP("123456")
-        schedule = "0 0 * * *"
+        schedule = "24h"
 
         self.sdk.create_organization_scan_target(organization_id, kind, name, credential, schedule)
 
@@ -863,7 +863,7 @@ class TestClient(unittest.TestCase):
         kind = zanshinsdk.ScanTargetKind.HUAWEI
         name = "ScanTargetTest"
         credential = zanshinsdk.ScanTargetHUAWEI("123456")
-        schedule = "0 0 * * *"
+        schedule = "24h"
 
         self.sdk.create_organization_scan_target(organization_id, kind, name, credential, schedule)
 
@@ -877,7 +877,7 @@ class TestClient(unittest.TestCase):
         kind = zanshinsdk.ScanTargetKind.DOMAIN
         name = "ScanTargetTest"
         credential = zanshinsdk.ScanTargetDOMAIN("domain.com")
-        schedule = "0 0 * * *"
+        schedule = "24h"
 
         self.sdk.create_organization_scan_target(organization_id, kind, name, credential, schedule)
 
@@ -900,7 +900,7 @@ class TestClient(unittest.TestCase):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         scan_target_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
         name = "ScanTargetTest"
-        schedule = "0 0 * * *"
+        schedule = "24h"
 
         self.sdk.update_organization_scan_target(organization_id, scan_target_id, name, schedule)
 
@@ -2358,7 +2358,7 @@ class TestClient(unittest.TestCase):
         kind = zanshinsdk.ScanTargetKind.AWS
         name = "OnboardTesting-it"
         credential = zanshinsdk.ScanTargetAWS(aws_account_id)
-        schedule = "0 0 * * *"
+        schedule = "24h"
         region = "us-east-1"
         boto3_profile = 'foo'
 
@@ -2456,7 +2456,7 @@ class TestClient(unittest.TestCase):
         kind = zanshinsdk.ScanTargetKind.AWS
         name = "OnboardTesting-it"
         credential = zanshinsdk.ScanTargetAWS(aws_account_id)
-        schedule = "0 0 * * *"
+        schedule = "24h"
         region = "us-east-1"
 
         boto3_session = boto3.Session(
@@ -2518,3 +2518,23 @@ class TestClient(unittest.TestCase):
         cf_stacks = cloudformation.describe_stacks(StackName=zanshin_cloudformation_stack_name)
         for cf_stack in cf_stacks['Stacks']:
             cloudformation.delete_stack(StackName=cf_stack['StackName'])
+
+class TestScanTargetSchedule(unittest.TestCase):
+    def test_from_value(self):
+        """
+        Tests the initialization of a new scan target schedule instance using the new enum class, its string equivalent
+        and the old cron-style strings.
+        """
+        for k,v in zanshinsdk.ScanTargetSchedule.__members__.items():
+            self.assertEqual(zanshinsdk.ScanTargetSchedule.from_value(v.value), v)
+            self.assertEqual(zanshinsdk.ScanTargetSchedule.from_value(v), v)
+
+        self.assertEqual(zanshinsdk.ScanTargetSchedule.from_value('0 * * * *'), zanshinsdk.ScanTargetSchedule.ONE_HOUR)
+        self.assertEqual(zanshinsdk.ScanTargetSchedule.from_value('0 */6 * * *'), zanshinsdk.ScanTargetSchedule.SIX_HOURS)
+        self.assertEqual(zanshinsdk.ScanTargetSchedule.from_value('0 */12 * * *'), zanshinsdk.ScanTargetSchedule.TWELVE_HOURS)
+        self.assertEqual(zanshinsdk.ScanTargetSchedule.from_value('0 0 * * *'), zanshinsdk.ScanTargetSchedule.TWENTY_FOUR_HOURS)
+        self.assertEqual(zanshinsdk.ScanTargetSchedule.from_value('0 0 * * 0'), zanshinsdk.ScanTargetSchedule.SEVEN_DAYS)
+
+        self.assertRaises(TypeError, zanshinsdk.ScanTargetSchedule.from_value, 1)
+        self.assertRaises(TypeError, zanshinsdk.ScanTargetSchedule.from_value, 1.0)
+        self.assertRaises(ValueError, zanshinsdk.ScanTargetSchedule.from_value, "foo")
