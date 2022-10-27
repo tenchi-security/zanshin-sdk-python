@@ -55,14 +55,6 @@ class ScanTargetSchedule(str, Enum):
     TWENTY_FOUR_HOURS = '24h'
     SEVEN_DAYS = '7d'
 
-    _cron_conversion = {
-        '0 * * * *': ONE_HOUR,
-        '0 */6 * * *': SIX_HOURS,
-        '0 */12 * * *': TWELVE_HOURS,
-        '0 0 * * *': TWENTY_FOUR_HOURS,
-        '0 0 * * 0': SEVEN_DAYS
-    }
-
     @classmethod
     def from_value(cls, schedule: Union[str, ScanTargetSchedule]) -> ScanTargetSchedule:
         if isinstance(schedule, cls):
