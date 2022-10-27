@@ -1,3 +1,4 @@
+from __future__ import annotations
 import sys
 import time
 import logging
@@ -29,6 +30,7 @@ class AlertState(str, Enum):
     FALSE_POSITIVE = "FALSE_POSITIVE"
     CLOSED = "CLOSED"
 
+
 class AlertSeverity(str, Enum):
     CRITICAL = "CRITICAL"
     HIGH = "HIGH"
@@ -44,6 +46,41 @@ class ScanTargetKind(str, Enum):
     HUAWEI = "HUAWEI"
     DOMAIN = "DOMAIN"
     ORACLE = "ORACLE"
+
+
+class ScanTargetSchedule(str, Enum):
+    ONE_HOUR = '1h'
+    SIX_HOURS = '6h'
+    TWELVE_HOURS = '12h'
+    TWENTY_FOUR_HOURS = '24h'
+    SEVEN_DAYS = '7d'
+
+    @classmethod
+    def from_value(cls, schedule: Union[str, ScanTargetSchedule]) -> ScanTargetSchedule:
+        if isinstance(schedule, cls):
+            return schedule
+        elif isinstance(schedule, str):
+            # try to match with current enum values
+            try:
+                return cls(schedule.lower())
+            except ValueError:
+                pass
+
+            # failing that, let's convert cron format to the new one
+            if schedule == '0 * * * *':
+                return cls.ONE_HOUR
+            elif schedule == '0 */6 * * *':
+                return cls.SIX_HOURS
+            elif schedule == '0 */12 * * *':
+                return cls.TWELVE_HOURS
+            elif schedule == '0 0 * * *':
+                return cls.TWENTY_FOUR_HOURS
+            elif schedule == '0 0 * * 0':
+                return cls.SEVEN_DAYS
+            else:
+                raise ValueError(f"Unexpected schedule value '{schedule}'")
+        else:
+            raise TypeError("schedule must be a string or an instance of ScanTargetSchedule")
 
 
 class ScanTargetAWS(dict):
@@ -74,7 +111,8 @@ class ScanTargetDOMAIN(dict):
 
 class ScanTargetORACLE(dict):
     def __init__(self, compartment_id, region, tenancy_id, user_id, key_fingerprint):
-        dict.__init__(self, compartment_id=compartment_id, region=region, tenancy_id=tenancy_id, user_id=user_id, key_fingerprint=key_fingerprint)
+        dict.__init__(self, compartment_id=compartment_id, region=region, tenancy_id=tenancy_id, user_id=user_id,
+                      key_fingerprint=key_fingerprint)
 
 
 class Roles(str, Enum):
@@ -718,7 +756,8 @@ class Client:
     def create_organization_scan_target(self, organization_id: Union[UUID, str], kind: ScanTargetKind, name: str,
                                         credential: Union[ScanTargetAWS, ScanTargetAZURE, ScanTargetGCP,
                                                           ScanTargetHUAWEI, ScanTargetDOMAIN, ScanTargetORACLE],
-                                        schedule: str = "0 0 * * *") -> Dict:
+                                        schedule: Union[
+                                            str, ScanTargetSchedule] = ScanTargetSchedule.TWENTY_FOUR_HOURS) -> Dict:
         """
         Create a new scan target in organization.
         <https://api.zanshin.tenchisecurity.com/#operation/createOrganizationScanTargets>
@@ -730,12 +769,11 @@ class Client:
             * For Azure scan targets, provide *applicationId*, *subscriptionId*, *directoryId* and *secret* fields.
             * For GCP scan targets, provide a *projectId* field
             * For DOMAIN scan targets, provide a URL in the *domain* field
-        :param schedule: schedule in cron format
+        :param schedule: schedule as a string or enum version of the scan frequency
         :return: a dict representing the newly created scan target
         """
         validate_class(kind, ScanTargetKind)
         validate_class(name, str)
-        validate_class(schedule, str)
 
         if kind == ScanTargetKind.AWS:
             validate_class(credential, ScanTargetAWS)
@@ -754,7 +792,7 @@ class Client:
             "name": name,
             "kind": kind,
             "credential": credential,
-            "schedule": schedule
+            "schedule": ScanTargetSchedule.from_value(schedule).value
         }
         return self._request("POST", f"/organizations/{validate_uuid(organization_id)}/scantargets",
                              body=body).json()
@@ -772,7 +810,7 @@ class Client:
                              f"{validate_uuid(scan_target_id)}").json()
 
     def update_organization_scan_target(self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str],
-                                        name: str, schedule: str) -> Dict:
+                                        name: str, schedule: Union[str, ScanTargetSchedule]) -> Dict:
         """
         Update scan target of organization.
         <https://api.zanshin.tenchisecurity.com/#operation/editOrganizationScanTargetById>
@@ -785,7 +823,7 @@ class Client:
 
         body = {
             "name": name,
-            "schedule": schedule,
+            "schedule": ScanTargetSchedule.from_value(schedule).value,
         }
 
         return self._request("PUT",
@@ -1542,7 +1580,8 @@ class Client:
     def onboard_scan_target(self, region: str, organization_id: Union[UUID, str], kind: ScanTargetKind, name: str,
                             credential: Union[ScanTargetAWS, ScanTargetAZURE, ScanTargetGCP, ScanTargetHUAWEI,
                                               ScanTargetDOMAIN], boto3_session: any = None,
-                            boto3_profile: str = "default", schedule: str = "0 0 * * *") -> Dict:
+                            boto3_profile: str = "default",
+                            schedule: Union[str, ScanTargetSchedule] = ScanTargetSchedule.TWENTY_FOUR_HOURS) -> Dict:
         """
         Currently supports only AWS Scan Targets.
         For AWS Scan Target:
@@ -1557,7 +1596,7 @@ class Client:
             * For GCP scan targets, provide a *projectId* field.
             * For DOMAIN scan targets, provide a URL in the *domain* field.
 
-        :param schedule: schedule in cron format.
+        :param schedule: schedule in string or enum format.
         :param boto3_profile: boto3 profile name used for CloudFormation Deployment. If none, uses \"default\" profile.
         :param boto3_session: boto3 session used for CloudFormation Deployment. If informed, will ignore boto3_profile.
         :return: JSON object containing newly created scan target .
