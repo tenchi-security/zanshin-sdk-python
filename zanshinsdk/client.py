@@ -807,17 +807,23 @@ class Client:
                              f"{validate_uuid(scan_target_id)}").json()
 
     def start_organization_scan_target_scan(self, organization_id: Union[UUID, str],
-                                            scan_target_id: Union[UUID, str]) -> bool:
+                                            scan_target_id: Union[UUID, str],
+                                            force: Optional[bool]) -> bool:
         """
         Starts a scan on the specified scan target.
         <https://api.zanshin.tenchisecurity.com/#operation/scanOrganizationScanTarget>
         :param organization_id: the ID of organization the scan target belongs to
         :param scan_target_id: the ID of the scan target
+        :param force: whether to force a scan that is in state NEW or INVALID_CREDENTIAL
         :return: a boolean if success
         """
+
+        body = {
+            "force": force
+        }
         return self._request("POST",
                              f"/organizations/{validate_uuid(organization_id)}/scantargets/"
-                             f"{validate_uuid(scan_target_id)}/scan").json()
+                             f"{validate_uuid(scan_target_id)}/scan", body=body).json()
 
     def stop_organization_scan_target_scan(self, organization_id: Union[UUID, str],
                                            scan_target_id: Union[UUID, str]) -> bool:
