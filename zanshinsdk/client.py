@@ -1646,6 +1646,8 @@ class Client:
 
         self.check_organization_scan_target(
             organization_id=organization_id, scan_target_id=new_scan_target_id)
+        self.start_organization_scan_target_scan(
+            organization_id=organization_id, scan_target_id=new_scan_target_id, force=True)
         return self.get_organization_scan_target(organization_id=organization_id, scan_target_id=new_scan_target_id)
 
     def _deploy_cloudformation_zanshin_service_role(self, boto3_session: object, region: str, new_scan_target_id: str,
