@@ -856,12 +856,12 @@ class Client:
         :return: a boolean if success
         """
 
-        body = {
-            "force": force
+        params = {
+            "force": "true" if force else "false" # Http params are always strings
         }
         return self._request("POST",
                              f"/organizations/{validate_uuid(organization_id)}/scantargets/"
-                             f"{validate_uuid(scan_target_id)}/scan", body=body).json()
+                             f"{validate_uuid(scan_target_id)}/scan", params=params).json()
 
     def stop_organization_scan_target_scan(self, organization_id: Union[UUID, str],
                                            scan_target_id: Union[UUID, str]) -> bool:
