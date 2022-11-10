@@ -927,8 +927,8 @@ class TestClient(unittest.TestCase):
 
         self.sdk._request.assert_called_once_with(
             "POST", f"/organizations/{organization_id}/scantargets/{scan_target_id}/scan",
-            body={
-                "force": True
+            params={
+                "force": "true"
             }
         )
 
