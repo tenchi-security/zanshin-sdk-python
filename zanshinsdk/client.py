@@ -1750,7 +1750,7 @@ class Client:
         """
         if kind != ScanTargetKind.AWS:
             raise NotImplementedError(
-                f"Onboard doesn't support {kind} environment yet")
+                f"Onboard doesn't support {kind.value} environment yet")
 
     def _check_boto3_installation(self):
         """
