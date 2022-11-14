@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .client import Client, ScanTargetKind
+from .client import Client, ScanTargetKind, ScanTargetSchedule
 from .protect_attributes import protect_attributes
 
 from dataclasses import dataclass, field
@@ -101,7 +101,7 @@ class ScanTargetStatus(enum):
 @dataclass(eq=False, order=False)
 @protect_attributes
 class ScanTarget(object):
-    ooclient: OOClient = field(metadata={'nodel': True})
+    ooclient: OOClient = field(repr=False, hash=False, compare=False, metadata={'nodel': True})
     id: UUID = field(metadata={'readonly': True})
     organization: Organization = field(metadata={'readonly': True})
     name: str = field(metadata={'nodel': True})
@@ -110,3 +110,16 @@ class ScanTarget(object):
     updatedAt: datetime = field(metadata={'readonly': True})
     lastScan: datetime = field(metadata={'readonly': True})
     account: str = field(metadata={'nodel': True})
+    schedule: ScanTargetSchedule = field(metadata={'nodel': True})
+
+    def from_dict(cls, ooclient: OOClient, data: dict):
+        return Organization(
+            ooclient=ooclient,
+            id=UUID(data['id']),
+            name=data['name'],
+            status=OrganizationStatus[data['status']],
+            updatedAt=parse(data['updatedAt']),
+            email=data.get('email', None) or None,
+            picture=data.get('picture', None) or None,
+            features=set(data.get('features', []))
+        )
