@@ -1,9 +1,10 @@
 from zanshinsdk.client import Client, AlertState, AlertSeverity, ScanTargetKind, ScanTargetSchedule, Languages, \
-    ScanTargetAWS, ScanTargetAZURE, ScanTargetGCP, ScanTargetHUAWEI, ScanTargetDOMAIN, Roles, validate_uuid
-from zanshinsdk.ooclient import OOClient, Organization, OrganizationStatus, ScanTarget, ScanTargetStatus
+    AlertsOrderOpts, SortOpts, ScanTargetAWS, ScanTargetAZURE, ScanTargetGCP, ScanTargetHUAWEI, ScanTargetDOMAIN, Roles, \
+    validate_uuid
 from zanshinsdk.iterator import AbstractPersistentAlertsIterator, PersistenceEntry
 from zanshinsdk.alerts_history import FilePersistentAlertsIterator
 from zanshinsdk.following_alerts_history import FilePersistentFollowingAlertsIterator
+from zanshinsdk.ooclient import OOClient, Organization, OrganizationStatus, ScanTarget, ScanTargetStatus
 from zanshinsdk.version import __version__
 
 import logging

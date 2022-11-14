@@ -927,8 +927,8 @@ class TestClient(unittest.TestCase):
 
         self.sdk._request.assert_called_once_with(
             "POST", f"/organizations/{organization_id}/scantargets/{scan_target_id}/scan",
-            body={
-                "force": True
+            params={
+                "force": "true"
             }
         )
 
@@ -1060,17 +1060,24 @@ class TestClient(unittest.TestCase):
         page = 1
         page_size = 100
         rule = "rule"
-        language = zanshinsdk.Languages.ENUS
+        language = zanshinsdk.Languages.EN_US
+        # TODO: use valid dates
         created_at_start = "created_at_start"
         created_at_end = "created_at_end"
         updated_at_start = "updated_at_start"
         updated_at_end = "updated_at_end"
+        search = "search"
+        sort = zanshinsdk.SortOpts.ASC
+        order = zanshinsdk.AlertsOrderOpts.SEVERITY
 
         self.sdk._get_alerts_page(organization_id,
                                   page=page,
                                   page_size=page_size,
                                   rule=rule,
                                   language=language,
+                                  search=search,
+                                  order=order,
+                                  sort=sort,
                                   created_at_start=created_at_start,
                                   created_at_end=created_at_end,
                                   updated_at_start=updated_at_start,
@@ -1084,10 +1091,13 @@ class TestClient(unittest.TestCase):
                 "pageSize": page_size,
                 "rule": rule,
                 "lang": language,
-                "CreatedAtStart": created_at_start,
-                "CreatedAtEnd": created_at_end,
-                "UpdatedAtStart": updated_at_start,
-                "UpdatedAtEnd": updated_at_end
+                "search": search,
+                "order": order,
+                "sort": sort,
+                "createdAtStart": created_at_start,
+                "createdAtEnd": created_at_end,
+                "updatedAtStart": updated_at_start,
+                "updatedAtEnd": updated_at_end
             }
         )
 
@@ -1218,9 +1228,11 @@ class TestClient(unittest.TestCase):
 
         self.sdk._get_alerts_page.assert_has_calls([
             call(organization_id, None, None, None, None, page=page, page_size=page_size, language=None,
-                 created_at_start=None, created_at_end=None, updated_at_start=None, updated_at_end=None),
+                search=None, order=None, sort=None,
+                created_at_start=None, created_at_end=None, updated_at_start=None, updated_at_end=None),
             call(organization_id, None, None, None, None, page=page + 1, page_size=page_size, language=None,
-                 created_at_start=None, created_at_end=None, updated_at_start=None, updated_at_end=None)
+                search=None, order=None, sort=None,
+                created_at_start=None, created_at_end=None, updated_at_start=None, updated_at_end=None)
         ])
 
     def test_get_following_alerts_page(self):
@@ -1228,7 +1240,7 @@ class TestClient(unittest.TestCase):
         page = 1
         page_size = 100
         rule = "rule"
-        language = zanshinsdk.Languages.ENUS
+        language = zanshinsdk.Languages.EN_US
         created_at_start = "created_at_start"
         created_at_end = "created_at_end"
         updated_at_start = "updated_at_start"
@@ -1400,7 +1412,7 @@ class TestClient(unittest.TestCase):
     def test_get_alerts_history_page(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         page_size = 100
-        language = zanshinsdk.Languages.ENUS
+        language = zanshinsdk.Languages.EN_US
         cursor = "12345678"
 
         self.sdk._get_alerts_history_page(organization_id,
@@ -1477,7 +1489,7 @@ class TestClient(unittest.TestCase):
     def test_get_alerts_following_history_page(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         page_size = 100
-        language = zanshinsdk.Languages.ENUS
+        language = zanshinsdk.Languages.EN_US
         cursor = "12345678"
 
         self.sdk._get_alerts_following_history_page(organization_id,

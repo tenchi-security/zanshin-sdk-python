@@ -48,6 +48,21 @@ class ScanTargetKind(str, Enum):
     ORACLE = "ORACLE"
 
 
+class AlertsOrderOpts(str, Enum):
+    SCAN_TARGET_ID = "scanTargetId"
+    RESOURCE = "resource"
+    RULE = "rule"
+    SEVERITY = "severity"
+    STATE = "state"
+    CREATED_AT = "createdAt"
+    UPDATED_AT = "updatedAt"
+
+
+class SortOpts(str, Enum):
+    ASC = "asc"
+    DESC = "desc"
+
+
 class ScanTargetSchedule(str, Enum):
     ONE_HOUR = '1h'
     SIX_HOURS = '6h'
@@ -120,8 +135,8 @@ class Roles(str, Enum):
 
 
 class Languages(str, Enum):
-    PTBR = "pt-BR"
-    ENUS = "en-US"
+    PT_BR = "pt-BR"
+    EN_US = "en-US"
 
 
 class Client:
@@ -320,6 +335,9 @@ class Client:
         :param body: request body to pass along to httpx.Client.request
         :return: the requests.Response object returned by httpx.Client.request
         """
+
+        self._logger.debug("Requesting body=%s", body)
+
         response = self._client.request(method=method, url=self.api_url + path, params=params, json=body)
 
         if response.request.content:
@@ -856,12 +874,12 @@ class Client:
         :return: a boolean if success
         """
 
-        body = {
-            "force": force
+        params = {
+            "force": "true" if force else "false" # Http params are always strings
         }
         return self._request("POST",
                              f"/organizations/{validate_uuid(organization_id)}/scantargets/"
-                             f"{validate_uuid(scan_target_id)}/scan", body=body).json()
+                             f"{validate_uuid(scan_target_id)}/scan", params=params).json()
 
     def stop_organization_scan_target_scan(self, organization_id: Union[UUID, str],
                                            scan_target_id: Union[UUID, str]) -> bool:
@@ -934,7 +952,10 @@ class Client:
                          created_at_start: Optional[str] = None,
                          created_at_end: Optional[str] = None,
                          updated_at_start: Optional[str] = None,
-                         updated_at_end: Optional[str] = None) -> Dict:
+                         updated_at_end: Optional[str] = None,
+                         search: Optional[str] = None,
+                         order: Optional[str] = None,
+                         sort: Optional[str] = None) -> Dict:
         """
         Internal method to retrieve a single page of alerts from an organization
         :param organization_id: the ID of the organization
@@ -959,6 +980,14 @@ class Client:
             "page": page,
             "pageSize": page_size
         }
+        if search:
+            body["search"] = search
+        if order:
+            validate_class(order, AlertsOrderOpts)
+            body["order"] = order
+        if sort:
+            validate_class(sort, SortOpts)
+            body["sort"] = sort
         if scan_target_ids:
             if isinstance(scan_target_ids, str):
                 scan_target_ids = [scan_target_ids]
@@ -979,14 +1008,15 @@ class Client:
         if language:
             validate_class(language, Languages)
             body["lang"] = language
+        # TODO: Validate these dates.
         if created_at_start:
-            body["CreatedAtStart"] = created_at_start
+            body["createdAtStart"] = created_at_start
         if created_at_end:
-            body["CreatedAtEnd"] = created_at_end
+            body["createdAtEnd"] = created_at_end
         if updated_at_start:
-            body["UpdatedAtStart"] = updated_at_start
+            body["updatedAtStart"] = updated_at_start
         if updated_at_end:
-            body["UpdatedAtEnd"] = updated_at_end
+            body["updatedAtEnd"] = updated_at_end
 
         return self._request("POST", "/alerts", body=body).json()
 
@@ -1000,7 +1030,10 @@ class Client:
                     created_at_start: Optional[str] = None,
                     created_at_end: Optional[str] = None,
                     updated_at_start: Optional[str] = None,
-                    updated_at_end: Optional[str] = None) -> Iterator[Dict]:
+                    updated_at_end: Optional[str] = None,
+                    search: Optional[str] = None,
+                    order: Optional[str] = None,
+                    sort: Optional[str] = None) -> Iterator[Dict]:
         """
         Iterates over the alerts of an organization by loading them, transparently paginating on the API
         <https://api.zanshin.tenchisecurity.com/#operation/listAllAlert>
@@ -1015,19 +1048,23 @@ class Client:
         :param created_at_end: Search alerts by creation date - less or equals than
         :param updated_at_start: Search alerts by update date - greater or equals than
         :param updated_at_end: Search alerts by update date - less or equals than
+        :param search: Search string to find in alerts
+        :param order: Sort order to user "asc" or "desc"
+        :param sort: Sort by field - one of {"scanTargetId", "resource", "rule", "severity", "state", "createdAt", "updatedAt"}
         :return: an iterator over the JSON decoded alerts
         """
         page = self._get_alerts_page(organization_id, scan_target_ids, rule, states, severities, page=1,
                                      page_size=page_size, language=language, created_at_start=created_at_start,
                                      created_at_end=created_at_end, updated_at_start=updated_at_start,
-                                     updated_at_end=updated_at_end)
+                                     updated_at_end=updated_at_end, search=search, order=order, sort=sort)
         yield from page.get("data", [])
         for page_number in range(2, int(ceil(page.get("total", 0) / float(page_size))) + 1):
             page = self._get_alerts_page(organization_id, scan_target_ids, rule, states, severities,
                                          page=page_number, page_size=page_size, language=language,
                                          created_at_start=created_at_start,
                                          created_at_end=created_at_end, updated_at_start=updated_at_start,
-                                         updated_at_end=updated_at_end)
+                                         updated_at_end=updated_at_end,
+                                         search=search, order=order, sort=sort)
             yield from page.get("data", [])
 
     def _get_following_alerts_page(self, organization_id: Union[UUID, str],
@@ -1646,6 +1683,8 @@ class Client:
 
         self.check_organization_scan_target(
             organization_id=organization_id, scan_target_id=new_scan_target_id)
+        self.start_organization_scan_target_scan(
+            organization_id=organization_id, scan_target_id=new_scan_target_id, force=True)
         return self.get_organization_scan_target(organization_id=organization_id, scan_target_id=new_scan_target_id)
 
     def _deploy_cloudformation_zanshin_service_role(self, boto3_session: object, region: str, new_scan_target_id: str,
