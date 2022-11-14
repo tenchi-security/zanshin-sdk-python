@@ -1614,7 +1614,7 @@ class Client:
     # Onboard Scan Targets
     ###################################################
 
-    def onboard_scan_target(self, region: str, organization_id: Union[UUID, str], kind: ScanTargetKind, name: str,
+    def onboard_scan_target(self, region: str, organization_id: Union[UUID, str], kind: Union[ScanTargetKind, str], name: str,
                             credential: Union[ScanTargetAWS, ScanTargetAZURE, ScanTargetGCP, ScanTargetHUAWEI,
                                               ScanTargetDOMAIN], boto3_session: any = None,
                             boto3_profile: str = "default",
@@ -1639,7 +1639,12 @@ class Client:
         :return: JSON object containing newly created scan target .
         """
 
+        if isinstance(kind, str):
+            kind = ScanTargetKind(kind.strip().upper())
+        else:
+            validate_class(kind, ScanTargetKind)
         self._check_scantarget_is_aws(kind)
+
         boto3 = self._check_boto3_installation()
         if not boto3_session:
             boto3_session = self._get_session_from_boto3_profile(boto3_profile=boto3_profile, boto3=boto3)
