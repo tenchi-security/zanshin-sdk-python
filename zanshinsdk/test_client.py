@@ -2323,13 +2323,13 @@ class TestClient(unittest.TestCase):
         region = "us-east-1"
 
         import boto3
-        boto3_session = boto3.Session(
-            aws_access_key_id='EXAMPLE_NON_EXISTING_KEY',
-            aws_secret_access_key='&x@mP|e$3cReT',
-            aws_session_token='session_token'
-        )
 
         try:
+            boto3_session = boto3.Session(
+                aws_access_key_id='EXAMPLE_NON_EXISTING_KEY',
+                aws_secret_access_key='&x@mP|e$3cReT',
+                aws_session_token='session_token'
+            )
             self.sdk.onboard_scan_target(region=region, organization_id=organization_id, kind=kind,
                                          name=name, credential=credential, boto3_session=boto3_session)
         except Exception as e:
