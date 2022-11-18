@@ -15,7 +15,7 @@ setup(
     version='__PACKAGE_VERSION__',
     url='https://github.com/tenchi-security/zanshin-sdk-python',
     license='Apache Software License',
-    install_requires=['httpx==0.23.0'],
+    install_requires=['httpx==0.23.1'],
     tests_require=['moto[sts,cloudformation,s3]==4.0.9'],
     packages=['zanshinsdk'],
     extras_require=extras,
