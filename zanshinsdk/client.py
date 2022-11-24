@@ -141,7 +141,8 @@ class Languages(str, Enum):
 
 class Client:
     def __init__(self, profile: str = "default", api_key: Optional[str] = None, api_url: Optional[str] = None,
-                 user_agent: Optional[str] = None, proxy_url: Optional[str] = None):
+                 user_agent: Optional[str] = None, proxy_url: Optional[str] = None,
+                 verify: httpx._types.VerifyTypes = True):
         """
         Initialize a new connection to the Zanshin API
         :param profile: which configuration file section to use for settings, or None to ignore configuration file
@@ -149,8 +150,9 @@ class Client:
         :param api_url: optional override of the base URL of the Zanshin API to use
         :param user_agent: optional addition of the user agent to use in requests performed
         :param proxy_url: optional URL indicating which proxy server to use, or None for direct connections to the API
+        :verify: optional parameter to control how SSL connections are verified as per the parameter of the same name in the constructor of :httpx:Client
         """
-        self._client = httpx.Client()
+        self._client = None
         self._logger: logging.Logger = logging.getLogger("zanshinsdk")
 
         (api_key, api_url, user_agent, proxy_url) = self._get_config_from_env_if_not_exists(
@@ -212,6 +214,9 @@ class Client:
         else:
             self._user_agent = f"Zanshin Python SDK v{sdk_version}"
 
+        # set verify
+        self._verify = verify
+
         self._update_client()
 
     def _get_config_from_env_if_not_exists(self, api_key: str, api_url: str, user_agent: str, proxy_url: str):
@@ -245,11 +250,12 @@ class Client:
         is changed (API key, proxy URL or user-agent).
         """
         try:
-            self._client.close()
+            if self._client:
+                self._client.close()
         except AttributeError:
             pass
         finally:
-            self._client = httpx.Client(proxies=self._proxy_url, timeout=60,
+            self._client = httpx.Client(proxies=self._proxy_url, timeout=60, verify=self._verify,
                                         headers={"Authorization": f"Bearer {self._api_key}",
                                                  "Accept-Encoding": "gzip, deflate",
                                                  "User-Agent": self.user_agent,
@@ -875,7 +881,7 @@ class Client:
         """
 
         params = {
-            "force": "true" if force else "false" # Http params are always strings
+            "force": "true" if force else "false"  # Http params are always strings
         }
         return self._request("POST",
                              f"/organizations/{validate_uuid(organization_id)}/scantargets/"
@@ -1614,7 +1620,8 @@ class Client:
     # Onboard Scan Targets
     ###################################################
 
-    def onboard_scan_target(self, region: str, organization_id: Union[UUID, str], kind: Union[ScanTargetKind, str], name: str,
+    def onboard_scan_target(self, region: str, organization_id: Union[UUID, str], kind: Union[ScanTargetKind, str],
+                            name: str,
                             credential: Union[ScanTargetAWS, ScanTargetAZURE, ScanTargetGCP, ScanTargetHUAWEI,
                                               ScanTargetDOMAIN], boto3_session: any = None,
                             boto3_profile: str = "default",
