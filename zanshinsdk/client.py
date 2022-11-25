@@ -960,8 +960,8 @@ class Client:
                          updated_at_start: Optional[str] = None,
                          updated_at_end: Optional[str] = None,
                          search: Optional[str] = None,
-                         order: Optional[str] = None,
-                         sort: Optional[str] = None) -> Dict:
+                         order: Optional[AlertsOrderOpts] = None,
+                         sort: Optional[SortOpts] = None) -> Dict:
         """
         Internal method to retrieve a single page of alerts from an organization
         :param organization_id: the ID of the organization
@@ -976,6 +976,8 @@ class Client:
         :param created_at_end: Search alerts by creation date - less or equals than
         :param updated_at_start: Search alerts by update date - greater or equals than
         :param updated_at_end: Search alerts by update date - less or equals than
+        :param order: Sort order to use (ascending or descending)
+        :param sort: Which field to sort on
         :return: an iterator over the JSON decoded alerts
         :return:
         """
@@ -987,13 +989,14 @@ class Client:
             "pageSize": page_size
         }
         if search:
+            validate_class(search, str)
             body["search"] = search
         if order:
             validate_class(order, AlertsOrderOpts)
-            body["order"] = order
+            body["order"] = order.value
         if sort:
             validate_class(sort, SortOpts)
-            body["sort"] = sort
+            body["sort"] = sort.value
         if scan_target_ids:
             if isinstance(scan_target_ids, str):
                 scan_target_ids = [scan_target_ids]
@@ -1013,7 +1016,7 @@ class Client:
             body["severities"] = [validate_class(x, AlertSeverity).value for x in severities]
         if language:
             validate_class(language, Languages)
-            body["lang"] = language
+            body["lang"] = language.value
         # TODO: Validate these dates.
         if created_at_start:
             body["createdAtStart"] = created_at_start
@@ -1038,8 +1041,8 @@ class Client:
                     updated_at_start: Optional[str] = None,
                     updated_at_end: Optional[str] = None,
                     search: Optional[str] = None,
-                    order: Optional[str] = None,
-                    sort: Optional[str] = None) -> Iterator[Dict]:
+                    order: Optional[AlertsOrderOpts] = None,
+                    sort: Optional[SortOpts] = None) -> Iterator[Dict]:
         """
         Iterates over the alerts of an organization by loading them, transparently paginating on the API
         <https://api.zanshin.tenchisecurity.com/#operation/listAllAlert>
@@ -1055,8 +1058,8 @@ class Client:
         :param updated_at_start: Search alerts by update date - greater or equals than
         :param updated_at_end: Search alerts by update date - less or equals than
         :param search: Search string to find in alerts
-        :param order: Sort order to user "asc" or "desc"
-        :param sort: Sort by field - one of {"scanTargetId", "resource", "rule", "severity", "state", "createdAt", "updatedAt"}
+        :param order: Sort order to use (ascending or descending)
+        :param sort: Which field to sort on
         :return: an iterator over the JSON decoded alerts
         """
         page = self._get_alerts_page(organization_id, scan_target_ids, rule, states, severities, page=1,
@@ -1083,7 +1086,10 @@ class Client:
                                    created_at_start: Optional[str] = None,
                                    created_at_end: Optional[str] = None,
                                    updated_at_start: Optional[str] = None,
-                                   updated_at_end: Optional[str] = None) -> Dict:
+                                   updated_at_end: Optional[str] = None,
+                                   search: Optional[str] = None,
+                                   order: Optional[AlertsOrderOpts] = None,
+                                   sort: Optional[SortOpts] = None) -> Dict:
         """
         Internal method to retrieve a single page of alerts from organizations being followed
         :param organization_id: the ID of the organization
@@ -1098,6 +1104,9 @@ class Client:
         :param created_at_end: Search alerts by creation date - less or equals than
         :param updated_at_start: Search alerts by update date - greater or equals than
         :param updated_at_end: Search alerts by update date - less or equals than
+        :param search: Search string to find in alerts
+        :param order: Sort order to use (ascending or descending)
+        :param sort: Which field to sort on
         :return: the decoded JSON response from the API
         """
         validate_int(page, min_value=1, required=True)
@@ -1108,6 +1117,15 @@ class Client:
             "pageSize": page_size
         }
 
+        if search:
+            validate_class(search, str)
+            body["search"] = search
+        if order:
+            validate_class(order, AlertsOrderOpts)
+            body["order"] = order.value
+        if sort:
+            validate_class(sort, SortOpts)
+            body["sort"] = sort.value
         if following_ids:
             if isinstance(following_ids, str):
                 following_ids = [following_ids]
@@ -1127,7 +1145,7 @@ class Client:
             body["severities"] = [validate_class(x, AlertSeverity).value for x in severities]
         if language:
             validate_class(language, Languages)
-            body["lang"] = language
+            body["lang"] = language.value
         if created_at_start:
             body["CreatedAtStart"] = created_at_start
         if created_at_end:
@@ -1148,7 +1166,10 @@ class Client:
                               created_at_start: Optional[str] = None,
                               created_at_end: Optional[str] = None,
                               updated_at_start: Optional[str] = None,
-                              updated_at_end: Optional[str] = None) -> Iterator[Dict]:
+                              updated_at_end: Optional[str] = None,
+                              search: Optional[str] = None,
+                              order: Optional[AlertsOrderOpts] = None,
+                              sort: Optional[SortOpts] = None) -> Iterator[Dict]:
         """
         Iterates over the following alerts froms organizations being followed by transparently paginating on the API.
         <https://api.zanshin.tenchisecurity.com/#operation/listFollowingAlerts>
@@ -1164,22 +1185,24 @@ class Client:
         :param created_at_end: Search alerts by creation date - less or equals than
         :param updated_at_start: Search alerts by update date - greater or equals than
         :param updated_at_end: Search alerts by update date - less or equals than
+        :param search: Search string to find in alerts
+        :param order: Sort order to use (ascending or descending)
+        :param sort: Which field to sort on
         :return: an iterator over the JSON decoded alerts
         """
 
         page = self._get_following_alerts_page(organization_id, following_ids, rule, states, severities, page=1,
-                                               page_size=page_size,
-                                               language=language, created_at_start=created_at_start,
-                                               created_at_end=created_at_end,
-                                               updated_at_start=updated_at_start, updated_at_end=updated_at_end)
+                                               page_size=page_size, language=language,
+                                               created_at_start=created_at_start, created_at_end=created_at_end,
+                                               updated_at_start=updated_at_start, updated_at_end=updated_at_end,
+                                               search=search, order=order, sort=sort)
         yield from page.get("data", [])
         for page_number in range(2, int(ceil(page.get("total", 0) / float(page_size))) + 1):
             page = self._get_following_alerts_page(organization_id, following_ids, rule, states, severities,
-                                                   page=page_number,
-                                                   page_size=page_size, language=language,
-                                                   created_at_start=created_at_start,
-                                                   created_at_end=created_at_end, updated_at_start=updated_at_start,
-                                                   updated_at_end=updated_at_end)
+                                                   page=page_number, page_size=page_size, language=language,
+                                                   created_at_start=created_at_start, created_at_end=created_at_end,
+                                                   updated_at_start=updated_at_start, updated_at_end=updated_at_end,
+                                                   search=search, order=order, sort=sort)
             yield from page.get("data", [])
 
     def _get_alerts_history_page(self, organization_id: Union[UUID, str],
@@ -1211,7 +1234,7 @@ class Client:
             body["scanTargetIds"] = [validate_uuid(x) for x in scan_target_ids]
         if language:
             validate_class(language, Languages)
-            body["lang"] = language
+            body["lang"] = language.value
         if cursor:
             body["cursor"] = cursor
 
@@ -1228,7 +1251,7 @@ class Client:
         :param organization_id: the ID of the organization
         :param scan_target_ids: optional list of scan target IDs to list alerts from, defaults to all
         :param page_size: the number of alerts to load from the API at a time
-        :param language: language the rule will be returned. Ignored when historical is enabled
+        :param language: language the rule will be returned.
         :param cursor: Alert Cursor of the last alert consumed, when this value is passed, subsequent alert histories
                will be returned.
         :return: an iterator over the JSON decoded alerts
@@ -1249,7 +1272,7 @@ class Client:
     def _get_alerts_following_history_page(self, organization_id: Union[UUID, str],
                                            following_ids: Optional[Iterable[Union[UUID, str]]] = None,
                                            page_size: int = 100,
-                                           language: Optional[Iterable[Languages]] = None,
+                                           language: Optional[Languages] = None,
                                            cursor: Optional[str] = None) -> Dict:
         """
         Internal method to retrieve a single page of alerts history from an organization
@@ -1276,7 +1299,7 @@ class Client:
             body["followingIds"] = [validate_uuid(x) for x in following_ids]
         if language:
             validate_class(language, Languages)
-            body["lang"] = language
+            body["lang"] = language.value
         if cursor:
             body["cursor"] = cursor
 
@@ -1314,8 +1337,13 @@ class Client:
     def _get_grouped_alerts_page(self, organization_id: Union[UUID, str],
                                  scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
                                  states: Optional[Iterable[AlertState]] = None,
-                                 severities: Optional[Iterable[AlertSeverity]] = None, page: int = 1,
-                                 page_size: int = 100) -> Dict:
+                                 severities: Optional[Iterable[AlertSeverity]] = None,
+                                 page: int = 1,
+                                 page_size: int = 100,
+                                 language: Optional[Languages] = None,
+                                 search: Optional[str] = None,
+                                 order: Optional[AlertsOrderOpts] = None,
+                                 sort: Optional[SortOpts] = None) -> Dict:
         """
         Internal method to retrieve a single page of alerts from an organization
         :param organization_id: the ID of the organization
@@ -1324,6 +1352,11 @@ class Client:
         :param severities: optional list of severities to filter returned alerts, defaults to all
         :param page: page number, starting from 1
         :param page_size: page size of alerts
+        :param language: language to use for the returned rules
+        :param search: Search string to find in alerts
+        :param order: Sort order to use (ascending or descending)
+        :param sort: Which field to sort on
+
         :return:
         """
         validate_int(page, min_value=1, required=True)
@@ -1333,6 +1366,18 @@ class Client:
             "page": page,
             "pageSize": page_size
         }
+        if language:
+            validate_class(language, Languages)
+            body['lang'] = language.value
+        if search:
+            validate_class(search, str)
+            body["search"] = search
+        if order:
+            validate_class(order, AlertsOrderOpts)
+            body["order"] = order.value
+        if sort:
+            validate_class(sort, SortOpts)
+            body["sort"] = sort.value
         if scan_target_ids:
             if isinstance(scan_target_ids, str):
                 scan_target_ids = [scan_target_ids]
@@ -1353,8 +1398,12 @@ class Client:
     def iter_grouped_alerts(self, organization_id: Union[UUID, str],
                             scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
                             states: Optional[Iterable[AlertState]] = None,
-                            severities: Optional[Iterable[AlertSeverity]] = None, page_size: int = 100) -> \
-            Iterator[Dict]:
+                            severities: Optional[Iterable[AlertSeverity]] = None,
+                            page_size: int = 100,
+                            language: Optional[Languages] = None,
+                            search: Optional[str] = None,
+                            order: Optional[AlertsOrderOpts] = None,
+                            sort: Optional[SortOpts] = None) -> Iterator[Dict]:
         """
         Iterates over the grouped alerts of an organization by loading them, transparently paginating on the API.
         <https://api.zanshin.tenchisecurity.com/#operation/listAllAlertRules>
@@ -1363,21 +1412,33 @@ class Client:
         :param states: optional list of states to filter returned alerts, defaults to all
         :param severities: optional list of severities to filter returned alerts, defaults to all
         :param page_size: the number of alerts to load from the API at a time
+        :param language: language to use for the returned rules
+        :param search: Search string to find in alerts
+        :param order: Sort order to use (ascending or descending)
+        :param sort: Which field to sort on
+
         :return: an iterator over the JSON decoded alerts
         """
         page = self._get_grouped_alerts_page(organization_id, scan_target_ids, states, severities, page=1,
-                                             page_size=page_size)
+                                             page_size=page_size, language=language, search=search,
+                                             order=order, sort=sort)
         yield from page.get("data", [])
         for page_number in range(2, int(ceil(page.get("total", 0) / float(page_size))) + 1):
             page = self._get_grouped_alerts_page(organization_id, scan_target_ids, states, severities,
-                                                 page=page_number, page_size=page_size)
+                                                 page=page_number, page_size=page_size, language=language,
+                                                 search=search, order=order, sort=sort)
             yield from page.get("data", [])
 
     def _get_grouped_following_alerts_page(self, organization_id: Union[UUID, str],
                                            following_ids: Optional[Iterable[Union[UUID, str]]] = None,
                                            states: Optional[Iterable[AlertState]] = None,
-                                           severities: Optional[Iterable[AlertSeverity]] = None, page: int = 1,
-                                           page_size: int = 100) -> Dict:
+                                           severities: Optional[Iterable[AlertSeverity]] = None,
+                                           page: int = 1,
+                                           page_size: int = 100,
+                                           language: Optional[Languages] = None,
+                                           search: Optional[str] = None,
+                                           order: Optional[AlertsOrderOpts] = None,
+                                           sort: Optional[SortOpts] = None) -> Dict:
         """
         Internal method to retrieve a single page of alerts from organizations being followed
         :param organization_id: the ID of the organization
@@ -1386,6 +1447,10 @@ class Client:
         :param severities: optional list of severities to filter returned alerts, defaults to all
         :param page: page number, starting from 1
         :param page_size: page size of alerts
+        :param language: language to use for the returned rules
+        :param search: Search string to find in alerts
+        :param order: Sort order to use (ascending or descending)
+        :param sort: Which field to sort on
         :return: the decoded JSON response from the API
         """
         validate_int(page, min_value=1, required=True)
@@ -1395,6 +1460,18 @@ class Client:
             "page": page,
             "pageSize": page_size
         }
+        if language:
+            validate_class(language, Languages)
+            body['lang'] = language.value
+        if search:
+            validate_class(search, str)
+            body["search"] = search
+        if order:
+            validate_class(order, AlertsOrderOpts)
+            body["order"] = order.value
+        if sort:
+            validate_class(sort, SortOpts)
+            body["sort"] = sort.value
         if following_ids:
             if isinstance(following_ids, str):
                 following_ids = [following_ids]
@@ -1416,8 +1493,12 @@ class Client:
     def iter_grouped_following_alerts(self, organization_id: Union[UUID, str],
                                       following_ids: Optional[Iterable[Union[UUID, str]]] = None,
                                       states: Optional[Iterable[AlertState]] = None,
-                                      severities: Optional[Iterable[AlertSeverity]] = None, page_size: int = 100) -> \
-            Iterator[Dict]:
+                                      severities: Optional[Iterable[AlertSeverity]] = None,
+                                      page_size: int = 100,
+                                      language: Optional[Languages] = None,
+                                      search: Optional[str] = None,
+                                      order: Optional[AlertsOrderOpts] = None,
+                                      sort: Optional[SortOpts] = None) -> Iterator[Dict]:
         """
         Iterates over the grouped following alerts froms organizations being followed by transparently paginating on the
         API.
@@ -1428,15 +1509,21 @@ class Client:
         :param states: optional list of states to filter returned alerts, defaults to all
         :param severities: optional list of severities to filter returned alerts, defaults to all
         :param page_size: the number of alerts to load from the API at a time
+        :param language: language to use for the returned rules
+        :param search: Search string to find in alerts
+        :param order: Sort order to use (ascending or descending)
+        :param sort: Which field to sort on
         :return: an iterator over the JSON decoded alerts
         """
 
-        page = self._get_grouped_following_alerts_page(organization_id, following_ids, states,
-                                                       severities, page=1, page_size=page_size)
+        page = self._get_grouped_following_alerts_page(organization_id, following_ids, states, severities, page=1,
+                                                       page_size=page_size, language=language, search=search,
+                                                       order=order, sort=sort)
         yield from page.get("data", [])
         for page_number in range(2, int(ceil(page.get("total", 0) / float(page_size))) + 1):
             page = self._get_grouped_following_alerts_page(organization_id, following_ids, states,
-                                                           severities, page=page_number, page_size=page_size)
+                                                           severities, page=page_number, page_size=page_size,
+                                                           language=language, search=search, order=order, sort=sort)
             yield from page.get("data", [])
 
     def get_alert(self, alert_id: Union[UUID, str]) -> Dict:
@@ -1522,13 +1609,17 @@ class Client:
     ###################################################
 
     def get_alert_summaries(self, organization_id: Union[UUID, str],
-                            scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None) -> Dict:
+                            scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
+                            search: Optional[str] = None,
+                            language: Optional[Languages] = None) -> Dict:
         """
         Gets a summary of the current state of alerts for an organization, both in total and broken down by scan
         target.
         <https://api.zanshin.tenchisecurity.com/#operation/alertSummary>
         :param organization_id: the ID of the organization whose alert summaries are desired
         :param scan_target_ids: optional list of scan target IDs to summarize alerts from, defaults to all
+        :param language: language to use for the returned rules
+        :param search: Search string to find in alerts
         :return: JSON object containing the alert summaries
         """
 
@@ -1539,16 +1630,26 @@ class Client:
                 scan_target_ids = [scan_target_ids]
             validate_class(scan_target_ids, Iterable)
             body["scanTargetIds"] = [validate_uuid(x) for x in scan_target_ids]
+        if search:
+            validate_class(search, str)
+            body['search'] = search
+        if language:
+            validate_class(language, Languages)
+            body['lang'] = language.value
 
         return self._request("POST", "/alerts/summaries", body=body).json()
 
     def get_following_alert_summaries(self, organization_id: Union[UUID, str],
-                                      following_ids: Optional[Iterable[Union[UUID, str]]] = None) -> Dict:
+                                      following_ids: Optional[Iterable[Union[UUID, str]]] = None,
+                                      search: Optional[str] = None,
+                                      language: Optional[Languages] = None) -> Dict:
         """
         Gets a summary of the current state of alerts for followed organizations.
         <https://api.zanshin.tenchisecurity.com/#operation/alertFollowingSummary>
         :param organization_id:
         :param following_ids: list of IDs of organizations being followed to summarize alerts from
+        :param language: language to use for the returned rules
+        :param search: Search string to find in alerts
         :return: JSON object containing the alert summaries
         """
 
@@ -1559,6 +1660,12 @@ class Client:
                 following_ids = [following_ids]
             validate_class(following_ids, Iterable)
             body["followingIds"] = [validate_uuid(x) for x in following_ids]
+        if search:
+            validate_class(search, str)
+            body['search'] = search
+        if language:
+            validate_class(language, Languages)
+            body['lang'] = language.value
 
         return self._request("POST", "/alerts/summaries/following", body=body).json()
 
