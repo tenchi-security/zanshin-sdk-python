@@ -1404,9 +1404,11 @@ class TestClient(unittest.TestCase):
 
         self.sdk._get_following_alerts_page.assert_has_calls([
             call(organization_id, None, None, None, None, page=page, page_size=page_size, language=None,
-                 created_at_start=None, created_at_end=None, updated_at_start=None, updated_at_end=None),
+                 created_at_start=None, created_at_end=None, updated_at_start=None, updated_at_end=None,
+                 search=None, order=None, sort=None),
             call(organization_id, None, None, None, None, page=page + 1, page_size=page_size, language=None,
-                 created_at_start=None, created_at_end=None, updated_at_start=None, updated_at_end=None)
+                 created_at_start=None, created_at_end=None, updated_at_start=None, updated_at_end=None,
+                 search=None, order=None, sort=None)
         ])
 
     def test_get_alerts_history_page(self):
@@ -1713,8 +1715,10 @@ class TestClient(unittest.TestCase):
         next(iterator)
 
         self.sdk._get_grouped_alerts_page.assert_has_calls([
-            call(organization_id, None, None, None, page=page, page_size=page_size),
-            call(organization_id, None, None, None, page=page + 1, page_size=page_size),
+            call(organization_id, None, None, None, page=page, page_size=page_size, language=None, search=None,
+                 order=None, sort=None),
+            call(organization_id, None, None, None, page=page + 1, page_size=page_size, language=None, search=None,
+                 order=None, sort=None),
         ])
 
     def test_get_grouped_following_alerts_page(self):
@@ -1873,8 +1877,10 @@ class TestClient(unittest.TestCase):
         next(iterator)
 
         self.sdk._get_grouped_following_alerts_page.assert_has_calls([
-            call(organization_id, None, None, None, page=page, page_size=page_size),
-            call(organization_id, None, None, None, page=page + 1, page_size=page_size),
+            call(organization_id, None, None, None, page=page, page_size=page_size, language=None, search=None,
+                 order=None, sort=None),
+            call(organization_id, None, None, None, page=page + 1, page_size=page_size, language=None, search=None,
+                 order=None, sort=None),
         ])
 
     def test_get_alert(self):
