@@ -953,6 +953,19 @@ class Client:
                              f"{validate_uuid(scan_target_id)}/scans/{scan_id}").json()
 
     ###################################################
+    # Organization Scan Target
+    ###################################################
+
+    def iter_organization_scan_target_groups(self, organization_id: Union[UUID, str]) -> Iterator[Dict]:
+        """
+        Iterates over the scan targets groups.
+        <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationScanTargetGroups>
+        :param organization_id: the ID of the organization
+        : return: an iterator over the scan target groups
+        """
+        yield from self._request("GET", f"/organizations/{validate_uuid(organization_id)}/scantargetgroups").json()
+        
+    ###################################################
     # Alerts
     ###################################################
 
