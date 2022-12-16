@@ -1051,6 +1051,27 @@ class TestClient(unittest.TestCase):
             "GET", f"/organizations/{organization_id}/scantargets/{scan_target_id}/scans/{scan_id}"
         )
 
+
+
+    def test_get_organization_scan_target_group(self):
+        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
+        scan_target_group_id = "322f4225-43e9-4922-b6b8-8b0620bdb110"
+
+        self.sdk.get_organization_scan_target_group(organization_id, scan_target_group_id)
+
+        self.sdk._request.assert_called_once_with(
+            "GET", f"/organizations/{organization_id}/scantargetgroups/{scan_target_group_id}")
+
+        self.assertRaises(TypeError, zanshinsdk.get_organization_scan_target_group, None, scan_target_group_id)
+        self.assertRaises(TypeError, zanshinsdk.get_organization_scan_target_group, 1, scan_target_group_id)
+        self.assertRaises(ValueError, zanshinsdk.get_organization_scan_target_group, "", scan_target_group_id)
+        self.assertRaises(ValueError, zanshinsdk.get_organization_scan_target_group, "foo", scan_target_group_id)
+
+        self.assertRaises(TypeError, zanshinsdk.get_organization_scan_target_group, organization_id, None)
+        self.assertRaises(TypeError, zanshinsdk.get_organization_scan_target_group, organization_id, 1)
+        self.assertRaises(ValueError, zanshinsdk.get_organization_scan_target_group, organization_id, "")
+        self.assertRaises(ValueError, zanshinsdk.get_organization_scan_target_group, organization_id, "foo")
+        
     ###################################################
     # Alerts
     ###################################################
