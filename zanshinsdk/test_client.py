@@ -2197,9 +2197,11 @@ class TestClient(unittest.TestCase):
     def test_validate_uuid_input(self):
         with self.assertRaises(TypeError):
             zanshinsdk.validate_uuid(1)
+        with self.assertRaises(TypeError):
             zanshinsdk.validate_uuid(None)
         with self.assertRaises(ValueError):
             zanshinsdk.validate_uuid("foo")
+        with self.assertRaises(ValueError):
             zanshinsdk.validate_uuid("")
 
     def test_onboard_scan_target_unsupported_scan_target_kind(self):
