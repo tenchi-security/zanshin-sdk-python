@@ -2193,6 +2193,14 @@ class TestClient(unittest.TestCase):
             zanshinsdk.client.validate_uuid(_uuid)
         except Exception as e:
             self.assertEqual(str(e), f"{repr(_uuid)} is not a valid UUID")
+            
+    def test_validate_uuid_input(self):
+        with self.assertRaises(TypeError):
+            zanshinsdk.validate_uuid(1)
+            zanshinsdk.validate_uuid(None)
+        with self.assertRaises(ValueError):
+            zanshinsdk.validate_uuid("foo")
+            zanshinsdk.validate_uuid("")
 
     def test_onboard_scan_target_unsupported_scan_target_kind(self):
         """
