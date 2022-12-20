@@ -1926,4 +1926,6 @@ def validate_uuid(uuid: Union[UUID, str]) -> str:
         elif isinstance(uuid, UUID):
             return str(uuid)
     except:
+        raise ValueError(f"{repr(uuid)} is not a valid UUID")
+    else:
         raise TypeError(f"{repr(uuid)} is not a valid UUID")
