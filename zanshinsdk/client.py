@@ -454,6 +454,15 @@ class Client:
         """
         return self._request("GET", f"/organizations/{validate_uuid(organization_id)}").json()
 
+    def delete_organization(self, organization_id: Union[UUID, str]) -> bool:
+        """
+        Deletes an organization given its ID.
+        <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationById>
+        :param organization_id: the ID of the organization
+        :return: a boolean if success
+        """
+        return self._request("DELETE", f"/organizations/{validate_uuid(organization_id)}").json()
+
     def update_organization(self, organization_id: Union[UUID, str], name: Optional[str], picture: Optional[str],
                             email: Optional[str]) -> Dict:
         """
@@ -1929,10 +1938,10 @@ def validate_uuid(uuid: Union[UUID, str]) -> str:
     try:
         if isinstance(uuid, str):
             return str(UUID(uuid))
-
+            
         if isinstance(uuid, UUID):
             return str(uuid)
-
+            
         raise TypeError
     except (ValueError, TypeError) as ex:
         ex.args = (f"{repr(uuid)} is not a valid UUID", )

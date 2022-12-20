@@ -518,6 +518,16 @@ class TestClient(unittest.TestCase):
             "GET", f"/organizations/{organization_id}"
         )
 
+    def test_delete_organization(self):
+        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
+
+        self.sdk.delete_organization(organization_id)
+
+        self.sdk._request.assert_called_once_with(
+            "DELETE", f"/organizations/{organization_id}"
+        )
+
+
     def test_update_organization(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         name = "Tabajara"
@@ -2221,6 +2231,16 @@ class TestClient(unittest.TestCase):
             zanshinsdk.client.validate_uuid(_uuid)
         except Exception as e:
             self.assertEqual(str(e), f"{repr(_uuid)} is not a valid UUID")
+            
+    def test_validate_uuid_input(self):
+        with self.assertRaises(TypeError):
+            zanshinsdk.validate_uuid(1)
+        with self.assertRaises(TypeError):
+            zanshinsdk.validate_uuid(None)
+        with self.assertRaises(ValueError):
+            zanshinsdk.validate_uuid("foo")
+        with self.assertRaises(ValueError):
+            zanshinsdk.validate_uuid("")
 
     def test_onboard_scan_target_unsupported_scan_target_kind(self):
         """
