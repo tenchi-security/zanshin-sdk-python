@@ -1061,16 +1061,23 @@ class TestClient(unittest.TestCase):
 
         self.sdk._request.assert_called_once_with(
             "GET", f"/organizations/{organization_id}/scantargetgroups/{scan_target_group_id}")
-
-        self.assertRaises(TypeError, zanshinsdk.get_organization_scan_target_group, None, scan_target_group_id)
-        self.assertRaises(TypeError, zanshinsdk.get_organization_scan_target_group, 1, scan_target_group_id)
-        self.assertRaises(ValueError, zanshinsdk.get_organization_scan_target_group, "", scan_target_group_id)
-        self.assertRaises(ValueError, zanshinsdk.get_organization_scan_target_group, "foo", scan_target_group_id)
-
-        self.assertRaises(TypeError, zanshinsdk.get_organization_scan_target_group, organization_id, None)
-        self.assertRaises(TypeError, zanshinsdk.get_organization_scan_target_group, organization_id, 1)
-        self.assertRaises(ValueError, zanshinsdk.get_organization_scan_target_group, organization_id, "")
-        self.assertRaises(ValueError, zanshinsdk.get_organization_scan_target_group, organization_id, "foo")
+        with self.assertRaises(TypeError):
+            self.sdk.get_organization_scan_target_group(None, scan_target_group_id)
+        with self.assertRaises(TypeError):
+            self.sdk.get_organization_scan_target_group(1, scan_target_group_id)
+        with self.assertRaises(TypeError):
+            self.sdk.get_organization_scan_target_group(organization_id, None)
+        with self.assertRaises(TypeError):
+            self.sdk.get_organization_scan_target_group(organization_id, 1)
+        with self.assertRaises(ValueError):
+            self.sdk.get_organization_scan_target_group(organization_id, "")
+        with self.assertRaises(ValueError):
+            self.sdk.get_organization_scan_target_group(organization_id, "foo")
+        with self.assertRaises(ValueError):
+            self.sdk.get_organization_scan_target_group( "", scan_target_group_id)
+        with self.assertRaises(ValueError):
+            self.sdk.get_organization_scan_target_group("foo", scan_target_group_id)
+ 
         
     ###################################################
     # Alerts

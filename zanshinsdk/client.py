@@ -1929,7 +1929,11 @@ def validate_uuid(uuid: Union[UUID, str]) -> str:
     try:
         if isinstance(uuid, str):
             return str(UUID(uuid))
-        elif isinstance(uuid, UUID):
+
+        if isinstance(uuid, UUID):
             return str(uuid)
-    except:
-        raise TypeError(f"{repr(uuid)} is not a valid UUID")
+
+        raise TypeError
+    except (ValueError, TypeError) as ex:
+        ex.args = (f"{repr(uuid)} is not a valid UUID", )
+        raise ex
