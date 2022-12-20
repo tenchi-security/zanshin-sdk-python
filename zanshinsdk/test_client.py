@@ -1079,13 +1079,13 @@ class TestClient(unittest.TestCase):
         )
         
         with self.assertRaises(TypeError):
-            zanshinsdk.Client.iter_organization_scan_target_groups(1)
+            next(self.sdk.iter_organization_scan_target_groups(1))
         with self.assertRaises(TypeError):
-            zanshinsdk.Client.iter_organization_scan_target_groups(None)
+            next(self.sdk.iter_organization_scan_target_groups(None))
         with self.assertRaises(ValueError):
-            zanshinsdk.Client.iter_organization_scan_target_groups("")
+            next(self.sdk.iter_organization_scan_target_groups(""))
         with self.assertRaises(ValueError):
-            zanshinsdk.Client.iter_organization_scan_target_groups("foo")
+            next(self.sdk.iter_organization_scan_target_groups("foo"))
 
     ###################################################
     # Alerts
