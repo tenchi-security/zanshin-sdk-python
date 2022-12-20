@@ -518,6 +518,16 @@ class TestClient(unittest.TestCase):
             "GET", f"/organizations/{organization_id}"
         )
 
+    def test_delete_organization(self):
+        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
+
+        self.sdk.delete_organization(organization_id)
+
+        self.sdk._request.assert_called_once_with(
+            "DELETE", f"/organizations/{organization_id}"
+        )
+
+
     def test_update_organization(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         name = "Tabajara"
