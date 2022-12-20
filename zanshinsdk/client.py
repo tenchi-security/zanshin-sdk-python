@@ -953,7 +953,7 @@ class Client:
                              f"{validate_uuid(scan_target_id)}/scans/{scan_id}").json()
 
     ###################################################
-    # Organization Scan Target
+    # Organization Scan Target Groups
     ###################################################
 
     def iter_organization_scan_target_groups(self, organization_id: Union[UUID, str]) -> Iterator[Dict]:
@@ -1936,9 +1936,11 @@ def validate_uuid(uuid: Union[UUID, str]) -> str:
     try:
         if isinstance(uuid, str):
             return str(UUID(uuid))
-        elif isinstance(uuid, UUID):
+
+        if isinstance(uuid, UUID):
             return str(uuid)
-    except:
-        raise ValueError(f"{repr(uuid)} is not a valid UUID")
-    else:
-        raise TypeError(f"{repr(uuid)} is not a valid UUID")
+
+        raise TypeError
+    except (ValueError, TypeError) as ex:
+        ex.args = (f"{repr(uuid)} is not a valid UUID", )
+        raise ex

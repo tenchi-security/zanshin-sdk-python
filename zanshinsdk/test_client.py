@@ -1077,10 +1077,15 @@ class TestClient(unittest.TestCase):
         self.sdk._request.assert_called_once_with(
             "GET", f"/organizations/{organization_id}/scantargetgroups"
         )
-        self.assertRaises(TypeError, zanshinsdk.iter_organization_scan_target_groups, 1)
-        self.assertRaises(TypeError, zanshinsdk.iter_organization_scan_target_groups, None)
-        self.assertRaises(ValueError, zanshinsdk.iter_organization_scan_target_groups, "foo")
-        self.assertRaises(ValueError, zanshinsdk.iter_organization_scan_target_groups, "")
+        
+        with self.assertRaises(TypeError):
+            zanshinsdk.Client.iter_organization_scan_target_groups(1)
+        with self.assertRaises(TypeError):
+            zanshinsdk.Client.iter_organization_scan_target_groups(None)
+        with self.assertRaises(ValueError):
+            zanshinsdk.Client.iter_organization_scan_target_groups("")
+        with self.assertRaises(ValueError):
+            zanshinsdk.Client.iter_organization_scan_target_groups("foo")
 
     ###################################################
     # Alerts
