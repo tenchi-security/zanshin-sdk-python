@@ -1062,6 +1062,31 @@ class TestClient(unittest.TestCase):
         )
 
 
+    ###################################################
+    # Organization Scan Target Groups
+    ###################################################
+
+    def test_iter_organization_scan_target_groups(self):
+        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
+
+        try:
+            next(self.sdk.iter_organization_scan_target_groups(organization_id))
+        except StopIteration:
+            pass
+
+        self.sdk._request.assert_called_once_with(
+            "GET", f"/organizations/{organization_id}/scantargetgroups"
+        )
+        
+        with self.assertRaises(TypeError):
+            next(self.sdk.iter_organization_scan_target_groups(1))
+        with self.assertRaises(TypeError):
+            next(self.sdk.iter_organization_scan_target_groups(None))
+        with self.assertRaises(ValueError):
+            next(self.sdk.iter_organization_scan_target_groups(""))
+        with self.assertRaises(ValueError):
+            next(self.sdk.iter_organization_scan_target_groups("foo"))
+
 
     def test_get_organization_scan_target_group(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
