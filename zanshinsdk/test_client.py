@@ -1088,6 +1088,7 @@ class TestClient(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.sdk.get_organization_scan_target_group("foo", scan_target_group_id)
 
+
     def test_iter_compartments_from_group(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         scan_target_group_id = "322f4225-43e9-4922-b6b8-8b0620bdb110"
@@ -1115,6 +1116,34 @@ class TestClient(unittest.TestCase):
         with self.assertRaises(ValueError):
             next(self.sdk.iter_compartments_from_group(organization_id,"foo"))
         
+
+ 
+    def test_delete_organization_scan_target_group(self):
+        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
+        scan_target_id_group = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
+
+        self.sdk.delete_organization_scan_target_group(organization_id, scan_target_id_group)
+
+        self.sdk._request.assert_called_once_with(
+            "DELETE", f"/organizations/{organization_id}/scantargetgroups/{scan_target_id_group}"
+        )    
+        with self.assertRaises(TypeError):
+            self.sdk.delete_organization_scan_target_group(None, scan_target_id_group)
+        with self.assertRaises(TypeError):
+            self.sdk.delete_organization_scan_target_group(1, scan_target_id_group)
+        with self.assertRaises(TypeError):
+            self.sdk.delete_organization_scan_target_group(organization_id, None)
+        with self.assertRaises(TypeError):
+            self.sdk.delete_organization_scan_target_group(organization_id, 1)
+        with self.assertRaises(ValueError):
+            self.sdk.delete_organization_scan_target_group(organization_id, "")
+        with self.assertRaises(ValueError):
+            self.sdk.delete_organization_scan_target_group(organization_id, "foo")
+        with self.assertRaises(ValueError):
+            self.sdk.delete_organization_scan_target_group( "", scan_target_id_group)
+        with self.assertRaises(ValueError):
+            self.sdk.delete_organization_scan_target_group("foo", scan_target_id_group)      
+
     ###################################################
     # Alerts
     ###################################################
