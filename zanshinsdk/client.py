@@ -969,7 +969,7 @@ class Client:
     def iter_scan_target_group_compartments(self, organization_id: Union[UUID, str],
                                             scan_target_group_id: Union[UUID, str]) -> Iterator[Dict]:
         """
-        Iterates over the scan targets of a group.
+        Iterates over the compartments of a scan target group.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationComapartmentsFromScanTargetGroup>
         :param organization_id: the ID of the organization
         :param scan_target_group_id: the ID of the scan target group
