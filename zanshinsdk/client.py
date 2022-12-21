@@ -966,7 +966,7 @@ class Client:
         return self._request("GET",
                              f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
                              f"{validate_uuid(scan_target_group_id)}").json()
-    def iter_compartments_from_group(self, organization_id: Union[UUID, str],
+    def iter_scan_target_group_compartments(self, organization_id: Union[UUID, str],
                                             scan_target_group_id: Union[UUID, str]) -> Iterator[Dict]:
         """
         Iterates over the scan targets of a group.
