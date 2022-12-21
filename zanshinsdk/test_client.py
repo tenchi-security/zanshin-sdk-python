@@ -1113,6 +1113,35 @@ class TestClient(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.sdk.get_organization_scan_target_group("foo", scan_target_group_id)
 
+
+    def test_iter_scan_target_group_compartments(self):
+        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
+        scan_target_group_id = "322f4225-43e9-4922-b6b8-8b0620bdb110"
+        try:
+            next(self.sdk.iter_scan_target_group_compartments(organization_id, scan_target_group_id))
+        except StopIteration:
+            pass
+        self.sdk._request.assert_called_once_with(
+            "GET", f"/organizations/{organization_id}/scantargetgroups/{scan_target_group_id}/targets"
+        )
+        with self.assertRaises(TypeError):
+            next(self.sdk.iter_scan_target_group_compartments(1, scan_target_group_id))
+        with self.assertRaises(TypeError):
+            next(self.sdk.iter_scan_target_group_compartments(None, scan_target_group_id))
+        with self.assertRaises(ValueError):
+            next(self.sdk.iter_scan_target_group_compartments("", scan_target_group_id))
+        with self.assertRaises(ValueError):
+            next(self.sdk.iter_scan_target_group_compartments("foo", scan_target_group_id))
+        with self.assertRaises(TypeError):
+            next(self.sdk.iter_scan_target_group_compartments(organization_id,1))
+        with self.assertRaises(TypeError):
+            next(self.sdk.iter_scan_target_group_compartments(organization_id, None))
+        with self.assertRaises(ValueError):
+            next(self.sdk.iter_scan_target_group_compartments(organization_id,""))
+        with self.assertRaises(ValueError):
+            next(self.sdk.iter_scan_target_group_compartments(organization_id,"foo"))
+        
+
     def test_iter_scan_targets_from_group(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         scan_target_group_id = "322f4225-43e9-4922-b6b8-8b0620bdb110"
@@ -1142,6 +1171,7 @@ class TestClient(unittest.TestCase):
             next(self.sdk.iter_scan_targets_from_group(organization_id,""))
         with self.assertRaises(ValueError):
             next(self.sdk.iter_scan_targets_from_group(organization_id,"foo"))    
+
 
     def test_delete_organization_scan_target_group(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"

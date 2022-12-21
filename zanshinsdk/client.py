@@ -966,6 +966,21 @@ class Client:
         return self._request("GET",
                              f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
                              f"{validate_uuid(scan_target_group_id)}").json()
+
+    def iter_scan_target_group_compartments(self, organization_id: Union[UUID, str],
+                                            scan_target_group_id: Union[UUID, str]) -> Iterator[Dict]:
+        """
+        Iterates over the compartments of a scan target group.
+        <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationComapartmentsFromScanTargetGroup>
+        :param organization_id: the ID of the organization
+        :param scan_target_group_id: the ID of the scan target group
+        :return: an iterator over the compartments of a scan target group
+        """
+        yield from self._request("GET",
+                                 f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
+                                 f"{validate_uuid(scan_target_group_id)}/targets").json().get("data", [])
+
+
     def iter_scan_targets_from_group(self, organization_id: Union[UUID, str],
                                             scan_target_group_id: Union[UUID, str]) -> Iterator[Dict]:
         """
@@ -979,6 +994,7 @@ class Client:
                                  f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
                                  f"{validate_uuid(scan_target_group_id)}/scantargets").json().get("data", [])
 
+
     def delete_organization_scan_target_group(self, organization_id: Union[UUID, str],
                                         scan_target_group_id: Union[UUID, str]) -> bool:
         """
@@ -991,6 +1007,7 @@ class Client:
         return self._request("DELETE",
                              f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
                              f"{validate_uuid(scan_target_group_id)}").json()
+
     ###################################################
     # Organization Scan Target Groups
     ###################################################
