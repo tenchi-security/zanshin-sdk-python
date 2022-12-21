@@ -966,6 +966,7 @@ class Client:
         return self._request("GET",
                              f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
                              f"{validate_uuid(scan_target_group_id)}").json()
+
     def iter_scan_target_group_compartments(self, organization_id: Union[UUID, str],
                                             scan_target_group_id: Union[UUID, str]) -> Iterator[Dict]:
         """
@@ -978,6 +979,20 @@ class Client:
         yield from self._request("GET",
                                  f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
                                  f"{validate_uuid(scan_target_group_id)}/targets").json().get("data", [])
+
+
+    def iter_scan_targets_from_group(self, organization_id: Union[UUID, str],
+                                            scan_target_group_id: Union[UUID, str]) -> Iterator[Dict]:
+        """
+        Iterates over the scan targets of a group.
+        <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationScanTargetFromScanTargetGroup>
+        :param organization_id: the ID of the organization
+        :param scan_target_group_id: the ID of the scan target group
+        :return: an iterator over scan targets of a group
+        """
+        yield from self._request("GET",
+                                 f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
+                                 f"{validate_uuid(scan_target_group_id)}/scantargets").json().get("data", [])
 
 
     def delete_organization_scan_target_group(self, organization_id: Union[UUID, str],
@@ -993,6 +1008,19 @@ class Client:
                              f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
                              f"{validate_uuid(scan_target_group_id)}").json()
 
+    ###################################################
+    # Organization Scan Target Groups
+    ###################################################
+
+    def iter_organization_scan_target_groups(self, organization_id: Union[UUID, str]) -> Iterator[Dict]:
+        """
+        Iterates over the scan targets groups.
+        <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationScanTargetGroups>
+        :param organization_id: the ID of the organization
+        : return: an iterator over the scan target groups
+        """
+        yield from self._request("GET", f"/organizations/{validate_uuid(organization_id)}/scantargetgroups").json()
+        
     ###################################################
     # Alerts
     ###################################################
@@ -1964,10 +1992,10 @@ def validate_uuid(uuid: Union[UUID, str]) -> str:
     try:
         if isinstance(uuid, str):
             return str(UUID(uuid))
-            
+
         if isinstance(uuid, UUID):
             return str(uuid)
-            
+
         raise TypeError
     except (ValueError, TypeError) as ex:
         ex.args = (f"{repr(uuid)} is not a valid UUID", )
