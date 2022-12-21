@@ -966,7 +966,18 @@ class Client:
         return self._request("GET",
                              f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
                              f"{validate_uuid(scan_target_group_id)}").json()
-
+    def iter_compartments_from_group(self, organization_id: Union[UUID, str],
+                                            scan_target_group_id: Union[UUID, str]) -> Iterator[Dict]:
+        """
+        Iterates over the scan targets of a group.
+        <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationComapartmentsFromScanTargetGroup>
+        :param organization_id: the ID of the organization
+        :param scan_target_group_id: the ID of the scan target group
+        :return: an iterator over the compartments of a scan target group
+        """
+        yield from self._request("GET",
+                                 f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
+                                 f"{validate_uuid(scan_target_group_id)}/targets").json().get("data", [])
     ###################################################
     # Alerts
     ###################################################
