@@ -481,6 +481,22 @@ class Client:
         }
         return self._request("PUT", f"/organizations/{validate_uuid(organization_id)}", body=body).json()
 
+    def create_organization(self, name: Optional[str], picture: Optional[str], email: Optional[str]) -> Dict:
+        """
+        Create organization.
+        <https://api.zanshin.tenchisecurity.com/#operation/createOrganization>
+        :param name: the Name of the organization
+        :param picture: the picture URL of the organization, accepted formats: jpg, jpeg, png, svg
+        :param email: the e-mail contact of the organization
+        :return: a dict representing the organization 
+        """
+        body = {
+            "name": name,
+            "picture": picture,
+            "email": email
+        }
+        return self._request("POST", f"/organizations", body=body).json()
+
     ###################################################
     # Organization Member
     ###################################################
