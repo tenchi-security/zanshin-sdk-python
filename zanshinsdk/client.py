@@ -921,6 +921,14 @@ class Client:
                              f"/organizations/{validate_uuid(organization_id)}/scantargets/"
                              f"{validate_uuid(scan_target_id)}/check").json()
 
+    def get_gworkspace_oauth_link(self) -> Dict:
+        """
+        Retrive a link to allow the user to authorize zanshin to read info from their gworkspace enviroment.
+        <https://api.zanshin.tenchisecurity.com/#operation/getGworkspaceOauthLink>
+        :return: a dict with the link
+        """
+        return self._request("GET", f"/gworkspace/oauth/link").json()
+
     ###################################################
     # Organization Scan Target Scan
     ###################################################

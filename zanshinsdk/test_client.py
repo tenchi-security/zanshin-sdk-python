@@ -962,6 +962,13 @@ class TestClient(unittest.TestCase):
             "POST", f"/organizations/{organization_id}/scantargets/{scan_target_id}/check"
         )
 
+    def test_get_gworkspace_oauth_link(self):
+        self.sdk.get_gworkspace_oauth_link()
+
+        self.sdk._request.assert_called_once_with(
+            "GET", "/gworkspace/oauth/link"
+        )
+
     ###################################################
     # Organization Scan Target Scan
     ###################################################
