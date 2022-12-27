@@ -1113,12 +1113,12 @@ class TestClient(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.sdk.get_organization_scan_target_group("foo", scan_target_group_id)
 
-    def test_create_organization_scan_target(self):
+    def test_create_scan_target_group(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         kind = zanshinsdk.ScanTargetKind.AWS
         name = "ScanTargetTest"
 
-        self.sdk.create_organization_scan_target(organization_id, kind, name)
+        self.sdk.create_scan_target_group(organization_id, kind, name)
 
         self.sdk._request.assert_called_once_with(
             "POST", f"/organizations/{organization_id}/scantargetgroups",

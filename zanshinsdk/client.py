@@ -977,7 +977,7 @@ class Client:
                              f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
                              f"{validate_uuid(scan_target_group_id)}").json()
 
-    def create_organization_scan_target(self, organization_id: Union[UUID, str], kind: ScanTargetKind, name: str) -> Dict:
+    def create_scan_target_group(self, organization_id: Union[UUID, str], kind: ScanTargetKind, name: str) -> Dict:
         """
         Create a new scan target group.
         <https://api.zanshin.tenchisecurity.com/#operation/createOrganizationScanTargetGroup>
