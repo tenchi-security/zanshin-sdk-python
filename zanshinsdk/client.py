@@ -953,7 +953,25 @@ class Client:
                              f"{validate_uuid(scan_target_id)}/scans/{scan_id}").json()
 
 
+    def update_scan_target_group(self, organization_id: Union[UUID, str], scan_target_group_id: Union[UUID, str],
+                                        name: str) -> Dict:
+        """
+        Update scan target group.
+        <https://api.zanshin.tenchisecurity.com/#operation/UpdateOrganizationScanTargetGroup>
+        :param scan_target_group_id: the ID of the scan target group
+        :param name: The scan target group assigned name
+        :param organization_id: the ID of the organization
+        :return: a dict representing the scan target group
+        """
 
+        body = {
+            "name": name           
+        }
+
+        return self._request("PUT",
+                             f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
+                             f"{validate_uuid(scan_target_group_id)}",
+                             body=body).json()
 
     def get_organization_scan_target_group(self, organization_id: Union[UUID, str], scan_target_group_id: Union[UUID, str]) -> Dict:
         """
