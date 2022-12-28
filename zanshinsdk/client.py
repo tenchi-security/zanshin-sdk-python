@@ -129,6 +129,11 @@ class ScanTargetORACLE(dict):
         dict.__init__(self, compartment_id=compartment_id, region=region, tenancy_id=tenancy_id, user_id=user_id,
                       key_fingerprint=key_fingerprint)
 
+class ScanTargetGroupCredentialListORACLE(dict):
+    def __init__(self, region, tenancy_id, user_id, key_fingerprint):
+        dict.__init__(self, region=region, tenancy_id=tenancy_id, user_id=user_id,
+                      key_fingerprint=key_fingerprint)
+
 
 class Roles(str, Enum):
     ADMIN = "ADMIN"
@@ -1065,7 +1070,27 @@ class Client:
         return self._request("DELETE",
                              f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
                              f"{validate_uuid(scan_target_group_id)}").json()
-        
+
+    def insert_scan_target_group_credential(self, organization_id: Union[UUID, str], scan_target_group_id: Union[UUID, str],
+                                        credential: ScanTargetGroupCredentialListORACLE) -> Dict:
+        """
+        Insert an already created scan target group.
+        <https://api.zanshin.tenchisecurity.com/#operation/UpdateOrganizationScanTargetGroupCredential>
+        :param organization_id: the ID of the organization
+        :param scan_target_group_id: the ID of the scan target group
+        :param credential: scan target group credential oracle
+        :return: a dict representing scan target group
+        """
+
+        validate_class(credential, ScanTargetGroupCredentialListORACLE)
+
+        body = {
+            "credential": credential,
+        }
+        return self._request("POST", f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
+                             f"{validate_uuid(scan_target_group_id)}",
+                             body=body).json()
+
     ###################################################
     # Alerts
     ###################################################

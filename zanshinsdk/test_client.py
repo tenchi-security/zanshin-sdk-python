@@ -6,6 +6,7 @@ from httpx import Response, Request
 import unittest
 import zanshinsdk
 
+
 from moto import mock_sts, mock_cloudformation, mock_s3
 from pathlib import Path
 
@@ -1246,6 +1247,35 @@ class TestClient(unittest.TestCase):
             self.sdk.get_scan_target_group_script( "", scan_target_group_id)
         with self.assertRaises(ValueError):
             self.sdk.get_scan_target_group_script("foo", scan_target_group_id)
+
+    def test_insert_scan_target_group_credential(self):
+        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
+        scan_target_group_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
+        credential = zanshinsdk.ScanTargetGroupCredentialListORACLE("us-ashburn-1", "ocid1.tenancy.oc1..aaaaaaaa0000000000000000000000000000000000000000000000000000",
+                                                                    "ocid1.user.oc1..aaaaaaaa0000000000000000000000000000000000000000000000000000",
+                                                                    "1a:1a:aa:1a:11:11:aa:11:11:11:1a:1a:1a:a:1a:1a" )
+
+        self.sdk.insert_scan_target_group_credential(organization_id, scan_target_group_id, credential)
+
+        self.sdk._request.assert_called_once_with(
+            "POST", f"/organizations/{organization_id}/scantargetgroups/{scan_target_group_id}", body={"credential": credential}
+        )
+        with self.assertRaises(TypeError):
+            self.sdk.insert_scan_target_group_credential(None, scan_target_group_id, credential)
+        with self.assertRaises(TypeError):
+            self.sdk.insert_scan_target_group_credential(1, scan_target_group_id, credential)
+        with self.assertRaises(TypeError):
+            self.sdk.insert_scan_target_group_credential(organization_id, None, credential)
+        with self.assertRaises(TypeError):
+            self.sdk.insert_scan_target_group_credential(organization_id, 1, credential)
+        with self.assertRaises(ValueError):
+            self.sdk.insert_scan_target_group_credential(organization_id, "", credential)
+        with self.assertRaises(ValueError):
+            self.sdk.insert_scan_target_group_credential(organization_id, "foo", credential)
+        with self.assertRaises(ValueError):
+            self.sdk.insert_scan_target_group_credential( "", scan_target_group_id, credential)
+        with self.assertRaises(ValueError):
+            self.sdk.insert_scan_target_group_credential("foo", scan_target_group_id, credential)
 
     ###################################################
     # Alerts
