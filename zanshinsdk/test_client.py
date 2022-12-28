@@ -975,6 +975,13 @@ class TestClient(unittest.TestCase):
             "POST", f"/organizations/{organization_id}/scantargets/{scan_target_id}/check"
         )
 
+    def test_get_gworkspace_oauth_link(self):
+        self.sdk.get_gworkspace_oauth_link()
+
+        self.sdk._request.assert_called_once_with(
+            "GET", "/gworkspace/oauth/link"
+        )
+
     ###################################################
     # Organization Scan Target Scan
     ###################################################
@@ -1165,6 +1172,19 @@ class TestClient(unittest.TestCase):
         with self.assertRaises(ValueError):
             next(self.sdk.iter_scan_target_group_compartments(organization_id,"foo"))
         
+    def test_create_scan_target_by_compartments(self):
+        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
+        scan_target_group_id = "322f4225-43e9-4922-b6b8-8b0620bdb110"
+
+        ocid = "ocid"
+        name = "ScanTargetTest"
+
+        self.sdk.create_scan_target_by_compartments(organization_id, scan_target_group_id, name, ocid)
+
+        self.sdk._request.assert_called_once_with(
+            "POST", f"/organizations/{organization_id}/scantargetgroups/{scan_target_group_id}/targets",
+            body={"name": name, "ocid": ocid}
+        )
 
     def test_iter_scan_targets_from_group(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"

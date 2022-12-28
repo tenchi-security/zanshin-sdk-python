@@ -942,6 +942,14 @@ class Client:
                              f"/organizations/{validate_uuid(organization_id)}/scantargets/"
                              f"{validate_uuid(scan_target_id)}/check").json()
 
+    def get_gworkspace_oauth_link(self) -> Dict:
+        """
+        Retrieve a link to allow the user to authorize zanshin to read info from their gworkspace environment.
+        <https://api.zanshin.tenchisecurity.com/#operation/getGworkspaceOauthLink>
+        :return: a dict with the link
+        """
+        return self._request("GET", f"/gworkspace/oauth/link").json()
+
     ###################################################
     # Organization Scan Target Scan
     ###################################################
@@ -1071,6 +1079,7 @@ class Client:
                              f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
                              f"{validate_uuid(scan_target_group_id)}").json()
 
+
     def insert_scan_target_group_credential(self, organization_id: Union[UUID, str], scan_target_group_id: Union[UUID, str],
                                         credential: ScanTargetGroupCredentialListORACLE) -> Dict:
         """
@@ -1090,6 +1099,28 @@ class Client:
         return self._request("POST", f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
                              f"{validate_uuid(scan_target_group_id)}",
                              body=body).json()
+
+    def create_scan_target_by_compartments(self, organization_id: Union[UUID, str], scan_target_group_id: Union[UUID, str], 
+                                                name: str, ocid: str) -> Dict:
+        """
+        Create Scan Targets from previous listed compartments inside the scan target group.
+        <https://api.zanshin.tenchisecurity.com/#operation/createOrganizationScanTargetByCompartments>
+        :param organization_id: the ID of the organization
+        :param scan_target_group_id: the ID of the scan target group
+        :param ocid: Oracle Compartment Id
+        :param name: the name of the scan target group
+        :return: a dict representing the scan target 
+        """
+        validate_class(ocid, str)
+        validate_class(name, str)
+
+        body = {
+            "name": name,
+            "ocid": ocid,
+        }
+        return self._request("POST",f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
+                                    f"{validate_uuid(scan_target_group_id)}/targets", body=body).json()
+
 
     ###################################################
     # Alerts
