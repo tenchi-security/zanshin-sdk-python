@@ -968,8 +968,18 @@ class Client:
                              f"/organizations/{validate_uuid(organization_id)}/scantargets/"
                              f"{validate_uuid(scan_target_id)}/scans/{scan_id}").json()
 
+    ###################################################
+    # Organization Scan Target Groups
+    ###################################################
 
-
+    def iter_organization_scan_target_groups(self, organization_id: Union[UUID, str]) -> Iterator[Dict]:
+        """
+        Iterates over the scan targets groups.
+        <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationScanTargetGroups>
+        :param organization_id: the ID of the organization
+        : return: an iterator over the scan target groups
+        """
+        yield from self._request("GET", f"/organizations/{validate_uuid(organization_id)}/scantargetgroups").json()
 
     def get_organization_scan_target_group(self, organization_id: Union[UUID, str], scan_target_group_id: Union[UUID, str]) -> Dict:
         """
@@ -982,6 +992,25 @@ class Client:
         return self._request("GET",
                              f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
                              f"{validate_uuid(scan_target_group_id)}").json()
+
+    def create_scan_target_group(self, organization_id: Union[UUID, str], kind: ScanTargetKind, name: str) -> Dict:
+        """
+        Create a new scan target group.
+        <https://api.zanshin.tenchisecurity.com/#operation/createOrganizationScanTargetGroup>
+        :param organization_id: the ID of the organization
+        :param kind: The type of cloud of this scan target group
+        :param name: the name of the scan target group
+        :return: a dict representing the newly created scan target group
+        """
+        validate_class(kind, ScanTargetKind)
+        validate_class(name, str)
+
+        body = {
+            "name": name,
+            "kind": kind,
+        }
+        return self._request("POST", f"/organizations/{validate_uuid(organization_id)}/scantargetgroups",
+                             body=body).json()
 
     def iter_scan_target_group_compartments(self, organization_id: Union[UUID, str],
                                             scan_target_group_id: Union[UUID, str]) -> Iterator[Dict]:
@@ -1036,19 +1065,6 @@ class Client:
         return self._request("DELETE",
                              f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
                              f"{validate_uuid(scan_target_group_id)}").json()
-
-    ###################################################
-    # Organization Scan Target Groups
-    ###################################################
-
-    def iter_organization_scan_target_groups(self, organization_id: Union[UUID, str]) -> Iterator[Dict]:
-        """
-        Iterates over the scan targets groups.
-        <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationScanTargetGroups>
-        :param organization_id: the ID of the organization
-        : return: an iterator over the scan target groups
-        """
-        yield from self._request("GET", f"/organizations/{validate_uuid(organization_id)}/scantargetgroups").json()
         
     ###################################################
     # Alerts
