@@ -541,6 +541,18 @@ class TestClient(unittest.TestCase):
             body={"name": name, "picture": picture, "email": email}
         )
 
+    def test_create_organization(self):
+        name = "Tabajara"
+        picture = "https://pic-store.com/pic1.png"
+        email = "ceo@tabajara.com.br"
+
+        self.sdk.create_organization(name, picture, email)
+
+        self.sdk._request.assert_called_once_with(
+            "POST", f"/organizations",
+            body={"name": name, "picture": picture, "email": email}
+        )
+
     ###################################################
     # Organization Member
     ###################################################
@@ -1113,6 +1125,7 @@ class TestClient(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.sdk.get_organization_scan_target_group("foo", scan_target_group_id)
 
+
     def test_update_scan_target_group(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         scan_target_group_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
@@ -1124,6 +1137,19 @@ class TestClient(unittest.TestCase):
         self.sdk._request.assert_called_once_with(
             "PUT", f"/organizations/{organization_id}/scantargetgroups/{scan_target_group_id}",
             body={"name": name}
+        )    
+
+    def test_create_scan_target_group(self):
+        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
+        kind = zanshinsdk.ScanTargetKind.AWS
+        name = "ScanTargetTest"
+
+        self.sdk.create_scan_target_group(organization_id, kind, name)
+
+        self.sdk._request.assert_called_once_with(
+            "POST", f"/organizations/{organization_id}/scantargetgroups",
+            body={"name": name, "kind": kind}
+
         )
 
     def test_iter_scan_target_group_compartments(self):
@@ -1211,6 +1237,30 @@ class TestClient(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.sdk.delete_organization_scan_target_group("foo", scan_target_id_group)      
 
+    def test_get_scan_target_group_script(self):
+        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
+        scan_target_group_id = "322f4225-43e9-4922-b6b8-8b0620bdb110"
+
+        self.sdk.get_scan_target_group_script(organization_id, scan_target_group_id)
+
+        self.sdk._request.assert_called_once_with(
+            "GET", f"/organizations/{organization_id}/scantargetgroups/{scan_target_group_id}/scripts")
+        with self.assertRaises(TypeError):
+            self.sdk.get_scan_target_group_script(None, scan_target_group_id)
+        with self.assertRaises(TypeError):
+            self.sdk.get_scan_target_group_script(1, scan_target_group_id)
+        with self.assertRaises(TypeError):
+            self.sdk.get_scan_target_group_script(organization_id, None)
+        with self.assertRaises(TypeError):
+            self.sdk.get_scan_target_group_script(organization_id, 1)
+        with self.assertRaises(ValueError):
+            self.sdk.get_scan_target_group_script(organization_id, "")
+        with self.assertRaises(ValueError):
+            self.sdk.get_scan_target_group_script(organization_id, "foo")
+        with self.assertRaises(ValueError):
+            self.sdk.get_scan_target_group_script( "", scan_target_group_id)
+        with self.assertRaises(ValueError):
+            self.sdk.get_scan_target_group_script("foo", scan_target_group_id)
 
     ###################################################
     # Alerts
