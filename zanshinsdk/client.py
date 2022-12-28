@@ -1073,7 +1073,28 @@ class Client:
         return self._request("DELETE",
                              f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
                              f"{validate_uuid(scan_target_group_id)}").json()
-        
+
+    def create_scan_target_by_compartments(self, organization_id: Union[UUID, str], scan_target_group_id: Union[UUID, str], 
+                                                name: str, ocid: str) -> Dict:
+        """
+        Create Scan Targets from previous listed compartments inside the scan target group.
+        <https://api.zanshin.tenchisecurity.com/#operation/createOrganizationScanTargetByCompartments>
+        :param organization_id: the ID of the organization
+        :param scan_target_group_id: the ID of the scan target group
+        :param ocid: Oracle Compartment Id
+        :param name: the name of the scan target group
+        :return: a dict representing the scan target 
+        """
+        validate_class(ocid, str)
+        validate_class(name, str)
+
+        body = {
+            "name": name,
+            "ocid": ocid,
+        }
+        return self._request("POST",f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
+                                    f"{validate_uuid(scan_target_group_id)}/targets", body=body).json()
+
     ###################################################
     # Alerts
     ###################################################
