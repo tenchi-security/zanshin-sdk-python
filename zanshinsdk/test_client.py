@@ -541,6 +541,18 @@ class TestClient(unittest.TestCase):
             body={"name": name, "picture": picture, "email": email}
         )
 
+    def test_create_organization(self):
+        name = "Tabajara"
+        picture = "https://pic-store.com/pic1.png"
+        email = "ceo@tabajara.com.br"
+
+        self.sdk.create_organization(name, picture, email)
+
+        self.sdk._request.assert_called_once_with(
+            "POST", f"/organizations",
+            body={"name": name, "picture": picture, "email": email}
+        )
+
     ###################################################
     # Organization Member
     ###################################################
