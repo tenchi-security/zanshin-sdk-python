@@ -923,7 +923,7 @@ class Client:
 
     def get_gworkspace_oauth_link(self) -> Dict:
         """
-        Retrive a link to allow the user to authorize zanshin to read info from their gworkspace enviroment.
+        Retrieve a link to allow the user to authorize zanshin to read info from their gworkspace environment.
         <https://api.zanshin.tenchisecurity.com/#operation/getGworkspaceOauthLink>
         :return: a dict with the link
         """
