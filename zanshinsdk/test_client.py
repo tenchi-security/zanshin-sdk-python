@@ -1133,6 +1133,20 @@ class TestClient(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.sdk.get_organization_scan_target_group("foo", scan_target_group_id)
 
+
+    def test_update_scan_target_group(self):
+        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
+        scan_target_group_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
+        name = "ScanTargetGroupTest"
+
+
+        self.sdk.update_scan_target_group(organization_id, scan_target_group_id, name)
+
+        self.sdk._request.assert_called_once_with(
+            "PUT", f"/organizations/{organization_id}/scantargetgroups/{scan_target_group_id}",
+            body={"name": name}
+        )    
+
     def test_create_scan_target_group(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         kind = zanshinsdk.ScanTargetKind.AWS
@@ -1143,6 +1157,7 @@ class TestClient(unittest.TestCase):
         self.sdk._request.assert_called_once_with(
             "POST", f"/organizations/{organization_id}/scantargetgroups",
             body={"name": name, "kind": kind}
+
         )
 
     def test_iter_scan_target_group_compartments(self):
