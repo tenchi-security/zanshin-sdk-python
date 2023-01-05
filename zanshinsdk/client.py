@@ -1018,6 +1018,9 @@ class Client:
         """
         validate_class(kind, ScanTargetKind)
         validate_class(name, str)
+        if kind != "ORACLE":
+            raise ValueError(f"{repr(kind.value)} is not accepted. 'ORACLE' is expected")
+
 
         body = {
             "name": name,
