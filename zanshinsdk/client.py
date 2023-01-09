@@ -1084,8 +1084,7 @@ class Client:
         """
         yield from self._request("GET",
                                  f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
-                                 f"{validate_uuid(scan_target_group_id)}/scantargets").json().get("data", [])
-
+                                 f"{validate_uuid(scan_target_group_id)}/scantargets").json()
 
     def delete_organization_scan_target_group(self, organization_id: Union[UUID, str],
                                         scan_target_group_id: Union[UUID, str]) -> bool:
