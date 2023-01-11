@@ -976,10 +976,13 @@ class TestClient(unittest.TestCase):
         )
 
     def test_get_gworkspace_oauth_link(self):
-        self.sdk.get_gworkspace_oauth_link()
+        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
+        scan_target_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
+        self.sdk.get_gworkspace_oauth_link(organization_id,scan_target_id)
 
         self.sdk._request.assert_called_once_with(
-            "GET", "/gworkspace/oauth/link"
+            "GET", f"/gworkspace/oauth/link?scanTargetId={scan_target_id}"
+                                    f"&organizationId={organization_id}"
         )
 
     ###################################################
@@ -1149,10 +1152,13 @@ class TestClient(unittest.TestCase):
 
     def test_create_scan_target_group(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        kind = zanshinsdk.ScanTargetKind.AWS
+        kind = zanshinsdk.ScanTargetKind.ORACLE
         name = "ScanTargetTest"
 
         self.sdk.create_scan_target_group(organization_id, kind, name)
+
+        with self.assertRaises(ValueError):
+            self.sdk.create_scan_target_group(organization_id, zanshinsdk.ScanTargetKind.AWS, name)
 
         self.sdk._request.assert_called_once_with(
             "POST", f"/organizations/{organization_id}/scantargetgroups",

@@ -942,13 +942,15 @@ class Client:
                              f"/organizations/{validate_uuid(organization_id)}/scantargets/"
                              f"{validate_uuid(scan_target_id)}/check").json()
 
-    def get_gworkspace_oauth_link(self) -> Dict:
+    def get_gworkspace_oauth_link(self, organization_id: Union[UUID, str],
+                                   scan_target_id: Union[UUID, str]) -> Dict:
         """
         Retrieve a link to allow the user to authorize zanshin to read info from their gworkspace environment.
         <https://api.zanshin.tenchisecurity.com/#operation/getGworkspaceOauthLink>
         :return: a dict with the link
         """
-        return self._request("GET", f"/gworkspace/oauth/link").json()
+        return self._request("GET", f"/gworkspace/oauth/link?scanTargetId={validate_uuid(scan_target_id)}"
+                                    f"&organizationId={validate_uuid(organization_id)}").json()
 
     ###################################################
     # Organization Scan Target Scan
@@ -1018,6 +1020,9 @@ class Client:
         """
         validate_class(kind, ScanTargetKind)
         validate_class(name, str)
+        if kind != ScanTargetKind.ORACLE:
+            raise ValueError(f"{repr(kind.value)} is not accepted. 'ORACLE' is expected")
+
 
         body = {
             "name": name,
