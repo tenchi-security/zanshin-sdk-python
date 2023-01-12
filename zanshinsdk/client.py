@@ -1135,9 +1135,10 @@ class Client:
         validate_class(ocid, str)
         validate_class(name, str)
 
+        compartments = [{"name": name, "ocid": ocid}]
+
         body = {
-            "name": name,
-            "ocid": ocid,
+            "compartments": compartments
         }
         return self._request("POST",f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
                                     f"{validate_uuid(scan_target_group_id)}/targets", body=body).json()
