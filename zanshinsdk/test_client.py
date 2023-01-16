@@ -1202,9 +1202,15 @@ class TestClient(unittest.TestCase):
 
         self.sdk.create_scan_target_by_compartments(organization_id, scan_target_group_id, name, ocid)
 
+        compartments = [{"name": name, "ocid": ocid}]
+
+        body = {
+            "compartments": compartments
+        } 
+
         self.sdk._request.assert_called_once_with(
             "POST", f"/organizations/{organization_id}/scantargetgroups/{scan_target_group_id}/targets",
-            body={"name": name, "ocid": ocid}
+            body=body
         )
 
     def test_iter_scan_targets_from_group(self):
