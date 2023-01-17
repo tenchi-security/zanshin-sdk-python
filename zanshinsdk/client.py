@@ -1062,7 +1062,7 @@ class Client:
         """
         yield from self._request("GET",
                                  f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
-                                 f"{validate_uuid(scan_target_group_id)}/targets").json().get("data", [])
+                                 f"{validate_uuid(scan_target_group_id)}/targets").json()
 
     def get_scan_target_group_script(self, organization_id: Union[UUID, str],
                                             scan_target_group_id: Union[UUID, str]) -> Dict:
