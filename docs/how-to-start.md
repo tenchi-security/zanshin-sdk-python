@@ -76,8 +76,6 @@ me = client.get_me()    # calls /me API endpoint
 print(dumps(me, indent=4))
 ```
 
-For more examples, checkout the [docs](zanshinsdk/docs/README.md).
-
 All operations call `raise_for_status` on the httpx [Response object](https://www.python-httpx.org/api/#response) internally, so any 4xx or 5xx will raise [exceptions](https://www.python-httpx.org/exceptions/).
 
 ## Installing
