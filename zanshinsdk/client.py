@@ -486,19 +486,15 @@ class Client:
         }
         return self._request("PUT", f"/organizations/{validate_uuid(organization_id)}", body=body).json()
 
-    def create_organization(self, name: Optional[str], picture: Optional[str], email: Optional[str]) -> Dict:
+    def create_organization(self, name: str) -> Dict:
         """
         Create organization.
         <https://api.zanshin.tenchisecurity.com/#operation/createOrganization>
         :param name: the Name of the organization
-        :param picture: the picture URL of the organization, accepted formats: jpg, jpeg, png, svg
-        :param email: the e-mail contact of the organization
         :return: a dict representing the organization 
         """
         body = {
-            "name": name,
-            "picture": picture,
-            "email": email
+            "name": name
         }
         return self._request("POST", f"/organizations", body=body).json()
 
@@ -942,13 +938,15 @@ class Client:
                              f"/organizations/{validate_uuid(organization_id)}/scantargets/"
                              f"{validate_uuid(scan_target_id)}/check").json()
 
-    def get_gworkspace_oauth_link(self) -> Dict:
+    def get_gworkspace_oauth_link(self, organization_id: Union[UUID, str],
+                                   scan_target_id: Union[UUID, str]) -> Dict:
         """
         Retrieve a link to allow the user to authorize zanshin to read info from their gworkspace environment.
         <https://api.zanshin.tenchisecurity.com/#operation/getGworkspaceOauthLink>
         :return: a dict with the link
         """
-        return self._request("GET", f"/gworkspace/oauth/link").json()
+        return self._request("GET", f"/gworkspace/oauth/link?scanTargetId={validate_uuid(scan_target_id)}"
+                                    f"&organizationId={validate_uuid(organization_id)}").json()
 
     ###################################################
     # Organization Scan Target Scan
@@ -1018,6 +1016,9 @@ class Client:
         """
         validate_class(kind, ScanTargetKind)
         validate_class(name, str)
+        if kind != ScanTargetKind.ORACLE:
+            raise ValueError(f"{repr(kind.value)} is not accepted. 'ORACLE' is expected")
+
 
         body = {
             "name": name,
@@ -1057,7 +1058,7 @@ class Client:
         """
         yield from self._request("GET",
                                  f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
-                                 f"{validate_uuid(scan_target_group_id)}/targets").json().get("data", [])
+                                 f"{validate_uuid(scan_target_group_id)}/targets").json()
 
     def get_scan_target_group_script(self, organization_id: Union[UUID, str],
                                             scan_target_group_id: Union[UUID, str]) -> Dict:
@@ -1084,8 +1085,7 @@ class Client:
         """
         yield from self._request("GET",
                                  f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
-                                 f"{validate_uuid(scan_target_group_id)}/scantargets").json().get("data", [])
-
+                                 f"{validate_uuid(scan_target_group_id)}/scantargets").json()
 
     def delete_organization_scan_target_group(self, organization_id: Union[UUID, str],
                                         scan_target_group_id: Union[UUID, str]) -> bool:
@@ -1135,9 +1135,10 @@ class Client:
         validate_class(ocid, str)
         validate_class(name, str)
 
+        compartments = [{"name": name, "ocid": ocid}]
+
         body = {
-            "name": name,
-            "ocid": ocid,
+            "compartments": compartments
         }
         return self._request("POST",f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
                                     f"{validate_uuid(scan_target_group_id)}/targets", body=body).json()
