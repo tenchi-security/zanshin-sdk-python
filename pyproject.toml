@@ -26,7 +26,7 @@ classifiers=[
         'Topic :: Software Development :: Libraries',
     ]
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.7"
 httpx = "0.23.1"
 moto = {version = "4.0.9", extras = ["all"], optional = true}
 
