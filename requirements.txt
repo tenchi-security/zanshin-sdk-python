@@ -1,3 +1,0 @@
-# only required for testing
-pytest
-moto[all]~=4.0.12
