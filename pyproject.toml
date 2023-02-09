@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "zanshin-sdk-python"
-version = "1.5.2"
+version = "0.1.0"
 description = "Python SDK to access the Tenchi Security Zanshin API v1"
 license = "Apache Software License"
 authors = ["Tenchi Security <contact@tenchisecurity.com>"]
