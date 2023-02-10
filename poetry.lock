@@ -42,21 +42,20 @@ tests-no-zope = ["cloudpickle", "cloudpickle", "hypothesis", "hypothesis", "mypy
 
 [[package]]
 name = "aws-sam-translator"
-version = "1.58.1"
+version = "1.59.0"
 description = "AWS SAM Translator is a library that transform SAM templates into AWS CloudFormation templates"
 category = "main"
 optional = false
 python-versions = ">=3.7, <=4.0, !=4.0"
 files = [
-    {file = "aws-sam-translator-1.58.1.tar.gz", hash = "sha256:cd60a19085d432bc00769b597bc2e6854f546ff9928f8067fc5fbcb5a1ed74ff"},
-    {file = "aws_sam_translator-1.58.1-py2-none-any.whl", hash = "sha256:c4e261e450d574572d389edcafab04d1fe337615f867610410390c2435cb1f26"},
-    {file = "aws_sam_translator-1.58.1-py3-none-any.whl", hash = "sha256:ca47d6eb04d8cf358bea9160411193da40a80dc3e79bb0c5bace0c21f0e4c888"},
+    {file = "aws-sam-translator-1.59.0.tar.gz", hash = "sha256:9b8f23a5754cba92677d334ece5c5d9dc9b1f1a327a650fc8939ae3fc6da4141"},
+    {file = "aws_sam_translator-1.59.0-py3-none-any.whl", hash = "sha256:6761293a21bd1cb0e19f168926ebfc4a3a6c9011aca67bd448ef485a55d6f658"},
 ]
 
 [package.dependencies]
 boto3 = ">=1.19.5,<2.0.0"
 jsonschema = ">=3.2,<5"
-pydantic = ">=1.10.2,<1.11.0"
+pydantic = ">=1.8,<2.0"
 typing-extensions = ">=4.4.0,<4.5.0"
 
 [package.extras]
@@ -80,18 +79,18 @@ wrapt = "*"
 
 [[package]]
 name = "boto3"
-version = "1.26.65"
+version = "1.26.68"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = ">= 3.7"
 files = [
-    {file = "boto3-1.26.65-py3-none-any.whl", hash = "sha256:9e23ec51e1fe162ecb5efee41bd9346d90ebbb8ff094ef8088223305d48ffaec"},
-    {file = "boto3-1.26.65.tar.gz", hash = "sha256:9fc94b3078f5047c1fc40529fa12eb82a2432bb1dca0ee37b1c54f902f46191f"},
+    {file = "boto3-1.26.68-py3-none-any.whl", hash = "sha256:bbb426a9b3afd3ccbac25e03b215d79e90b4c47905b1b08b3b9d86fc74096974"},
+    {file = "boto3-1.26.68.tar.gz", hash = "sha256:c92dd0fde7839c0ca9c16a989d67ceb7f80f53de19f2b087fd1182f2af41b2ae"},
 ]
 
 [package.dependencies]
-botocore = ">=1.29.65,<1.30.0"
+botocore = ">=1.29.68,<1.30.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.6.0,<0.7.0"
 
@@ -100,14 +99,14 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.29.65"
+version = "1.29.68"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
 python-versions = ">= 3.7"
 files = [
-    {file = "botocore-1.29.65-py3-none-any.whl", hash = "sha256:f566a9aa1b477cd1bdedb8f694f99fc257240eacdd7a73cc7d19d43cb20870b9"},
-    {file = "botocore-1.29.65.tar.gz", hash = "sha256:6b7ae2dee621cb863935461ba4b8aa32420e945f5b7d94bb2852b79f90b9f8de"},
+    {file = "botocore-1.29.68-py3-none-any.whl", hash = "sha256:08fa8302a22553e69b70b1de2cc8cec61a3a878546658d091473e13d5b9d2ca4"},
+    {file = "botocore-1.29.68.tar.gz", hash = "sha256:8f5cb96dc0862809d29fe512087c77c15fe6328a2d8238f0a96cccb6eb77ec12"},
 ]
 
 [package.dependencies]
@@ -424,6 +423,8 @@ files = [
     {file = "cryptography-39.0.1-cp36-abi3-win32.whl", hash = "sha256:fe913f20024eb2cb2f323e42a64bdf2911bb9738a15dba7d3cce48151034e3a8"},
     {file = "cryptography-39.0.1-cp36-abi3-win_amd64.whl", hash = "sha256:ced4e447ae29ca194449a3f1ce132ded8fcab06971ef5f618605aacaa612beac"},
     {file = "cryptography-39.0.1-pp38-pypy38_pp73-macosx_10_12_x86_64.whl", hash = "sha256:807ce09d4434881ca3a7594733669bd834f5b2c6d5c7e36f8c00f691887042ad"},
+    {file = "cryptography-39.0.1-pp38-pypy38_pp73-manylinux_2_28_aarch64.whl", hash = "sha256:c5caeb8188c24888c90b5108a441c106f7faa4c4c075a2bcae438c6e8ca73cef"},
+    {file = "cryptography-39.0.1-pp38-pypy38_pp73-manylinux_2_28_x86_64.whl", hash = "sha256:4789d1e3e257965e960232345002262ede4d094d1a19f4d3b52e48d4d8f3b885"},
     {file = "cryptography-39.0.1-pp38-pypy38_pp73-win_amd64.whl", hash = "sha256:96f1157a7c08b5b189b16b47bc9db2332269d6680a196341bf30046330d15388"},
     {file = "cryptography-39.0.1-pp39-pypy39_pp73-macosx_10_12_x86_64.whl", hash = "sha256:e422abdec8b5fa8462aa016786680720d78bdce7a30c652b7fadf83a4ba35336"},
     {file = "cryptography-39.0.1-pp39-pypy39_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_24_aarch64.whl", hash = "sha256:b0afd054cd42f3d213bf82c629efb1ee5f22eba35bf0eec88ea9ea7304f511a2"},
@@ -909,28 +910,28 @@ files = [
 ]
 
 [package.dependencies]
-aws-xray-sdk = {version = ">=0.93,<0.96 || >0.96", optional = true, markers = "extra == \"cloudformation\""}
+aws-xray-sdk = {version = ">=0.93,<0.96 || >0.96", optional = true, markers = "extra == \"all\""}
 boto3 = ">=1.9.201"
 botocore = ">=1.12.201"
-cfn-lint = {version = ">=0.4.0", optional = true, markers = "extra == \"cloudformation\""}
+cfn-lint = {version = ">=0.4.0", optional = true, markers = "extra == \"all\""}
 cryptography = ">=3.3.1"
-docker = {version = ">=2.5.1", optional = true, markers = "extra == \"cloudformation\""}
-ecdsa = {version = "!=0.15", optional = true, markers = "extra == \"cloudformation\""}
-graphql-core = {version = "*", optional = true, markers = "extra == \"cloudformation\""}
-idna = {version = ">=2.5,<4", optional = true, markers = "extra == \"cloudformation\""}
+docker = {version = ">=2.5.1", optional = true, markers = "extra == \"all\""}
+ecdsa = {version = "!=0.15", optional = true, markers = "extra == \"all\""}
+graphql-core = {version = "*", optional = true, markers = "extra == \"all\""}
+idna = {version = ">=2.5,<4", optional = true, markers = "extra == \"all\""}
 Jinja2 = ">=2.10.1"
-jsondiff = {version = ">=1.1.2", optional = true, markers = "extra == \"cloudformation\""}
+jsondiff = {version = ">=1.1.2", optional = true, markers = "extra == \"all\""}
 MarkupSafe = "!=2.0.0a1"
-openapi-spec-validator = {version = ">=0.2.8", optional = true, markers = "extra == \"cloudformation\""}
-pyparsing = {version = ">=3.0.7", optional = true, markers = "extra == \"cloudformation\""}
+openapi-spec-validator = {version = ">=0.2.8", optional = true, markers = "extra == \"all\""}
+pyparsing = {version = ">=3.0.7", optional = true, markers = "extra == \"all\""}
 python-dateutil = ">=2.1,<3.0.0"
-python-jose = {version = ">=3.1.0,<4.0.0", extras = ["cryptography"], optional = true, markers = "extra == \"cloudformation\""}
+python-jose = {version = ">=3.1.0,<4.0.0", extras = ["cryptography"], optional = true, markers = "extra == \"all\""}
 pytz = "*"
-PyYAML = {version = ">=5.1", optional = true, markers = "extra == \"cloudformation\""}
+PyYAML = {version = ">=5.1", optional = true, markers = "extra == \"all\""}
 requests = ">=2.5"
 responses = ">=0.13.0"
-setuptools = {version = "*", optional = true, markers = "extra == \"cloudformation\""}
-sshpubkeys = {version = ">=3.1.0", optional = true, markers = "extra == \"cloudformation\""}
+setuptools = {version = "*", optional = true, markers = "extra == \"all\""}
+sshpubkeys = {version = ">=3.1.0", optional = true, markers = "extra == \"all\""}
 werkzeug = ">=0.5,<2.2.0 || >2.2.0,<2.2.1 || >2.2.1"
 xmltodict = "*"
 
@@ -1748,14 +1749,14 @@ files = [
 
 [[package]]
 name = "zipp"
-version = "3.12.1"
+version = "3.13.0"
 description = "Backport of pathlib-compatible object wrapper for zip files"
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "zipp-3.12.1-py3-none-any.whl", hash = "sha256:6c4fe274b8f85ec73c37a8e4e3fa00df9fb9335da96fb789e3b96b318e5097b3"},
-    {file = "zipp-3.12.1.tar.gz", hash = "sha256:a3cac813d40993596b39ea9e93a18e8a2076d5c378b8bc88ec32ab264e04ad02"},
+    {file = "zipp-3.13.0-py3-none-any.whl", hash = "sha256:e8b2a36ea17df80ffe9e2c4fda3f693c3dad6df1697d3cd3af232db680950b0b"},
+    {file = "zipp-3.13.0.tar.gz", hash = "sha256:23f70e964bc11a34cef175bc90ba2914e1e4545ea1e3e2f67c079671883f9cb6"},
 ]
 
 [package.extras]
@@ -1768,4 +1769,4 @@ with-boto3 = []
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "156fdc45b56d2c11d4aadf247b8d7aea089aeb8e71bf70ad69bac4c9586cb145"
+content-hash = "86935fd08c1d00659e38939037bf8712589c06f3227c121096d2a1d59965c2b8"
