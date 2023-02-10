@@ -22,7 +22,6 @@ class TestPersistentAlertsIterator(AbstractPersistentAlertsIterator):
 
 
 class TestIterator(unittest.TestCase):
-
     ###################################################
     # __init__
     ###################################################

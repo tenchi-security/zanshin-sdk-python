@@ -6,7 +6,6 @@ from zanshinsdk.following_alerts_history import FilePersistentFollowingAlertsIte
 
 
 class TestAlertsHistoryIterator(unittest.TestCase):
-
     ###################################################
     # __init__
     ###################################################

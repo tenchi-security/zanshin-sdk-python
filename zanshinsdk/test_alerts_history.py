@@ -6,7 +6,6 @@ from zanshinsdk.client import Client
 
 
 class TestAlertsHistoryIterator(unittest.TestCase):
-
     ###################################################
     # __init__
     ###################################################
