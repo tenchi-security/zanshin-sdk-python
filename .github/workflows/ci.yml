@@ -36,7 +36,7 @@ jobs:
       - name: Check Env Vars
         if: matrix.os == 'windows-latest'
         run : |
-          set PATH=%PATH%;C:\Users\runneradmin\.local\bin
+          set PATH=%PATH%;"C:\Users\runneradmin\.local\bin"
 
       - name: Install dependencies
         run: |
