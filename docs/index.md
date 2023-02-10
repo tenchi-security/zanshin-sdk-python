@@ -7,4 +7,3 @@ This SDK is used to implement a command-line utility, which is available on [Git
 
 1. [Installing](how-to-start.md)
 2. [Documentation](reference.md)
-

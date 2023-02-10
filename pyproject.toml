@@ -33,6 +33,7 @@ moto = {version = "4.0.9", extras = ["all"], optional = true}
 [tool.poetry.group.dev.dependencies]
 moto = {version = "4.0.9", extras = ["cloudformation", "s3", "sts"]}
 coverage = "^7.1.0"
+pre-commit = "^3.0.4"
 
 [build-system]
 requires = ["poetry-core"]
@@ -40,10 +41,3 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.extras]
 with_boto3 = ["moto[all]"]
-
-
-
-
-
-
-

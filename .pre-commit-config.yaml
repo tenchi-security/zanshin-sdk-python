@@ -1,0 +1,52 @@
+repos:
+  - repo: https://github.com/pycqa/isort
+    rev: 5.11.4
+    hooks:
+      - id: isort
+        args: ["--profile", "black"]
+  - repo: https://github.com/psf/black
+    rev: 22.12.0
+    hooks:
+      - id: black
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+        args:
+          [
+            "--select=F",
+            "--max-line-length=127",
+            "--per-file-ignores=__init__.py:F401",
+            "--max-complexity=10",
+            "--count",
+            "--exit-zero",
+            "--statistics"
+          ]
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: check-merge-conflict
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-ast
+      - id: check-json
+      - id: check-yaml
+        args:
+          [
+            "--unsafe",
+          ]
+      - id: detect-private-key
+      - id: detect-aws-credentials
+        args:
+          [
+            "--allow-missing-credentials"
+          ]
+      - id: no-commit-to-branch
+  - repo: local
+    hooks:
+      - id: export-requirements
+        name: Export requeriments.txt
+        language: system
+        pass_filenames: false
+        entry: poetry export --without-hashes -o requirements.txt
+        files: ^(pyproject.toml|poetry.lock)$
