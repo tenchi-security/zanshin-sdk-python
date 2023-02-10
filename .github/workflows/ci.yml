@@ -44,6 +44,11 @@ jobs:
         run: poetry install
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
 
+      - name: Check Env Vars
+        if: matrix.os == 'windows-latest'
+        run : |
+          echo "C:\Users\runneradmin\.local\bin" >> $GITHUB_PATH
+
       - name: Install dependencies
         run: |
           poetry install
