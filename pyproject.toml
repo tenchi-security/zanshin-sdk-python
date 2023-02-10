@@ -28,7 +28,7 @@ classifiers=[
 python = "^3.8"
 httpx = "0.23.1"
 moto = {version = "4.0.9", extras = ["all"]}
-pre-commit = "^3.0.4"
+pre-commit = "3.0.2"
 
 
 [tool.poetry.group.dev.dependencies]
