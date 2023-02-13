@@ -33,14 +33,14 @@ jobs:
           virtualenvs-create: false
           virtualenvs-in-project: false
 
-      - name: Check Env Vars
-        if: matrix.os == 'windows-latest'
-        run : |
-          echo "GITHUB_PATH=C:\Users\runneradmin\.local\bin" >> $GITHUB_ENV
+#      - name: Check Env Vars
+#        if: matrix.os == 'windows-latest'
+#        run : |
+#          echo "C:\Users\runneradmin\.local\bin" >> $GITHUB_PATH
 
       - name: Install dependencies
         run: |
-          poetry install
+          C:\Users\runneradmin\.local\bin\poetry install
 
       - name: Run pre-commit command
         run: |
