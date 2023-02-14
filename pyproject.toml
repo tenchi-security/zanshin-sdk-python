@@ -33,6 +33,10 @@ moto = {version = "4.0.9", extras = ["all"], optional = true}
 [tool.poetry.group.dev.dependencies]
 moto = {version = "4.0.9", extras = ["cloudformation", "s3", "sts"]}
 coverage = "^7.1.0"
+mkdocs = "^1.4.2"
+mkdocs-material = "^9.0.12"
+mkdocstrings = "^0.20.0"
+mkdocstrings-python = "^0.8.3"
 
 [build-system]
 requires = ["poetry-core"]
