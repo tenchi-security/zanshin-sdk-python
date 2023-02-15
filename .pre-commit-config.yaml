@@ -48,5 +48,5 @@ repos:
         name: Export requeriments.txt
         language: system
         pass_filenames: false
-        entry: poetry export --without-hashes -o requirements.txt
+        entry: poetry export -f requirements.txt --output requirements.txt --without-hashes
         files: ^(pyproject.toml|poetry.lock)$
