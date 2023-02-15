@@ -27,9 +27,8 @@ classifiers=[
 [tool.poetry.dependencies]
 python = "^3.8"
 httpx = "0.23.1"
-moto = {version = "4.0.9", extras = ["all"]}
+moto = {version = "4.0.9", extras = ["all"], optional = true}
 pre-commit = "3.0.2"
-
 
 [tool.poetry.group.dev.dependencies]
 coverage = "^7.1.0"
