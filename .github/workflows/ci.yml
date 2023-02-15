@@ -47,7 +47,7 @@ jobs:
 
       - name: Unit test
         run: |
-          make test
+          poetry run python -m unittest discover -v
 
       - name: Test coverage
         if: matrix.os == 'ubuntu-latest'
