@@ -46,6 +46,8 @@ jobs:
           sudo apt-get install -y pandoc
           rm -f README.rst
           make README.rst
+          mkdocs build
+          mkdocs gh-deploy
 
       - name: Build and publish to PyPI Test
         run: |
