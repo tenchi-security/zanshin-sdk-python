@@ -16,6 +16,9 @@ jobs:
         python-version: [ 3.8, 3.9, "3.10", 3.11 ]
         os: [ ubuntu-latest, windows-latest, macos-latest ]
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
     name: Test and Coverage
     timeout-minutes: 10
     steps:
@@ -34,11 +37,9 @@ jobs:
           virtualenvs-in-project: false
 
       - name: Install dependencies
-        shell: bash
         run: poetry install
 
       - name: Run pre-commit command
-        shell: bash
         run: |
           poetry run pre-commit autoupdate
           poetry run pre-commit run --all-files
