@@ -33,12 +33,12 @@ jobs:
           virtualenvs-create: false
           virtualenvs-in-project: false
 
-      - name: Install dependencies Windows
+      - name: Prepare poetry on Windows
         if: matrix.os == 'windows-latest'
-        run: C:\Users\runneradmin\.local\bin\poetry install
+        run: |
+          echo "C:\Users\runneradmin\.local\bin" >> $GITHUB_PATH
 
-      - name: Install dependencies Other OS
-        if: matrix.os != 'windows-latest'
+      - name: Install dependencies
         run: poetry install
 
       - name: Run pre-commit command
