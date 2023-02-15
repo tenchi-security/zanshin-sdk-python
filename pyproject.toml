@@ -33,6 +33,10 @@ pre-commit = "3.0.2"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "^7.1.0"
+mkdocs = "^1.4.2"
+mkdocs-material = "^9.0.12"
+mkdocstrings = "^0.20.0"
+mkdocstrings-python = "^0.8.3"
 
 [build-system]
 requires = ["poetry-core"]
