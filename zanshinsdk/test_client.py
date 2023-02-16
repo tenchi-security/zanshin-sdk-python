@@ -1,14 +1,13 @@
 import os
-from unittest.mock import patch, call, mock_open, Mock
-from uuid import UUID
-from httpx import Response, Request
-
 import unittest
-import zanshinsdk
-
-
-from moto import mock_sts, mock_cloudformation, mock_s3
 from pathlib import Path
+from unittest.mock import Mock, call, mock_open, patch
+from uuid import UUID
+
+from httpx import Request, Response
+from moto import mock_cloudformation, mock_s3, mock_sts
+
+import zanshinsdk
 
 
 class TestClient(unittest.TestCase):
@@ -29,6 +28,7 @@ class TestClient(unittest.TestCase):
         self.HAVE_BOTO3 = False
         try:
             import boto3
+
             self.HAVE_BOTO3 = True
         except ModuleNotFoundError:
             pass
@@ -59,7 +59,10 @@ class TestClient(unittest.TestCase):
             with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
                 zanshinsdk.Client(profile=_profile)
         except Exception as e:
-            self.assertEqual(str(e), f"profile {_profile} not found in {zanshinsdk.client.CONFIG_FILE}")
+            self.assertEqual(
+                str(e),
+                f"profile {_profile} not found in {zanshinsdk.client.CONFIG_FILE}",
+            )
 
     @patch("zanshinsdk.client.isfile")
     def test_init_api_url(self, mock_is_file):
@@ -138,7 +141,10 @@ class TestClient(unittest.TestCase):
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             client = zanshinsdk.Client(user_agent=_user_agent)
 
-        self.assertEqual(client._user_agent, f"{_user_agent} (Zanshin Python SDK v{zanshinsdk.version.__version__})")
+        self.assertEqual(
+            client._user_agent,
+            f"{_user_agent} (Zanshin Python SDK v{zanshinsdk.version.__version__})",
+        )
 
     @patch("zanshinsdk.client.isfile")
     def test_init_user_agent_from_config(self, mock_is_file):
@@ -149,7 +155,10 @@ class TestClient(unittest.TestCase):
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             client = zanshinsdk.Client()
 
-        self.assertEqual(client._user_agent, f"{_user_agent} (Zanshin Python SDK v{zanshinsdk.version.__version__})")
+        self.assertEqual(
+            client._user_agent,
+            f"{_user_agent} (Zanshin Python SDK v{zanshinsdk.version.__version__})",
+        )
 
     ###################################################
     # __mock_aws_credentials__
@@ -157,8 +166,10 @@ class TestClient(unittest.TestCase):
 
     def mock_aws_credentials(self):
         """Mocked AWS Credentials for moto."""
-        moto_credentials_file_path = Path(__file__).parent.absolute() / 'dummy_aws_credentials'
-        os.environ['AWS_SHARED_CREDENTIALS_FILE'] = str(moto_credentials_file_path)
+        moto_credentials_file_path = (
+            Path(__file__).parent.absolute() / "dummy_aws_credentials"
+        )
+        os.environ["AWS_SHARED_CREDENTIALS_FILE"] = str(moto_credentials_file_path)
 
     ###################################################
     # _update_client except
@@ -335,7 +346,10 @@ class TestClient(unittest.TestCase):
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
             client = zanshinsdk.Client(user_agent=_user_agent)
 
-        self.assertEqual(client.user_agent, f"{_user_agent} (Zanshin Python SDK v{zanshinsdk.version.__version__})")
+        self.assertEqual(
+            client.user_agent,
+            f"{_user_agent} (Zanshin Python SDK v{zanshinsdk.version.__version__})",
+        )
 
     @patch("zanshinsdk.client.isfile")
     def test_set_user_agent(self, mock_is_file):
@@ -349,7 +363,10 @@ class TestClient(unittest.TestCase):
 
         client.user_agent = _new_user_agent
 
-        self.assertEqual(client.user_agent, f"{_new_user_agent} (Zanshin Python SDK v{zanshinsdk.version.__version__})")
+        self.assertEqual(
+            client.user_agent,
+            f"{_new_user_agent} (Zanshin Python SDK v{zanshinsdk.version.__version__})",
+        )
 
     @patch("zanshinsdk.client.isfile")
     def test_get_sanitized_proxy_url_none(self, mock_is_file):
@@ -393,10 +410,7 @@ class TestClient(unittest.TestCase):
         client._request("GET", "/path")
 
         client._client.request.assert_called_once_with(
-            method="GET",
-            url=f"{_api_url}/path",
-            params=None,
-            json=None
+            method="GET", url=f"{_api_url}/path", params=None, json=None
         )
 
     @patch("zanshinsdk.client.isfile")
@@ -416,10 +430,7 @@ class TestClient(unittest.TestCase):
         client._request("GET", "/path")
 
         client._client.request.assert_called_once_with(
-            method="GET",
-            url=f"{_api_url}/path",
-            params=None,
-            json=None
+            method="GET", url=f"{_api_url}/path", params=None, json=None
         )
 
     ###################################################
@@ -429,9 +440,7 @@ class TestClient(unittest.TestCase):
     def test_get_me(self):
         self.sdk.get_me()
 
-        self.sdk._request.assert_called_once_with(
-            "GET", "/me"
-        )
+        self.sdk._request.assert_called_once_with("GET", "/me")
 
     ###################################################
     # Account Invites
@@ -443,18 +452,14 @@ class TestClient(unittest.TestCase):
         except StopIteration:
             pass
 
-        self.sdk._request.assert_called_once_with(
-            "GET", "/me/invites"
-        )
+        self.sdk._request.assert_called_once_with("GET", "/me/invites")
 
     def test_get_invite(self):
         invite_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
 
         self.sdk.get_invite(invite_id)
 
-        self.sdk._request.assert_called_once_with(
-            "GET", f"/me/invites/{invite_id}"
-        )
+        self.sdk._request.assert_called_once_with("GET", f"/me/invites/{invite_id}")
 
     def test_accept_invite(self):
         invite_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
@@ -475,9 +480,7 @@ class TestClient(unittest.TestCase):
         except StopIteration:
             pass
 
-        self.sdk._request.assert_called_once_with(
-            "GET", "/me/apikeys"
-        )
+        self.sdk._request.assert_called_once_with("GET", "/me/apikeys")
 
     def test_create_api_key(self):
         name = "MyKey"
@@ -485,8 +488,7 @@ class TestClient(unittest.TestCase):
         self.sdk.create_api_key(name)
 
         self.sdk._request.assert_called_once_with(
-            "POST", "/me/apikeys",
-            body={"name": name}
+            "POST", "/me/apikeys", body={"name": name}
         )
 
     def test_delete_api_key(self):
@@ -494,9 +496,7 @@ class TestClient(unittest.TestCase):
 
         self.sdk.delete_api_key(api_key)
 
-        self.sdk._request.assert_called_once_with(
-            "DELETE", f"/me/apikeys/{api_key}"
-        )
+        self.sdk._request.assert_called_once_with("DELETE", f"/me/apikeys/{api_key}")
 
     ###################################################
     # Organization
@@ -528,7 +528,6 @@ class TestClient(unittest.TestCase):
             "DELETE", f"/organizations/{organization_id}"
         )
 
-
     def test_update_organization(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         name = "Tabajara"
@@ -538,8 +537,9 @@ class TestClient(unittest.TestCase):
         self.sdk.update_organization(organization_id, name, picture, email)
 
         self.sdk._request.assert_called_once_with(
-            "PUT", f"/organizations/{organization_id}",
-            body={"name": name, "picture": picture, "email": email}
+            "PUT",
+            f"/organizations/{organization_id}",
+            body={"name": name, "picture": picture, "email": email},
         )
 
     def test_create_organization(self):
@@ -548,8 +548,7 @@ class TestClient(unittest.TestCase):
         self.sdk.create_organization(name)
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/organizations",
-            body={"name": name}
+            "POST", f"/organizations", body={"name": name}
         )
 
     ###################################################
@@ -586,8 +585,9 @@ class TestClient(unittest.TestCase):
         self.sdk.update_organization_member(organization_id, member_id, role)
 
         self.sdk._request.assert_called_once_with(
-            "PUT", f"/organizations/{organization_id}/members/{member_id}",
-            body={"roles": role}
+            "PUT",
+            f"/organizations/{organization_id}/members/{member_id}",
+            body={"roles": role},
         )
 
     def test_delete_organization_members(self):
@@ -617,7 +617,8 @@ class TestClient(unittest.TestCase):
         self.sdk.reset_delete_organization_password(organization_id, member_id)
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/organizations/{organization_id}/members/{member_id}/password/reset"
+            "POST",
+            f"/organizations/{organization_id}/members/{member_id}/password/reset",
         )
 
     ###################################################
@@ -644,8 +645,9 @@ class TestClient(unittest.TestCase):
         self.sdk.create_organization_members_invite(organization_id, email, role)
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/organizations/{organization_id}/invites",
-            body={"email": email, "roles": role}
+            "POST",
+            f"/organizations/{organization_id}/invites",
+            body={"email": email, "roles": role},
         )
 
     def test_get_organization_member_invite(self):
@@ -726,8 +728,9 @@ class TestClient(unittest.TestCase):
         self.sdk.create_organization_follower_request(organization_id, token)
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/organizations/{organization_id}/followers/requests",
-            body={"token": token}
+            "POST",
+            f"/organizations/{organization_id}/followers/requests",
+            body={"token": token},
         )
 
     def test_get_organization_follower_request(self):
@@ -737,7 +740,8 @@ class TestClient(unittest.TestCase):
         self.sdk.get_organization_follower_request(organization_id, follower_id)
 
         self.sdk._request.assert_called_once_with(
-            "GET", f"/organizations/{organization_id}/followers/requests/{follower_id}")
+            "GET", f"/organizations/{organization_id}/followers/requests/{follower_id}"
+        )
 
     def test_delete_organization_follower_request(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
@@ -746,7 +750,8 @@ class TestClient(unittest.TestCase):
         self.sdk.delete_organization_follower_request(organization_id, follower_id)
 
         self.sdk._request.assert_called_once_with(
-            "DELETE", f"/organizations/{organization_id}/followers/requests/{follower_id}"
+            "DELETE",
+            f"/organizations/{organization_id}/followers/requests/{follower_id}",
         )
 
     ###################################################
@@ -808,7 +813,8 @@ class TestClient(unittest.TestCase):
         self.sdk.accept_organization_following_request(organization_id, following_id)
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/organizations/{organization_id}/following/requests/{following_id}/accept"
+            "POST",
+            f"/organizations/{organization_id}/following/requests/{following_id}/accept",
         )
 
     def test_decline_organization_following_request(self):
@@ -818,7 +824,8 @@ class TestClient(unittest.TestCase):
         self.sdk.decline_organization_following_request(organization_id, following_id)
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/organizations/{organization_id}/following/requests/{following_id}/decline"
+            "POST",
+            f"/organizations/{organization_id}/following/requests/{following_id}/decline",
         )
 
     ###################################################
@@ -844,25 +851,43 @@ class TestClient(unittest.TestCase):
         credential = zanshinsdk.ScanTargetAWS("123456")
         schedule = "24h"
 
-        self.sdk.create_organization_scan_target(organization_id, kind, name, credential, schedule)
+        self.sdk.create_organization_scan_target(
+            organization_id, kind, name, credential, schedule
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/organizations/{organization_id}/scantargets",
-            body={"name": name, "kind": kind, "credential": credential, "schedule": schedule}
+            "POST",
+            f"/organizations/{organization_id}/scantargets",
+            body={
+                "name": name,
+                "kind": kind,
+                "credential": credential,
+                "schedule": schedule,
+            },
         )
 
     def test_create_organization_scan_target_AZURE(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         kind = zanshinsdk.ScanTargetKind.AZURE
         name = "ScanTargetTest"
-        credential = zanshinsdk.ScanTargetAZURE("1234567890", "0123456789", "2345678901", "SECRET")
+        credential = zanshinsdk.ScanTargetAZURE(
+            "1234567890", "0123456789", "2345678901", "SECRET"
+        )
         schedule = "24h"
 
-        self.sdk.create_organization_scan_target(organization_id, kind, name, credential, schedule)
+        self.sdk.create_organization_scan_target(
+            organization_id, kind, name, credential, schedule
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/organizations/{organization_id}/scantargets",
-            body={"name": name, "kind": kind, "credential": credential, "schedule": schedule}
+            "POST",
+            f"/organizations/{organization_id}/scantargets",
+            body={
+                "name": name,
+                "kind": kind,
+                "credential": credential,
+                "schedule": schedule,
+            },
         )
 
     def test_create_organization_scan_target_GCP(self):
@@ -872,11 +897,19 @@ class TestClient(unittest.TestCase):
         credential = zanshinsdk.ScanTargetGCP("123456")
         schedule = "24h"
 
-        self.sdk.create_organization_scan_target(organization_id, kind, name, credential, schedule)
+        self.sdk.create_organization_scan_target(
+            organization_id, kind, name, credential, schedule
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/organizations/{organization_id}/scantargets",
-            body={"name": name, "kind": kind, "credential": credential, "schedule": schedule}
+            "POST",
+            f"/organizations/{organization_id}/scantargets",
+            body={
+                "name": name,
+                "kind": kind,
+                "credential": credential,
+                "schedule": schedule,
+            },
         )
 
     def test_create_organization_scan_target_HUAWEI(self):
@@ -886,11 +919,19 @@ class TestClient(unittest.TestCase):
         credential = zanshinsdk.ScanTargetHUAWEI("123456")
         schedule = "24h"
 
-        self.sdk.create_organization_scan_target(organization_id, kind, name, credential, schedule)
+        self.sdk.create_organization_scan_target(
+            organization_id, kind, name, credential, schedule
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/organizations/{organization_id}/scantargets",
-            body={"name": name, "kind": kind, "credential": credential, "schedule": schedule}
+            "POST",
+            f"/organizations/{organization_id}/scantargets",
+            body={
+                "name": name,
+                "kind": kind,
+                "credential": credential,
+                "schedule": schedule,
+            },
         )
 
     def test_create_organization_scan_target_DOMAIN(self):
@@ -900,11 +941,19 @@ class TestClient(unittest.TestCase):
         credential = zanshinsdk.ScanTargetDOMAIN("domain.com")
         schedule = "24h"
 
-        self.sdk.create_organization_scan_target(organization_id, kind, name, credential, schedule)
+        self.sdk.create_organization_scan_target(
+            organization_id, kind, name, credential, schedule
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/organizations/{organization_id}/scantargets",
-            body={"name": name, "kind": kind, "credential": credential, "schedule": schedule}
+            "POST",
+            f"/organizations/{organization_id}/scantargets",
+            body={
+                "name": name,
+                "kind": kind,
+                "credential": credential,
+                "schedule": schedule,
+            },
         )
 
     def test_get_organization_scan_target(self):
@@ -923,11 +972,14 @@ class TestClient(unittest.TestCase):
         name = "ScanTargetTest"
         schedule = "24h"
 
-        self.sdk.update_organization_scan_target(organization_id, scan_target_id, name, schedule)
+        self.sdk.update_organization_scan_target(
+            organization_id, scan_target_id, name, schedule
+        )
 
         self.sdk._request.assert_called_once_with(
-            "PUT", f"/organizations/{organization_id}/scantargets/{scan_target_id}",
-            body={"name": name, "schedule": schedule}
+            "PUT",
+            f"/organizations/{organization_id}/scantargets/{scan_target_id}",
+            body={"name": name, "schedule": schedule},
         )
 
     def test_delete_organization_scan_target(self):
@@ -944,13 +996,14 @@ class TestClient(unittest.TestCase):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         scan_target_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
 
-        self.sdk.start_organization_scan_target_scan(organization_id, scan_target_id, True)
+        self.sdk.start_organization_scan_target_scan(
+            organization_id, scan_target_id, True
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/organizations/{organization_id}/scantargets/{scan_target_id}/scan",
-            params={
-                "force": "true"
-            }
+            "POST",
+            f"/organizations/{organization_id}/scantargets/{scan_target_id}/scan",
+            params={"force": "true"},
         )
 
     def test_stop_organization_scan_target_scan(self):
@@ -960,7 +1013,8 @@ class TestClient(unittest.TestCase):
         self.sdk.stop_organization_scan_target_scan(organization_id, scan_target_id)
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/organizations/{organization_id}/scantargets/{scan_target_id}/stop"
+            "POST",
+            f"/organizations/{organization_id}/scantargets/{scan_target_id}/stop",
         )
 
     def test_check_organization_scan_target(self):
@@ -970,17 +1024,19 @@ class TestClient(unittest.TestCase):
         self.sdk.check_organization_scan_target(organization_id, scan_target_id)
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/organizations/{organization_id}/scantargets/{scan_target_id}/check"
+            "POST",
+            f"/organizations/{organization_id}/scantargets/{scan_target_id}/check",
         )
 
     def test_get_gworkspace_oauth_link(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         scan_target_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
-        self.sdk.get_gworkspace_oauth_link(organization_id,scan_target_id)
+        self.sdk.get_gworkspace_oauth_link(organization_id, scan_target_id)
 
         self.sdk._request.assert_called_once_with(
-            "GET", f"/gworkspace/oauth/link?scanTargetId={scan_target_id}"
-                                    f"&organizationId={organization_id}"
+            "GET",
+            f"/gworkspace/oauth/link?scanTargetId={scan_target_id}"
+            f"&organizationId={organization_id}",
         )
 
     ###################################################
@@ -991,12 +1047,17 @@ class TestClient(unittest.TestCase):
         scan_target_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
 
         try:
-            next(self.sdk.iter_organization_scan_target_scans(organization_id, scan_target_id))
+            next(
+                self.sdk.iter_organization_scan_target_scans(
+                    organization_id, scan_target_id
+                )
+            )
         except StopIteration:
             pass
 
         self.sdk._request.assert_called_once_with(
-            "GET", f"/organizations/{organization_id}/scantargets/{scan_target_id}/scans"
+            "GET",
+            f"/organizations/{organization_id}/scantargets/{scan_target_id}/scans",
         )
 
     @patch("zanshinsdk.client.isfile")
@@ -1007,27 +1068,21 @@ class TestClient(unittest.TestCase):
         scan_data = {
             "summary": {
                 "infos": {
-                    "NEW": {
-                        "HIGH": 0,
-                        "INFO": 0,
-                        "MEDIUM": 0,
-                        "LOW": 0,
-                        "CRITICAL": 0
-                    },
+                    "NEW": {"HIGH": 0, "INFO": 0, "MEDIUM": 0, "LOW": 0, "CRITICAL": 0},
                     "COLLECTED": 6726,
                     "REOPEN": {
                         "HIGH": 0,
                         "INFO": 0,
                         "MEDIUM": 0,
                         "LOW": 0,
-                        "CRITICAL": 0
+                        "CRITICAL": 0,
                     },
                     "CLOSED": {
                         "HIGH": 0,
                         "INFO": 0,
                         "MEDIUM": 0,
                         "LOW": 0,
-                        "CRITICAL": 0
+                        "CRITICAL": 0,
                     },
                     "UNKNOWN": 485,
                     "FAIL": 642,
@@ -1036,37 +1091,40 @@ class TestClient(unittest.TestCase):
                         "MEDIUM": 0,
                         "INFO": 0,
                         "LOW": 0,
-                        "CRITICAL": 0
-                    }
+                        "CRITICAL": 0,
+                    },
                 },
-                "states": {
-                    "CLOSED": 442,
-                    "OPEN": 638,
-                    "RISK_ACCEPTED": 4
-                },
+                "states": {"CLOSED": 442, "OPEN": 638, "RISK_ACCEPTED": 4},
                 "severities": {
                     "HIGH": 55,
                     "INFO": 49,
                     "MEDIUM": 283,
                     "LOW": 232,
-                    "CRITICAL": 23
-                }
+                    "CRITICAL": 23,
+                },
             },
             "updatedAt": "2022-07-10T00:10:24.593646",
             "status": "DONE",
             "createdAt": "2022-07-10T00:04:08.076Z",
             "scanTargetId": scan_target_id,
             "slot": "2022-07-10T00:04:07.953Z",
-            "organizationId": organization_id
+            "organizationId": organization_id,
         }
 
         mock_is_file.return_value = True
-        with patch("__main__.__builtins__.open", mock_open(read_data="[default]\napi_key=api_key")):
-            request.return_value = Mock(status_code=200, json=lambda: {"data": [scan_data]})
+        with patch(
+            "__main__.__builtins__.open",
+            mock_open(read_data="[default]\napi_key=api_key"),
+        ):
+            request.return_value = Mock(
+                status_code=200, json=lambda: {"data": [scan_data]}
+            )
             client = zanshinsdk.Client()
             client._client.request = request
 
-            iter = client.iter_organization_scan_target_scans(organization_id, scan_target_id)
+            iter = client.iter_organization_scan_target_scans(
+                organization_id, scan_target_id
+            )
 
         self.assertDictEqual(iter.__next__(), scan_data)
         self.assertRaises(StopIteration, iter.__next__)
@@ -1076,12 +1134,14 @@ class TestClient(unittest.TestCase):
         scan_target_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
         scan_id = "e22f4225-43e9-4922-b6b8-8b0620bdb112"
 
-        self.sdk.get_organization_scan_target_scan(organization_id, scan_target_id, scan_id)
-
-        self.sdk._request.assert_called_once_with(
-            "GET", f"/organizations/{organization_id}/scantargets/{scan_target_id}/scans/{scan_id}"
+        self.sdk.get_organization_scan_target_scan(
+            organization_id, scan_target_id, scan_id
         )
 
+        self.sdk._request.assert_called_once_with(
+            "GET",
+            f"/organizations/{organization_id}/scantargets/{scan_target_id}/scans/{scan_id}",
+        )
 
     ###################################################
     # Organization Scan Target Groups
@@ -1098,7 +1158,7 @@ class TestClient(unittest.TestCase):
         self.sdk._request.assert_called_once_with(
             "GET", f"/organizations/{organization_id}/scantargetgroups"
         )
-        
+
         with self.assertRaises(TypeError):
             next(self.sdk.iter_organization_scan_target_groups(1))
         with self.assertRaises(TypeError):
@@ -1108,15 +1168,18 @@ class TestClient(unittest.TestCase):
         with self.assertRaises(ValueError):
             next(self.sdk.iter_organization_scan_target_groups("foo"))
 
-
     def test_get_organization_scan_target_group(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         scan_target_group_id = "322f4225-43e9-4922-b6b8-8b0620bdb110"
 
-        self.sdk.get_organization_scan_target_group(organization_id, scan_target_group_id)
+        self.sdk.get_organization_scan_target_group(
+            organization_id, scan_target_group_id
+        )
 
         self.sdk._request.assert_called_once_with(
-            "GET", f"/organizations/{organization_id}/scantargetgroups/{scan_target_group_id}")
+            "GET",
+            f"/organizations/{organization_id}/scantargetgroups/{scan_target_group_id}",
+        )
         with self.assertRaises(TypeError):
             self.sdk.get_organization_scan_target_group(None, scan_target_group_id)
         with self.assertRaises(TypeError):
@@ -1130,23 +1193,22 @@ class TestClient(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.sdk.get_organization_scan_target_group(organization_id, "foo")
         with self.assertRaises(ValueError):
-            self.sdk.get_organization_scan_target_group( "", scan_target_group_id)
+            self.sdk.get_organization_scan_target_group("", scan_target_group_id)
         with self.assertRaises(ValueError):
             self.sdk.get_organization_scan_target_group("foo", scan_target_group_id)
-
 
     def test_update_scan_target_group(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         scan_target_group_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
         name = "ScanTargetGroupTest"
 
-
         self.sdk.update_scan_target_group(organization_id, scan_target_group_id, name)
 
         self.sdk._request.assert_called_once_with(
-            "PUT", f"/organizations/{organization_id}/scantargetgroups/{scan_target_group_id}",
-            body={"name": name}
-        )    
+            "PUT",
+            f"/organizations/{organization_id}/scantargetgroups/{scan_target_group_id}",
+            body={"name": name},
+        )
 
     def test_create_scan_target_group(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
@@ -1156,41 +1218,54 @@ class TestClient(unittest.TestCase):
         self.sdk.create_scan_target_group(organization_id, kind, name)
 
         with self.assertRaises(ValueError):
-            self.sdk.create_scan_target_group(organization_id, zanshinsdk.ScanTargetKind.AWS, name)
+            self.sdk.create_scan_target_group(
+                organization_id, zanshinsdk.ScanTargetKind.AWS, name
+            )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/organizations/{organization_id}/scantargetgroups",
-            body={"name": name, "kind": kind}
-
+            "POST",
+            f"/organizations/{organization_id}/scantargetgroups",
+            body={"name": name, "kind": kind},
         )
 
     def test_iter_scan_target_group_compartments(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         scan_target_group_id = "322f4225-43e9-4922-b6b8-8b0620bdb110"
         try:
-            next(self.sdk.iter_scan_target_group_compartments(organization_id, scan_target_group_id))
+            next(
+                self.sdk.iter_scan_target_group_compartments(
+                    organization_id, scan_target_group_id
+                )
+            )
         except StopIteration:
             pass
         self.sdk._request.assert_called_once_with(
-            "GET", f"/organizations/{organization_id}/scantargetgroups/{scan_target_group_id}/targets"
+            "GET",
+            f"/organizations/{organization_id}/scantargetgroups/{scan_target_group_id}/targets",
         )
         with self.assertRaises(TypeError):
             next(self.sdk.iter_scan_target_group_compartments(1, scan_target_group_id))
         with self.assertRaises(TypeError):
-            next(self.sdk.iter_scan_target_group_compartments(None, scan_target_group_id))
+            next(
+                self.sdk.iter_scan_target_group_compartments(None, scan_target_group_id)
+            )
         with self.assertRaises(ValueError):
             next(self.sdk.iter_scan_target_group_compartments("", scan_target_group_id))
         with self.assertRaises(ValueError):
-            next(self.sdk.iter_scan_target_group_compartments("foo", scan_target_group_id))
+            next(
+                self.sdk.iter_scan_target_group_compartments(
+                    "foo", scan_target_group_id
+                )
+            )
         with self.assertRaises(TypeError):
-            next(self.sdk.iter_scan_target_group_compartments(organization_id,1))
+            next(self.sdk.iter_scan_target_group_compartments(organization_id, 1))
         with self.assertRaises(TypeError):
             next(self.sdk.iter_scan_target_group_compartments(organization_id, None))
         with self.assertRaises(ValueError):
-            next(self.sdk.iter_scan_target_group_compartments(organization_id,""))
+            next(self.sdk.iter_scan_target_group_compartments(organization_id, ""))
         with self.assertRaises(ValueError):
-            next(self.sdk.iter_scan_target_group_compartments(organization_id,"foo"))
-        
+            next(self.sdk.iter_scan_target_group_compartments(organization_id, "foo"))
+
     def test_create_scan_target_by_compartments(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         scan_target_group_id = "322f4225-43e9-4922-b6b8-8b0620bdb110"
@@ -1198,17 +1273,18 @@ class TestClient(unittest.TestCase):
         ocid = "ocid"
         name = "ScanTargetTest"
 
-        self.sdk.create_scan_target_by_compartments(organization_id, scan_target_group_id, name, ocid)
+        self.sdk.create_scan_target_by_compartments(
+            organization_id, scan_target_group_id, name, ocid
+        )
 
         compartments = [{"name": name, "ocid": ocid}]
 
-        body = {
-            "compartments": compartments
-        } 
+        body = {"compartments": compartments}
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/organizations/{organization_id}/scantargetgroups/{scan_target_group_id}/targets",
-            body=body
+            "POST",
+            f"/organizations/{organization_id}/scantargetgroups/{scan_target_group_id}/targets",
+            body=body,
         )
 
     def test_iter_scan_targets_from_group(self):
@@ -1216,14 +1292,19 @@ class TestClient(unittest.TestCase):
         scan_target_group_id = "322f4225-43e9-4922-b6b8-8b0620bdb110"
 
         try:
-            next(self.sdk.iter_scan_targets_from_group(organization_id, scan_target_group_id))
+            next(
+                self.sdk.iter_scan_targets_from_group(
+                    organization_id, scan_target_group_id
+                )
+            )
         except StopIteration:
             pass
 
         self.sdk._request.assert_called_once_with(
-            "GET", f"/organizations/{organization_id}/scantargetgroups/{scan_target_group_id}/scantargets"
+            "GET",
+            f"/organizations/{organization_id}/scantargetgroups/{scan_target_group_id}/scantargets",
         )
-        
+
         with self.assertRaises(TypeError):
             next(self.sdk.iter_scan_targets_from_group(1, scan_target_group_id))
         with self.assertRaises(TypeError):
@@ -1231,26 +1312,28 @@ class TestClient(unittest.TestCase):
         with self.assertRaises(ValueError):
             next(self.sdk.iter_scan_targets_from_group("", scan_target_group_id))
         with self.assertRaises(ValueError):
-            next(self.sdk.iter_scan_targets_from_group("foo", scan_target_group_id))      
+            next(self.sdk.iter_scan_targets_from_group("foo", scan_target_group_id))
         with self.assertRaises(TypeError):
-            next(self.sdk.iter_scan_targets_from_group(organization_id,1))
+            next(self.sdk.iter_scan_targets_from_group(organization_id, 1))
         with self.assertRaises(TypeError):
             next(self.sdk.iter_scan_targets_from_group(organization_id, None))
         with self.assertRaises(ValueError):
-            next(self.sdk.iter_scan_targets_from_group(organization_id,""))
+            next(self.sdk.iter_scan_targets_from_group(organization_id, ""))
         with self.assertRaises(ValueError):
-            next(self.sdk.iter_scan_targets_from_group(organization_id,"foo"))    
-
+            next(self.sdk.iter_scan_targets_from_group(organization_id, "foo"))
 
     def test_delete_organization_scan_target_group(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         scan_target_id_group = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
 
-        self.sdk.delete_organization_scan_target_group(organization_id, scan_target_id_group)
+        self.sdk.delete_organization_scan_target_group(
+            organization_id, scan_target_id_group
+        )
 
         self.sdk._request.assert_called_once_with(
-            "DELETE", f"/organizations/{organization_id}/scantargetgroups/{scan_target_id_group}"
-        )    
+            "DELETE",
+            f"/organizations/{organization_id}/scantargetgroups/{scan_target_id_group}",
+        )
         with self.assertRaises(TypeError):
             self.sdk.delete_organization_scan_target_group(None, scan_target_id_group)
         with self.assertRaises(TypeError):
@@ -1264,9 +1347,9 @@ class TestClient(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.sdk.delete_organization_scan_target_group(organization_id, "foo")
         with self.assertRaises(ValueError):
-            self.sdk.delete_organization_scan_target_group( "", scan_target_id_group)
+            self.sdk.delete_organization_scan_target_group("", scan_target_id_group)
         with self.assertRaises(ValueError):
-            self.sdk.delete_organization_scan_target_group("foo", scan_target_id_group)      
+            self.sdk.delete_organization_scan_target_group("foo", scan_target_id_group)
 
     def test_get_scan_target_group_script(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
@@ -1275,7 +1358,9 @@ class TestClient(unittest.TestCase):
         self.sdk.get_scan_target_group_script(organization_id, scan_target_group_id)
 
         self.sdk._request.assert_called_once_with(
-            "GET", f"/organizations/{organization_id}/scantargetgroups/{scan_target_group_id}/scripts")
+            "GET",
+            f"/organizations/{organization_id}/scantargetgroups/{scan_target_group_id}/scripts",
+        )
         with self.assertRaises(TypeError):
             self.sdk.get_scan_target_group_script(None, scan_target_group_id)
         with self.assertRaises(TypeError):
@@ -1289,38 +1374,59 @@ class TestClient(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.sdk.get_scan_target_group_script(organization_id, "foo")
         with self.assertRaises(ValueError):
-            self.sdk.get_scan_target_group_script( "", scan_target_group_id)
+            self.sdk.get_scan_target_group_script("", scan_target_group_id)
         with self.assertRaises(ValueError):
             self.sdk.get_scan_target_group_script("foo", scan_target_group_id)
 
     def test_insert_scan_target_group_credential(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         scan_target_group_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
-        credential = zanshinsdk.ScanTargetGroupCredentialListORACLE("us-ashburn-1", "ocid1.tenancy.oc1..aaaaaaaa0000000000000000000000000000000000000000000000000000",
-                                                                    "ocid1.user.oc1..aaaaaaaa0000000000000000000000000000000000000000000000000000",
-                                                                    "1a:1a:aa:1a:11:11:aa:11:11:11:1a:1a:1a:a:1a:1a" )
+        credential = zanshinsdk.ScanTargetGroupCredentialListORACLE(
+            "us-ashburn-1",
+            "ocid1.tenancy.oc1..aaaaaaaa0000000000000000000000000000000000000000000000000000",
+            "ocid1.user.oc1..aaaaaaaa0000000000000000000000000000000000000000000000000000",
+            "1a:1a:aa:1a:11:11:aa:11:11:11:1a:1a:1a:a:1a:1a",
+        )
 
-        self.sdk.insert_scan_target_group_credential(organization_id, scan_target_group_id, credential)
+        self.sdk.insert_scan_target_group_credential(
+            organization_id, scan_target_group_id, credential
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/organizations/{organization_id}/scantargetgroups/{scan_target_group_id}", body={"credential": credential}
+            "POST",
+            f"/organizations/{organization_id}/scantargetgroups/{scan_target_group_id}",
+            body={"credential": credential},
         )
         with self.assertRaises(TypeError):
-            self.sdk.insert_scan_target_group_credential(None, scan_target_group_id, credential)
+            self.sdk.insert_scan_target_group_credential(
+                None, scan_target_group_id, credential
+            )
         with self.assertRaises(TypeError):
-            self.sdk.insert_scan_target_group_credential(1, scan_target_group_id, credential)
+            self.sdk.insert_scan_target_group_credential(
+                1, scan_target_group_id, credential
+            )
         with self.assertRaises(TypeError):
-            self.sdk.insert_scan_target_group_credential(organization_id, None, credential)
+            self.sdk.insert_scan_target_group_credential(
+                organization_id, None, credential
+            )
         with self.assertRaises(TypeError):
             self.sdk.insert_scan_target_group_credential(organization_id, 1, credential)
         with self.assertRaises(ValueError):
-            self.sdk.insert_scan_target_group_credential(organization_id, "", credential)
+            self.sdk.insert_scan_target_group_credential(
+                organization_id, "", credential
+            )
         with self.assertRaises(ValueError):
-            self.sdk.insert_scan_target_group_credential(organization_id, "foo", credential)
+            self.sdk.insert_scan_target_group_credential(
+                organization_id, "foo", credential
+            )
         with self.assertRaises(ValueError):
-            self.sdk.insert_scan_target_group_credential( "", scan_target_group_id, credential)
+            self.sdk.insert_scan_target_group_credential(
+                "", scan_target_group_id, credential
+            )
         with self.assertRaises(ValueError):
-            self.sdk.insert_scan_target_group_credential("foo", scan_target_group_id, credential)
+            self.sdk.insert_scan_target_group_credential(
+                "foo", scan_target_group_id, credential
+            )
 
     ###################################################
     # Alerts
@@ -1341,21 +1447,24 @@ class TestClient(unittest.TestCase):
         sort = zanshinsdk.SortOpts.ASC
         order = zanshinsdk.AlertsOrderOpts.SEVERITY
 
-        self.sdk._get_alerts_page(organization_id,
-                                  page=page,
-                                  page_size=page_size,
-                                  rule=rule,
-                                  language=language,
-                                  search=search,
-                                  order=order,
-                                  sort=sort,
-                                  created_at_start=created_at_start,
-                                  created_at_end=created_at_end,
-                                  updated_at_start=updated_at_start,
-                                  updated_at_end=updated_at_end)
+        self.sdk._get_alerts_page(
+            organization_id,
+            page=page,
+            page_size=page_size,
+            rule=rule,
+            language=language,
+            search=search,
+            order=order,
+            sort=sort,
+            created_at_start=created_at_start,
+            created_at_end=created_at_end,
+            updated_at_start=updated_at_start,
+            updated_at_end=updated_at_end,
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts",
+            "POST",
+            f"/alerts",
             body={
                 "organizationId": organization_id,
                 "page": page,
@@ -1368,8 +1477,8 @@ class TestClient(unittest.TestCase):
                 "createdAtStart": created_at_start,
                 "createdAtEnd": created_at_end,
                 "updatedAtStart": updated_at_start,
-                "updatedAtEnd": updated_at_end
-            }
+                "updatedAtEnd": updated_at_end,
+            },
         )
 
     def test_get_alerts_page_str_scan_target_ids(self):
@@ -1378,34 +1487,49 @@ class TestClient(unittest.TestCase):
         page_size = 100
         scan_target_ids = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
 
-        self.sdk._get_alerts_page(organization_id, page=page, page_size=page_size, scan_target_ids=scan_target_ids)
+        self.sdk._get_alerts_page(
+            organization_id,
+            page=page,
+            page_size=page_size,
+            scan_target_ids=scan_target_ids,
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts",
+            "POST",
+            f"/alerts",
             body={
                 "organizationId": organization_id,
                 "page": page,
                 "pageSize": page_size,
-                "scanTargetIds": [scan_target_ids]
-            }
+                "scanTargetIds": [scan_target_ids],
+            },
         )
 
     def test_get_alerts_page_iterable_scan_target_ids(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         page = 1
         page_size = 100
-        scan_target_ids = ["e22f4225-43e9-4922-b6b8-8b0620bdb110", "e22f4225-43e9-4922-b6b8-8b0620bdb112"]
+        scan_target_ids = [
+            "e22f4225-43e9-4922-b6b8-8b0620bdb110",
+            "e22f4225-43e9-4922-b6b8-8b0620bdb112",
+        ]
 
-        self.sdk._get_alerts_page(organization_id, page=page, page_size=page_size, scan_target_ids=scan_target_ids)
+        self.sdk._get_alerts_page(
+            organization_id,
+            page=page,
+            page_size=page_size,
+            scan_target_ids=scan_target_ids,
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts",
+            "POST",
+            f"/alerts",
             body={
                 "organizationId": organization_id,
                 "page": page,
                 "pageSize": page_size,
-                "scanTargetIds": scan_target_ids
-            }
+                "scanTargetIds": scan_target_ids,
+            },
         )
 
     def test_get_alerts_page_str_states(self):
@@ -1414,16 +1538,19 @@ class TestClient(unittest.TestCase):
         page_size = 100
         states = zanshinsdk.AlertState.OPEN
 
-        self.sdk._get_alerts_page(organization_id, page=page, page_size=page_size, states=states)
+        self.sdk._get_alerts_page(
+            organization_id, page=page, page_size=page_size, states=states
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts",
+            "POST",
+            f"/alerts",
             body={
                 "organizationId": organization_id,
                 "page": page,
                 "pageSize": page_size,
-                "states": [states]
-            }
+                "states": [states],
+            },
         )
 
     def test_get_alerts_page_iterable_states(self):
@@ -1432,16 +1559,19 @@ class TestClient(unittest.TestCase):
         page_size = 100
         states = [zanshinsdk.AlertState.OPEN, zanshinsdk.AlertState.CLOSED]
 
-        self.sdk._get_alerts_page(organization_id, page=page, page_size=page_size, states=states)
+        self.sdk._get_alerts_page(
+            organization_id, page=page, page_size=page_size, states=states
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts",
+            "POST",
+            f"/alerts",
             body={
                 "organizationId": organization_id,
                 "page": page,
                 "pageSize": page_size,
-                "states": states
-            }
+                "states": states,
+            },
         )
 
     def test_get_alerts_page_str_severities(self):
@@ -1450,16 +1580,19 @@ class TestClient(unittest.TestCase):
         page_size = 100
         severities = zanshinsdk.AlertSeverity.CRITICAL
 
-        self.sdk._get_alerts_page(organization_id, page=page, page_size=page_size, severities=severities)
+        self.sdk._get_alerts_page(
+            organization_id, page=page, page_size=page_size, severities=severities
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts",
+            "POST",
+            f"/alerts",
             body={
                 "organizationId": organization_id,
                 "page": page,
                 "pageSize": page_size,
-                "severities": [severities]
-            }
+                "severities": [severities],
+            },
         )
 
     def test_get_alerts_page_iterable_severities(self):
@@ -1468,16 +1601,19 @@ class TestClient(unittest.TestCase):
         page_size = 100
         severities = [zanshinsdk.AlertSeverity.CRITICAL, zanshinsdk.AlertSeverity.HIGH]
 
-        self.sdk._get_alerts_page(organization_id, page=page, page_size=page_size, severities=severities)
+        self.sdk._get_alerts_page(
+            organization_id, page=page, page_size=page_size, severities=severities
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts",
+            "POST",
+            f"/alerts",
             body={
                 "organizationId": organization_id,
                 "page": page,
                 "pageSize": page_size,
-                "severities": severities
-            }
+                "severities": severities,
+            },
         )
 
     @patch("zanshinsdk.client.Client._get_alerts_page")
@@ -1497,14 +1633,44 @@ class TestClient(unittest.TestCase):
         next(iterator)
         next(iterator)
 
-        self.sdk._get_alerts_page.assert_has_calls([
-            call(organization_id, None, None, None, None, page=page, page_size=page_size, language=None,
-                search=None, order=None, sort=None,
-                created_at_start=None, created_at_end=None, updated_at_start=None, updated_at_end=None),
-            call(organization_id, None, None, None, None, page=page + 1, page_size=page_size, language=None,
-                search=None, order=None, sort=None,
-                created_at_start=None, created_at_end=None, updated_at_start=None, updated_at_end=None)
-        ])
+        self.sdk._get_alerts_page.assert_has_calls(
+            [
+                call(
+                    organization_id,
+                    None,
+                    None,
+                    None,
+                    None,
+                    page=page,
+                    page_size=page_size,
+                    language=None,
+                    search=None,
+                    order=None,
+                    sort=None,
+                    created_at_start=None,
+                    created_at_end=None,
+                    updated_at_start=None,
+                    updated_at_end=None,
+                ),
+                call(
+                    organization_id,
+                    None,
+                    None,
+                    None,
+                    None,
+                    page=page + 1,
+                    page_size=page_size,
+                    language=None,
+                    search=None,
+                    order=None,
+                    sort=None,
+                    created_at_start=None,
+                    created_at_end=None,
+                    updated_at_start=None,
+                    updated_at_end=None,
+                ),
+            ]
+        )
 
     def test_get_following_alerts_page(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
@@ -1517,18 +1683,21 @@ class TestClient(unittest.TestCase):
         updated_at_start = "updated_at_start"
         updated_at_end = "updated_at_end"
 
-        self.sdk._get_following_alerts_page(organization_id,
-                                            page=page,
-                                            page_size=page_size,
-                                            rule=rule,
-                                            language=language,
-                                            created_at_start=created_at_start,
-                                            created_at_end=created_at_end,
-                                            updated_at_start=updated_at_start,
-                                            updated_at_end=updated_at_end)
+        self.sdk._get_following_alerts_page(
+            organization_id,
+            page=page,
+            page_size=page_size,
+            rule=rule,
+            language=language,
+            created_at_start=created_at_start,
+            created_at_end=created_at_end,
+            updated_at_start=updated_at_start,
+            updated_at_end=updated_at_end,
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/following",
+            "POST",
+            f"/alerts/following",
             body={
                 "organizationId": organization_id,
                 "page": page,
@@ -1538,8 +1707,8 @@ class TestClient(unittest.TestCase):
                 "CreatedAtStart": created_at_start,
                 "CreatedAtEnd": created_at_end,
                 "UpdatedAtStart": updated_at_start,
-                "UpdatedAtEnd": updated_at_end
-            }
+                "UpdatedAtEnd": updated_at_end,
+            },
         )
 
     def test_get_following_alerts_page_str_following_ids(self):
@@ -1548,40 +1717,43 @@ class TestClient(unittest.TestCase):
         page_size = 100
         following_ids = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
 
-        self.sdk._get_following_alerts_page(organization_id,
-                                            page=page,
-                                            page_size=page_size,
-                                            following_ids=following_ids)
+        self.sdk._get_following_alerts_page(
+            organization_id, page=page, page_size=page_size, following_ids=following_ids
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/following",
+            "POST",
+            f"/alerts/following",
             body={
                 "organizationId": organization_id,
                 "page": page,
                 "pageSize": page_size,
-                "followingIds": [following_ids]
-            }
+                "followingIds": [following_ids],
+            },
         )
 
     def test_get_following_alerts_page_iterable_following_ids(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         page = 1
         page_size = 100
-        following_ids = ["e22f4225-43e9-4922-b6b8-8b0620bdb110", "e22f4225-43e9-4922-b6b8-8b0620bdb112"]
+        following_ids = [
+            "e22f4225-43e9-4922-b6b8-8b0620bdb110",
+            "e22f4225-43e9-4922-b6b8-8b0620bdb112",
+        ]
 
-        self.sdk._get_following_alerts_page(organization_id,
-                                            page=page,
-                                            page_size=page_size,
-                                            following_ids=following_ids)
+        self.sdk._get_following_alerts_page(
+            organization_id, page=page, page_size=page_size, following_ids=following_ids
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/following",
+            "POST",
+            f"/alerts/following",
             body={
                 "organizationId": organization_id,
                 "page": page,
                 "pageSize": page_size,
-                "followingIds": following_ids
-            }
+                "followingIds": following_ids,
+            },
         )
 
     def test_get_following_alerts_page_str_states(self):
@@ -1590,16 +1762,19 @@ class TestClient(unittest.TestCase):
         page_size = 100
         states = zanshinsdk.AlertState.OPEN
 
-        self.sdk._get_following_alerts_page(organization_id, page=page, page_size=page_size, states=states)
+        self.sdk._get_following_alerts_page(
+            organization_id, page=page, page_size=page_size, states=states
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/following",
+            "POST",
+            f"/alerts/following",
             body={
                 "organizationId": organization_id,
                 "page": page,
                 "pageSize": page_size,
-                "states": [states]
-            }
+                "states": [states],
+            },
         )
 
     def test_get_following_alerts_page_iterable_states(self):
@@ -1608,16 +1783,19 @@ class TestClient(unittest.TestCase):
         page_size = 100
         states = [zanshinsdk.AlertState.OPEN, zanshinsdk.AlertState.CLOSED]
 
-        self.sdk._get_following_alerts_page(organization_id, page=page, page_size=page_size, states=states)
+        self.sdk._get_following_alerts_page(
+            organization_id, page=page, page_size=page_size, states=states
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/following",
+            "POST",
+            f"/alerts/following",
             body={
                 "organizationId": organization_id,
                 "page": page,
                 "pageSize": page_size,
-                "states": states
-            }
+                "states": states,
+            },
         )
 
     def test_get_following_alerts_page_str_severities(self):
@@ -1626,16 +1804,19 @@ class TestClient(unittest.TestCase):
         page_size = 100
         severities = zanshinsdk.AlertSeverity.CRITICAL
 
-        self.sdk._get_following_alerts_page(organization_id, page=page, page_size=page_size, severities=severities)
+        self.sdk._get_following_alerts_page(
+            organization_id, page=page, page_size=page_size, severities=severities
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/following",
+            "POST",
+            f"/alerts/following",
             body={
                 "organizationId": organization_id,
                 "page": page,
                 "pageSize": page_size,
-                "severities": [severities]
-            }
+                "severities": [severities],
+            },
         )
 
     def test_get_following_alerts_page_iterable_severities(self):
@@ -1644,16 +1825,19 @@ class TestClient(unittest.TestCase):
         page_size = 100
         severities = [zanshinsdk.AlertSeverity.CRITICAL, zanshinsdk.AlertSeverity.HIGH]
 
-        self.sdk._get_following_alerts_page(organization_id, page=page, page_size=page_size, severities=severities)
+        self.sdk._get_following_alerts_page(
+            organization_id, page=page, page_size=page_size, severities=severities
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/following",
+            "POST",
+            f"/alerts/following",
             body={
                 "organizationId": organization_id,
                 "page": page,
                 "pageSize": page_size,
-                "severities": severities
-            }
+                "severities": severities,
+            },
         )
 
     @patch("zanshinsdk.client.Client._get_following_alerts_page")
@@ -1673,14 +1857,44 @@ class TestClient(unittest.TestCase):
         next(iterator)
         next(iterator)
 
-        self.sdk._get_following_alerts_page.assert_has_calls([
-            call(organization_id, None, None, None, None, page=page, page_size=page_size, language=None,
-                 created_at_start=None, created_at_end=None, updated_at_start=None, updated_at_end=None,
-                 search=None, order=None, sort=None),
-            call(organization_id, None, None, None, None, page=page + 1, page_size=page_size, language=None,
-                 created_at_start=None, created_at_end=None, updated_at_start=None, updated_at_end=None,
-                 search=None, order=None, sort=None)
-        ])
+        self.sdk._get_following_alerts_page.assert_has_calls(
+            [
+                call(
+                    organization_id,
+                    None,
+                    None,
+                    None,
+                    None,
+                    page=page,
+                    page_size=page_size,
+                    language=None,
+                    created_at_start=None,
+                    created_at_end=None,
+                    updated_at_start=None,
+                    updated_at_end=None,
+                    search=None,
+                    order=None,
+                    sort=None,
+                ),
+                call(
+                    organization_id,
+                    None,
+                    None,
+                    None,
+                    None,
+                    page=page + 1,
+                    page_size=page_size,
+                    language=None,
+                    created_at_start=None,
+                    created_at_end=None,
+                    updated_at_start=None,
+                    updated_at_end=None,
+                    search=None,
+                    order=None,
+                    sort=None,
+                ),
+            ]
+        )
 
     def test_get_alerts_history_page(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
@@ -1688,19 +1902,19 @@ class TestClient(unittest.TestCase):
         language = zanshinsdk.Languages.EN_US
         cursor = "12345678"
 
-        self.sdk._get_alerts_history_page(organization_id,
-                                          page_size=page_size,
-                                          language=language,
-                                          cursor=cursor)
+        self.sdk._get_alerts_history_page(
+            organization_id, page_size=page_size, language=language, cursor=cursor
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/history",
+            "POST",
+            f"/alerts/history",
             body={
                 "organizationId": organization_id,
                 "pageSize": page_size,
                 "lang": language,
-                "cursor": cursor
-            }
+                "cursor": cursor,
+            },
         )
 
     def test_get_alerts_history_page_str_scan_target_ids(self):
@@ -1708,35 +1922,40 @@ class TestClient(unittest.TestCase):
         page_size = 100
         scan_target_ids = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
 
-        self.sdk._get_alerts_history_page(organization_id,
-                                          page_size=page_size,
-                                          scan_target_ids=scan_target_ids)
+        self.sdk._get_alerts_history_page(
+            organization_id, page_size=page_size, scan_target_ids=scan_target_ids
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/history",
+            "POST",
+            f"/alerts/history",
             body={
                 "organizationId": organization_id,
                 "pageSize": page_size,
-                "scanTargetIds": [scan_target_ids]
-            }
+                "scanTargetIds": [scan_target_ids],
+            },
         )
 
     def test_get_alerts_history_page_iterable_scan_target_ids(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         page_size = 100
-        scan_target_ids = ["e22f4225-43e9-4922-b6b8-8b0620bdb110", "e22f4225-43e9-4922-b6b8-8b0620bdb112"]
+        scan_target_ids = [
+            "e22f4225-43e9-4922-b6b8-8b0620bdb110",
+            "e22f4225-43e9-4922-b6b8-8b0620bdb112",
+        ]
 
-        self.sdk._get_alerts_history_page(organization_id,
-                                          page_size=page_size,
-                                          scan_target_ids=scan_target_ids)
+        self.sdk._get_alerts_history_page(
+            organization_id, page_size=page_size, scan_target_ids=scan_target_ids
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/history",
+            "POST",
+            f"/alerts/history",
             body={
                 "organizationId": organization_id,
                 "pageSize": page_size,
-                "scanTargetIds": scan_target_ids
-            }
+                "scanTargetIds": scan_target_ids,
+            },
         )
 
     @patch("zanshinsdk.client.Client._get_alerts_history_page")
@@ -1754,10 +1973,20 @@ class TestClient(unittest.TestCase):
         next(iterator)
         next(iterator)
 
-        self.sdk._get_alerts_history_page.assert_has_calls([
-            call(organization_id, None, page_size=page_size, language=None, cursor=None),
-            call(organization_id, None, page_size=page_size, language=None, cursor=1),
-        ])
+        self.sdk._get_alerts_history_page.assert_has_calls(
+            [
+                call(
+                    organization_id,
+                    None,
+                    page_size=page_size,
+                    language=None,
+                    cursor=None,
+                ),
+                call(
+                    organization_id, None, page_size=page_size, language=None, cursor=1
+                ),
+            ]
+        )
 
     def test_get_alerts_following_history_page(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
@@ -1765,19 +1994,19 @@ class TestClient(unittest.TestCase):
         language = zanshinsdk.Languages.EN_US
         cursor = "12345678"
 
-        self.sdk._get_alerts_following_history_page(organization_id,
-                                                    page_size=page_size,
-                                                    language=language,
-                                                    cursor=cursor)
+        self.sdk._get_alerts_following_history_page(
+            organization_id, page_size=page_size, language=language, cursor=cursor
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/history/following",
+            "POST",
+            f"/alerts/history/following",
             body={
                 "organizationId": organization_id,
                 "pageSize": page_size,
                 "lang": language,
-                "cursor": cursor
-            }
+                "cursor": cursor,
+            },
         )
 
     def test_get_alerts_following_history_page_str_following_ids(self):
@@ -1785,35 +2014,40 @@ class TestClient(unittest.TestCase):
         page_size = 100
         following_ids = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
 
-        self.sdk._get_alerts_following_history_page(organization_id,
-                                                    page_size=page_size,
-                                                    following_ids=following_ids)
+        self.sdk._get_alerts_following_history_page(
+            organization_id, page_size=page_size, following_ids=following_ids
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/history/following",
+            "POST",
+            f"/alerts/history/following",
             body={
                 "organizationId": organization_id,
                 "pageSize": page_size,
-                "followingIds": [following_ids]
-            }
+                "followingIds": [following_ids],
+            },
         )
 
     def test_get_alerts_following_history_page_iterable_following_ids(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         page_size = 100
-        following_ids = ["e22f4225-43e9-4922-b6b8-8b0620bdb110", "e22f4225-43e9-4922-b6b8-8b0620bdb112"]
+        following_ids = [
+            "e22f4225-43e9-4922-b6b8-8b0620bdb110",
+            "e22f4225-43e9-4922-b6b8-8b0620bdb112",
+        ]
 
-        self.sdk._get_alerts_following_history_page(organization_id,
-                                                    page_size=page_size,
-                                                    following_ids=following_ids)
+        self.sdk._get_alerts_following_history_page(
+            organization_id, page_size=page_size, following_ids=following_ids
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/history/following",
+            "POST",
+            f"/alerts/history/following",
             body={
                 "organizationId": organization_id,
                 "pageSize": page_size,
-                "followingIds": following_ids
-            }
+                "followingIds": following_ids,
+            },
         )
 
     @patch("zanshinsdk.client.Client._get_alerts_following_history_page")
@@ -1826,32 +2060,45 @@ class TestClient(unittest.TestCase):
         }
 
         self.sdk._get_alerts_following_history_page = request
-        iterator = self.sdk.iter_alerts_following_history(organization_id, page_size=page_size)
+        iterator = self.sdk.iter_alerts_following_history(
+            organization_id, page_size=page_size
+        )
 
         next(iterator)
         next(iterator)
 
-        self.sdk._get_alerts_following_history_page.assert_has_calls([
-            call(organization_id, None, page_size=page_size, language=None, cursor=None),
-            call(organization_id, None, page_size=page_size, language=None, cursor=1),
-        ])
+        self.sdk._get_alerts_following_history_page.assert_has_calls(
+            [
+                call(
+                    organization_id,
+                    None,
+                    page_size=page_size,
+                    language=None,
+                    cursor=None,
+                ),
+                call(
+                    organization_id, None, page_size=page_size, language=None, cursor=1
+                ),
+            ]
+        )
 
     def test_get_grouped_alerts_page(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         page = 1
         page_size = 100
 
-        self.sdk._get_grouped_alerts_page(organization_id,
-                                          page=page,
-                                          page_size=page_size)
+        self.sdk._get_grouped_alerts_page(
+            organization_id, page=page, page_size=page_size
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/rules",
+            "POST",
+            f"/alerts/rules",
             body={
                 "organizationId": organization_id,
                 "page": page,
-                "pageSize": page_size
-            }
+                "pageSize": page_size,
+            },
         )
 
     def test_get_grouped_alerts_page_str_scan_target_ids(self):
@@ -1860,40 +2107,49 @@ class TestClient(unittest.TestCase):
         page_size = 100
         scan_target_ids = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
 
-        self.sdk._get_grouped_alerts_page(organization_id,
-                                          page=page,
-                                          page_size=page_size,
-                                          scan_target_ids=scan_target_ids)
+        self.sdk._get_grouped_alerts_page(
+            organization_id,
+            page=page,
+            page_size=page_size,
+            scan_target_ids=scan_target_ids,
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/rules",
+            "POST",
+            f"/alerts/rules",
             body={
                 "organizationId": organization_id,
                 "page": page,
                 "pageSize": page_size,
-                "scanTargetIds": [scan_target_ids]
-            }
+                "scanTargetIds": [scan_target_ids],
+            },
         )
 
     def test_get_grouped_alerts_page_iterable_scan_target_ids(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         page = 1
         page_size = 100
-        scan_target_ids = ["e22f4225-43e9-4922-b6b8-8b0620bdb110", "e22f4225-43e9-4922-b6b8-8b0620bdb112"]
+        scan_target_ids = [
+            "e22f4225-43e9-4922-b6b8-8b0620bdb110",
+            "e22f4225-43e9-4922-b6b8-8b0620bdb112",
+        ]
 
-        self.sdk._get_grouped_alerts_page(organization_id,
-                                          page=page,
-                                          page_size=page_size,
-                                          scan_target_ids=scan_target_ids)
+        self.sdk._get_grouped_alerts_page(
+            organization_id,
+            page=page,
+            page_size=page_size,
+            scan_target_ids=scan_target_ids,
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/rules",
+            "POST",
+            f"/alerts/rules",
             body={
                 "organizationId": organization_id,
                 "page": page,
                 "pageSize": page_size,
-                "scanTargetIds": scan_target_ids
-            }
+                "scanTargetIds": scan_target_ids,
+            },
         )
 
     def test_get_grouped_alerts_page_str_states(self):
@@ -1902,16 +2158,19 @@ class TestClient(unittest.TestCase):
         page_size = 100
         states = zanshinsdk.AlertState.OPEN
 
-        self.sdk._get_grouped_alerts_page(organization_id, page=page, page_size=page_size, states=states)
+        self.sdk._get_grouped_alerts_page(
+            organization_id, page=page, page_size=page_size, states=states
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/rules",
+            "POST",
+            f"/alerts/rules",
             body={
                 "organizationId": organization_id,
                 "page": page,
                 "pageSize": page_size,
-                "states": [states]
-            }
+                "states": [states],
+            },
         )
 
     def test_get_grouped_alerts_page_iterable_states(self):
@@ -1920,16 +2179,19 @@ class TestClient(unittest.TestCase):
         page_size = 100
         states = [zanshinsdk.AlertState.OPEN, zanshinsdk.AlertState.CLOSED]
 
-        self.sdk._get_grouped_alerts_page(organization_id, page=page, page_size=page_size, states=states)
+        self.sdk._get_grouped_alerts_page(
+            organization_id, page=page, page_size=page_size, states=states
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/rules",
+            "POST",
+            f"/alerts/rules",
             body={
                 "organizationId": organization_id,
                 "page": page,
                 "pageSize": page_size,
-                "states": states
-            }
+                "states": states,
+            },
         )
 
     def test_get_grouped_alerts_page_str_severities(self):
@@ -1938,16 +2200,19 @@ class TestClient(unittest.TestCase):
         page_size = 100
         severities = zanshinsdk.AlertSeverity.CRITICAL
 
-        self.sdk._get_grouped_alerts_page(organization_id, page=page, page_size=page_size, severities=severities)
+        self.sdk._get_grouped_alerts_page(
+            organization_id, page=page, page_size=page_size, severities=severities
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/rules",
+            "POST",
+            f"/alerts/rules",
             body={
                 "organizationId": organization_id,
                 "page": page,
                 "pageSize": page_size,
-                "severities": [severities]
-            }
+                "severities": [severities],
+            },
         )
 
     def test_get_grouped_alerts_page_iterable_severities(self):
@@ -1956,16 +2221,19 @@ class TestClient(unittest.TestCase):
         page_size = 100
         severities = [zanshinsdk.AlertSeverity.CRITICAL, zanshinsdk.AlertSeverity.HIGH]
 
-        self.sdk._get_grouped_alerts_page(organization_id, page=page, page_size=page_size, severities=severities)
+        self.sdk._get_grouped_alerts_page(
+            organization_id, page=page, page_size=page_size, severities=severities
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/rules",
+            "POST",
+            f"/alerts/rules",
             body={
                 "organizationId": organization_id,
                 "page": page,
                 "pageSize": page_size,
-                "severities": severities
-            }
+                "severities": severities,
+            },
         )
 
     @patch("zanshinsdk.client.Client._get_grouped_alerts_page")
@@ -1974,10 +2242,7 @@ class TestClient(unittest.TestCase):
         page = 1
         page_size = 1
 
-        request.return_value = {
-            "data": [""],
-            "total": 2
-        }
+        request.return_value = {"data": [""], "total": 2}
 
         self.sdk._get_grouped_alerts_page = request
         iterator = self.sdk.iter_grouped_alerts(organization_id, page_size=page_size)
@@ -1985,23 +2250,52 @@ class TestClient(unittest.TestCase):
         next(iterator)
         next(iterator)
 
-        self.sdk._get_grouped_alerts_page.assert_has_calls([
-            call(organization_id, None, None, None, page=page, page_size=page_size, language=None, search=None,
-                 order=None, sort=None),
-            call(organization_id, None, None, None, page=page + 1, page_size=page_size, language=None, search=None,
-                 order=None, sort=None),
-        ])
+        self.sdk._get_grouped_alerts_page.assert_has_calls(
+            [
+                call(
+                    organization_id,
+                    None,
+                    None,
+                    None,
+                    page=page,
+                    page_size=page_size,
+                    language=None,
+                    search=None,
+                    order=None,
+                    sort=None,
+                ),
+                call(
+                    organization_id,
+                    None,
+                    None,
+                    None,
+                    page=page + 1,
+                    page_size=page_size,
+                    language=None,
+                    search=None,
+                    order=None,
+                    sort=None,
+                ),
+            ]
+        )
 
     def test_get_grouped_following_alerts_page(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         page = 1
         page_size = 100
 
-        self.sdk._get_grouped_following_alerts_page(organization_id, page=page, page_size=page_size)
+        self.sdk._get_grouped_following_alerts_page(
+            organization_id, page=page, page_size=page_size
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/rules/following",
-            body={"organizationId": organization_id, "page": page, "pageSize": page_size}
+            "POST",
+            f"/alerts/rules/following",
+            body={
+                "organizationId": organization_id,
+                "page": page,
+                "pageSize": page_size,
+            },
         )
 
     def test_get_grouped_following_alerts_page_str_following_ids(self):
@@ -2010,40 +2304,43 @@ class TestClient(unittest.TestCase):
         page_size = 100
         following_ids = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
 
-        self.sdk._get_grouped_following_alerts_page(organization_id,
-                                                    page=page,
-                                                    page_size=page_size,
-                                                    following_ids=following_ids)
+        self.sdk._get_grouped_following_alerts_page(
+            organization_id, page=page, page_size=page_size, following_ids=following_ids
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/rules/following",
+            "POST",
+            f"/alerts/rules/following",
             body={
                 "organizationId": organization_id,
                 "page": page,
                 "pageSize": page_size,
-                "followingIds": [following_ids]
-            }
+                "followingIds": [following_ids],
+            },
         )
 
     def test_get_grouped_following_alerts_page_iterable_following_ids(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         page = 1
         page_size = 100
-        following_ids = ["e22f4225-43e9-4922-b6b8-8b0620bdb110", "e22f4225-43e9-4922-b6b8-8b0620bdb112"]
+        following_ids = [
+            "e22f4225-43e9-4922-b6b8-8b0620bdb110",
+            "e22f4225-43e9-4922-b6b8-8b0620bdb112",
+        ]
 
-        self.sdk._get_grouped_following_alerts_page(organization_id,
-                                                    page=page,
-                                                    page_size=page_size,
-                                                    following_ids=following_ids)
+        self.sdk._get_grouped_following_alerts_page(
+            organization_id, page=page, page_size=page_size, following_ids=following_ids
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/rules/following",
+            "POST",
+            f"/alerts/rules/following",
             body={
                 "organizationId": organization_id,
                 "page": page,
                 "pageSize": page_size,
-                "followingIds": following_ids
-            }
+                "followingIds": following_ids,
+            },
         )
 
     def test_get_grouped_following_alerts_page_str_states(self):
@@ -2052,19 +2349,19 @@ class TestClient(unittest.TestCase):
         page_size = 100
         states = zanshinsdk.AlertState.OPEN
 
-        self.sdk._get_grouped_following_alerts_page(organization_id,
-                                                    page=page,
-                                                    page_size=page_size,
-                                                    states=states)
+        self.sdk._get_grouped_following_alerts_page(
+            organization_id, page=page, page_size=page_size, states=states
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/rules/following",
+            "POST",
+            f"/alerts/rules/following",
             body={
                 "organizationId": organization_id,
                 "page": page,
                 "pageSize": page_size,
-                "states": [states]
-            }
+                "states": [states],
+            },
         )
 
     def test_get_grouped_following_alerts_page_iterable_states(self):
@@ -2073,19 +2370,19 @@ class TestClient(unittest.TestCase):
         page_size = 100
         states = [zanshinsdk.AlertState.OPEN, zanshinsdk.AlertState.CLOSED]
 
-        self.sdk._get_grouped_following_alerts_page(organization_id,
-                                                    page=page,
-                                                    page_size=page_size,
-                                                    states=states)
+        self.sdk._get_grouped_following_alerts_page(
+            organization_id, page=page, page_size=page_size, states=states
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/rules/following",
+            "POST",
+            f"/alerts/rules/following",
             body={
                 "organizationId": organization_id,
                 "page": page,
                 "pageSize": page_size,
-                "states": states
-            }
+                "states": states,
+            },
         )
 
     def test_get_grouped_following_alerts_page_str_severities(self):
@@ -2094,19 +2391,19 @@ class TestClient(unittest.TestCase):
         page_size = 100
         severities = zanshinsdk.AlertSeverity.CRITICAL
 
-        self.sdk._get_grouped_following_alerts_page(organization_id,
-                                                    page=page,
-                                                    page_size=page_size,
-                                                    severities=severities)
+        self.sdk._get_grouped_following_alerts_page(
+            organization_id, page=page, page_size=page_size, severities=severities
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/rules/following",
+            "POST",
+            f"/alerts/rules/following",
             body={
                 "organizationId": organization_id,
                 "page": page,
                 "pageSize": page_size,
-                "severities": [severities]
-            }
+                "severities": [severities],
+            },
         )
 
     def test_get_grouped_following_alerts_page_iterable_severities(self):
@@ -2115,19 +2412,19 @@ class TestClient(unittest.TestCase):
         page_size = 100
         severities = [zanshinsdk.AlertSeverity.CRITICAL, zanshinsdk.AlertSeverity.HIGH]
 
-        self.sdk._get_grouped_following_alerts_page(organization_id,
-                                                    page=page,
-                                                    page_size=page_size,
-                                                    severities=severities)
+        self.sdk._get_grouped_following_alerts_page(
+            organization_id, page=page, page_size=page_size, severities=severities
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/rules/following",
+            "POST",
+            f"/alerts/rules/following",
             body={
                 "organizationId": organization_id,
                 "page": page,
                 "pageSize": page_size,
-                "severities": severities
-            }
+                "severities": severities,
+            },
         )
 
     @patch("zanshinsdk.client.Client._get_grouped_following_alerts_page")
@@ -2136,23 +2433,44 @@ class TestClient(unittest.TestCase):
         page = 1
         page_size = 1
 
-        request.return_value = {
-            "data": [""],
-            "total": 2
-        }
+        request.return_value = {"data": [""], "total": 2}
 
         self.sdk._get_grouped_following_alerts_page = request
-        iterator = self.sdk.iter_grouped_following_alerts(organization_id, page_size=page_size)
+        iterator = self.sdk.iter_grouped_following_alerts(
+            organization_id, page_size=page_size
+        )
 
         next(iterator)
         next(iterator)
 
-        self.sdk._get_grouped_following_alerts_page.assert_has_calls([
-            call(organization_id, None, None, None, page=page, page_size=page_size, language=None, search=None,
-                 order=None, sort=None),
-            call(organization_id, None, None, None, page=page + 1, page_size=page_size, language=None, search=None,
-                 order=None, sort=None),
-        ])
+        self.sdk._get_grouped_following_alerts_page.assert_has_calls(
+            [
+                call(
+                    organization_id,
+                    None,
+                    None,
+                    None,
+                    page=page,
+                    page_size=page_size,
+                    language=None,
+                    search=None,
+                    order=None,
+                    sort=None,
+                ),
+                call(
+                    organization_id,
+                    None,
+                    None,
+                    None,
+                    page=page + 1,
+                    page_size=page_size,
+                    language=None,
+                    search=None,
+                    order=None,
+                    sort=None,
+                ),
+            ]
+        )
 
     def test_get_alert(self):
         alert_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
@@ -2160,7 +2478,8 @@ class TestClient(unittest.TestCase):
         self.sdk.get_alert(alert_id)
 
         self.sdk._request.assert_called_once_with(
-            "GET", f"/alerts/{alert_id}",
+            "GET",
+            f"/alerts/{alert_id}",
         )
 
     def test_iter_alert_history(self):
@@ -2172,7 +2491,8 @@ class TestClient(unittest.TestCase):
             pass
 
         self.sdk._request.assert_called_once_with(
-            "GET", f"/alerts/{alert_id}/history",
+            "GET",
+            f"/alerts/{alert_id}/history",
         )
 
     def test_iter_alert_comments(self):
@@ -2184,7 +2504,8 @@ class TestClient(unittest.TestCase):
             pass
 
         self.sdk._request.assert_called_once_with(
-            "GET", f"/alerts/{alert_id}/comments",
+            "GET",
+            f"/alerts/{alert_id}/comments",
         )
 
     def test_update_alert(self):
@@ -2195,11 +2516,14 @@ class TestClient(unittest.TestCase):
         labels = ["Test"]
         comment = "Comment test"
 
-        self.sdk.update_alert(organization_id, scan_target_id, alert_id, state, labels, comment)
+        self.sdk.update_alert(
+            organization_id, scan_target_id, alert_id, state, labels, comment
+        )
 
         self.sdk._request.assert_called_once_with(
-            "PUT", f"/organizations/{organization_id}/scantargets/{scan_target_id}/alerts/{alert_id}",
-            body={"state": state, "labels": labels, "comment": comment}
+            "PUT",
+            f"/organizations/{organization_id}/scantargets/{scan_target_id}/alerts/{alert_id}",
+            body={"state": state, "labels": labels, "comment": comment},
         )
 
     def test_create_alert_comment(self):
@@ -2208,11 +2532,14 @@ class TestClient(unittest.TestCase):
         scan_target_id = "e22f4225-43e9-4922-b6b8-8b0620bdb113"
         comment = "Comment test"
 
-        self.sdk.create_alert_comment(organization_id, scan_target_id, alert_id, comment)
+        self.sdk.create_alert_comment(
+            organization_id, scan_target_id, alert_id, comment
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/organizations/{organization_id}/scantargets/{scan_target_id}/alerts/{alert_id}/comments",
-            body={"comment": comment}
+            "POST",
+            f"/organizations/{organization_id}/scantargets/{scan_target_id}/alerts/{alert_id}/comments",
+            body={"comment": comment},
         )
 
     ###################################################
@@ -2225,38 +2552,37 @@ class TestClient(unittest.TestCase):
         self.sdk.get_alert_summaries(organization_id)
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/summaries",
-            body={"organizationId": organization_id}
+            "POST", f"/alerts/summaries", body={"organizationId": organization_id}
         )
 
     def test_get_alert_summaries_str_scan_target_ids(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         scan_target_ids = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
 
-        self.sdk.get_alert_summaries(organization_id,
-                                     scan_target_ids=scan_target_ids)
+        self.sdk.get_alert_summaries(organization_id, scan_target_ids=scan_target_ids)
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/summaries",
+            "POST",
+            f"/alerts/summaries",
             body={
                 "organizationId": organization_id,
-                "scanTargetIds": [scan_target_ids]
-            }
+                "scanTargetIds": [scan_target_ids],
+            },
         )
 
     def test_get_alert_summaries_iterable_scan_target_ids(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        scan_target_ids = ["e22f4225-43e9-4922-b6b8-8b0620bdb110", "e22f4225-43e9-4922-b6b8-8b0620bdb112"]
+        scan_target_ids = [
+            "e22f4225-43e9-4922-b6b8-8b0620bdb110",
+            "e22f4225-43e9-4922-b6b8-8b0620bdb112",
+        ]
 
-        self.sdk.get_alert_summaries(organization_id,
-                                     scan_target_ids=scan_target_ids)
+        self.sdk.get_alert_summaries(organization_id, scan_target_ids=scan_target_ids)
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/summaries",
-            body={
-                "organizationId": organization_id,
-                "scanTargetIds": scan_target_ids
-            }
+            "POST",
+            f"/alerts/summaries",
+            body={"organizationId": organization_id, "scanTargetIds": scan_target_ids},
         )
 
     def test_get_following_alert_summaries(self):
@@ -2265,38 +2591,40 @@ class TestClient(unittest.TestCase):
         self.sdk.get_following_alert_summaries(organization_id)
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/summaries/following",
-            body={"organizationId": organization_id}
+            "POST",
+            f"/alerts/summaries/following",
+            body={"organizationId": organization_id},
         )
 
     def test_get_following_alert_summaries_str_following_ids(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         following_ids = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
 
-        self.sdk.get_following_alert_summaries(organization_id,
-                                               following_ids=following_ids)
+        self.sdk.get_following_alert_summaries(
+            organization_id, following_ids=following_ids
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/summaries/following",
-            body={
-                "organizationId": organization_id,
-                "followingIds": [following_ids]
-            }
+            "POST",
+            f"/alerts/summaries/following",
+            body={"organizationId": organization_id, "followingIds": [following_ids]},
         )
 
     def test_get_following_alert_summaries_iterable_following_ids(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        following_ids = ["e22f4225-43e9-4922-b6b8-8b0620bdb110", "e22f4225-43e9-4922-b6b8-8b0620bdb112"]
+        following_ids = [
+            "e22f4225-43e9-4922-b6b8-8b0620bdb110",
+            "e22f4225-43e9-4922-b6b8-8b0620bdb112",
+        ]
 
-        self.sdk.get_following_alert_summaries(organization_id,
-                                               following_ids=following_ids)
+        self.sdk.get_following_alert_summaries(
+            organization_id, following_ids=following_ids
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/summaries/following",
-            body={
-                "organizationId": organization_id,
-                "followingIds": following_ids
-            }
+            "POST",
+            f"/alerts/summaries/following",
+            body={"organizationId": organization_id, "followingIds": following_ids},
         )
 
     def test_get_scan_summaries(self):
@@ -2306,11 +2634,9 @@ class TestClient(unittest.TestCase):
         self.sdk.get_scan_summaries(organization_id, days=days)
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/summaries/scans",
-            body={
-                "organizationId": organization_id,
-                "daysBefore": days
-            }
+            "POST",
+            f"/alerts/summaries/scans",
+            body={"organizationId": organization_id, "daysBefore": days},
         )
 
     def test_get_scan_summaries_str_scan_target_ids(self):
@@ -2318,35 +2644,40 @@ class TestClient(unittest.TestCase):
         days = 7
         scan_target_ids = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
 
-        self.sdk.get_scan_summaries(organization_id,
-                                    days=days,
-                                    scan_target_ids=scan_target_ids)
+        self.sdk.get_scan_summaries(
+            organization_id, days=days, scan_target_ids=scan_target_ids
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/summaries/scans",
+            "POST",
+            f"/alerts/summaries/scans",
             body={
                 "organizationId": organization_id,
                 "daysBefore": days,
-                "scanTargetIds": [scan_target_ids]
-            }
+                "scanTargetIds": [scan_target_ids],
+            },
         )
 
     def test_get_scan_summaries_iterable_scan_target_ids(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         days = 7
-        scan_target_ids = ["e22f4225-43e9-4922-b6b8-8b0620bdb110", "e22f4225-43e9-4922-b6b8-8b0620bdb112"]
+        scan_target_ids = [
+            "e22f4225-43e9-4922-b6b8-8b0620bdb110",
+            "e22f4225-43e9-4922-b6b8-8b0620bdb112",
+        ]
 
-        self.sdk.get_scan_summaries(organization_id,
-                                    days=days,
-                                    scan_target_ids=scan_target_ids)
+        self.sdk.get_scan_summaries(
+            organization_id, days=days, scan_target_ids=scan_target_ids
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/summaries/scans",
+            "POST",
+            f"/alerts/summaries/scans",
             body={
                 "organizationId": organization_id,
                 "daysBefore": days,
-                "scanTargetIds": scan_target_ids
-            }
+                "scanTargetIds": scan_target_ids,
+            },
         )
 
     def test_get_following_scan_summaries(self):
@@ -2356,11 +2687,9 @@ class TestClient(unittest.TestCase):
         self.sdk.get_following_scan_summaries(organization_id, days=days)
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/summaries/scans/following",
-            body={
-                "organizationId": organization_id,
-                "daysBefore": days
-            }
+            "POST",
+            f"/alerts/summaries/scans/following",
+            body={"organizationId": organization_id, "daysBefore": days},
         )
 
     def test_get_following_scan_summaries_str_following_ids(self):
@@ -2368,35 +2697,40 @@ class TestClient(unittest.TestCase):
         days = 7
         following_ids = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
 
-        self.sdk.get_following_scan_summaries(organization_id,
-                                              days=days,
-                                              following_ids=following_ids)
+        self.sdk.get_following_scan_summaries(
+            organization_id, days=days, following_ids=following_ids
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/summaries/scans/following",
+            "POST",
+            f"/alerts/summaries/scans/following",
             body={
                 "organizationId": organization_id,
                 "daysBefore": days,
-                "followingIds": [following_ids]
-            }
+                "followingIds": [following_ids],
+            },
         )
 
     def test_get_following_scan_summaries_iterable_following_ids(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         days = 7
-        following_ids = ["e22f4225-43e9-4922-b6b8-8b0620bdb110", "e22f4225-43e9-4922-b6b8-8b0620bdb112"]
+        following_ids = [
+            "e22f4225-43e9-4922-b6b8-8b0620bdb110",
+            "e22f4225-43e9-4922-b6b8-8b0620bdb112",
+        ]
 
-        self.sdk.get_following_scan_summaries(organization_id,
-                                              days=days,
-                                              following_ids=following_ids)
+        self.sdk.get_following_scan_summaries(
+            organization_id, days=days, following_ids=following_ids
+        )
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/alerts/summaries/scans/following",
+            "POST",
+            f"/alerts/summaries/scans/following",
             body={
                 "organizationId": organization_id,
                 "daysBefore": days,
-                "followingIds": following_ids
-            }
+                "followingIds": following_ids,
+            },
         )
 
     ###################################################
@@ -2404,8 +2738,10 @@ class TestClient(unittest.TestCase):
     ###################################################
 
     def test__repr__(self):
-        _response = f"Connection(api_url='https://api.zanshin.tenchisecurity.com', api_key='***pi_key', " \
-                    f"user_agent='Zanshin Python SDK v{zanshinsdk.version.__version__}', proxy_url='None')"
+        _response = (
+            f"Connection(api_url='https://api.zanshin.tenchisecurity.com', api_key='***pi_key', "
+            f"user_agent='Zanshin Python SDK v{zanshinsdk.version.__version__}', proxy_url='None')"
+        )
         self.assertEqual(self.sdk.__repr__(), _response)
 
     ###################################################
@@ -2436,7 +2772,7 @@ class TestClient(unittest.TestCase):
         try:
             zanshinsdk.client.validate_int(_int, min_value=_min_value)
         except Exception as e:
-            self.assertEqual(str(e), f"{_int} shouldn\'t be lower than {_min_value}")
+            self.assertEqual(str(e), f"{_int} shouldn't be lower than {_min_value}")
 
     def test_validate_int_higher_than(self):
         _int = 11
@@ -2444,14 +2780,16 @@ class TestClient(unittest.TestCase):
         try:
             zanshinsdk.client.validate_int(_int, max_value=_max_value)
         except Exception as e:
-            self.assertEqual(str(e), f"{_int} shouldn\'t be higher than {_max_value}")
+            self.assertEqual(str(e), f"{_int} shouldn't be higher than {_max_value}")
 
     def test_validate_class(self):
         _invalid_class = "invalid"
         try:
             zanshinsdk.client.validate_class(_invalid_class, UUID)
         except Exception as e:
-            self.assertEqual(str(e), f"{repr(_invalid_class)} is not an instance of {UUID.__name__}")
+            self.assertEqual(
+                str(e), f"{repr(_invalid_class)} is not an instance of {UUID.__name__}"
+            )
 
     def test_validate_uuid(self):
         _uuid = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
@@ -2464,7 +2802,7 @@ class TestClient(unittest.TestCase):
             zanshinsdk.client.validate_uuid(_uuid)
         except Exception as e:
             self.assertEqual(str(e), f"{repr(_uuid)} is not a valid UUID")
-            
+
     def test_validate_uuid_input(self):
         with self.assertRaises(TypeError):
             zanshinsdk.validate_uuid(1)
@@ -2501,15 +2839,23 @@ class TestClient(unittest.TestCase):
         credential = zanshinsdk.ScanTargetAZURE("4321", "1234", "1234", "s3cr3t")
         schedule = "0 0 * * *"
         region = "us-east-1"
-        boto3_profile = 'foo'
+        boto3_profile = "foo"
 
         try:
             self.sdk.onboard_scan_target(
-                region, organization_id, kind, name, credential, None, boto3_profile, schedule)
+                region,
+                organization_id,
+                kind,
+                name,
+                credential,
+                None,
+                boto3_profile,
+                schedule,
+            )
         except Exception as e:
             self.assertEqual(str(e), "Onboard doesn't support AZURE environment yet")
 
-    @unittest.skipIf('HAVE_BOTO3', "requires not have boto3")
+    @unittest.skipIf("HAVE_BOTO3", "requires not have boto3")
     def test_onboard_scan_target_aws_missing_boto3(self):
         """
         Call onboard_scan_target without boto3 installed.
@@ -2536,15 +2882,25 @@ class TestClient(unittest.TestCase):
         credential = zanshinsdk.ScanTargetAWS("4321")
         schedule = "0 0 * * *"
         region = "us-east-1"
-        boto3_profile = 'foo'
+        boto3_profile = "foo"
 
         try:
             self.sdk.onboard_scan_target(
-                region, organization_id, kind, name, credential, None, boto3_profile, schedule)
+                region,
+                organization_id,
+                kind,
+                name,
+                credential,
+                None,
+                boto3_profile,
+                schedule,
+            )
         except Exception as e:
-            self.assertEqual(str(e), "boto3 not present. boto3 is required to perform AWS onboard.")
+            self.assertEqual(
+                str(e), "boto3 not present. boto3 is required to perform AWS onboard."
+            )
 
-    @unittest.skipUnless('HAVE_BOTO3', "requires boto3")
+    @unittest.skipUnless("HAVE_BOTO3", "requires boto3")
     def test_onboard_scan_target_aws_invalid_credentials_boto3_profile(self):
         """
         Call onboard_scan_target passing a non-existing boto3_profile.
@@ -2572,17 +2928,24 @@ class TestClient(unittest.TestCase):
         credential = zanshinsdk.ScanTargetAWS("4321")
         schedule = "0 0 * * *"
         region = "us-east-1"
-        boto3_profile = 'non_default'
+        boto3_profile = "non_default"
 
         try:
-            self.sdk.onboard_scan_target(region=region, organization_id=organization_id, kind=kind,
-                                         name=name, credential=credential, boto3_profile=boto3_profile,
-                                         schedule=schedule)
+            self.sdk.onboard_scan_target(
+                region=region,
+                organization_id=organization_id,
+                kind=kind,
+                name=name,
+                credential=credential,
+                boto3_profile=boto3_profile,
+                schedule=schedule,
+            )
         except Exception as e:
             self.assertEqual(
-                str(e), "The config profile (non_default) could not be found")
+                str(e), "The config profile (non_default) could not be found"
+            )
 
-    @unittest.skipUnless('HAVE_BOTO3', "requires boto3")
+    @unittest.skipUnless("HAVE_BOTO3", "requires boto3")
     def test_onboard_scan_target_aws_invalid_credentials_boto3_session(self):
         """
         Call onboard_scan_target passing an invalid boto3_session.
@@ -2613,17 +2976,24 @@ class TestClient(unittest.TestCase):
 
         try:
             boto3_session = boto3.Session(
-                aws_access_key_id='EXAMPLE_NON_EXISTING_KEY',
-                aws_secret_access_key='&x@mP|e$3cReT',
-                aws_session_token='session_token'
+                aws_access_key_id="EXAMPLE_NON_EXISTING_KEY",
+                aws_secret_access_key="&x@mP|e$3cReT",
+                aws_session_token="session_token",
             )
-            self.sdk.onboard_scan_target(region=region, organization_id=organization_id, kind=kind,
-                                         name=name, credential=credential, boto3_session=boto3_session)
+            self.sdk.onboard_scan_target(
+                region=region,
+                organization_id=organization_id,
+                kind=kind,
+                name=name,
+                credential=credential,
+                boto3_session=boto3_session,
+            )
         except Exception as e:
             self.assertEqual(
-                str(e), "boto3 session is invalid. Working boto3 session is required.")
+                str(e), "boto3 session is invalid. Working boto3 session is required."
+            )
 
-    @unittest.skipUnless('HAVE_BOTO3', "requires boto3")
+    @unittest.skipUnless("HAVE_BOTO3", "requires boto3")
     @patch("zanshinsdk.client.isfile")
     @patch("zanshinsdk.Client._request")
     @mock_sts
@@ -2650,8 +3020,9 @@ class TestClient(unittest.TestCase):
         >>> new_scan_target = self.sdk.onboard_scan_target(
                 region, organization_id, kind, name, credential, None, boto3_profile, schedule)
         """
-        import boto3
         import json
+
+        import boto3
 
         # Setup test data
         aws_account_id = "123456789012"
@@ -2662,7 +3033,7 @@ class TestClient(unittest.TestCase):
         credential = zanshinsdk.ScanTargetAWS(aws_account_id)
         schedule = "24h"
         region = "us-east-1"
-        boto3_profile = 'foo'
+        boto3_profile = "foo"
 
         # Mock AWS Credentials for Boto3
         self.mock_aws_credentials()
@@ -2672,33 +3043,53 @@ class TestClient(unittest.TestCase):
         _data = "[default]\napi_key=api_key"
 
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-            request.return_value = Mock(status_code=200, json=lambda: {
-                "id": created_scan_target_id})
+            request.return_value = Mock(
+                status_code=200, json=lambda: {"id": created_scan_target_id}
+            )
             client = zanshinsdk.Client()
             client._client.request = request
 
         # Create Mocked S3 tenchi-assets bucket
-        with open('zanshinsdk/dummy_cloudformation_zanshin_service_role_template.json', 'r') as dummy_template_file:
+        with open(
+            "zanshinsdk/dummy_cloudformation_zanshin_service_role_template.json", "r"
+        ) as dummy_template_file:
             DUMMY_TEMPLATE = json.load(dummy_template_file)
-            s3 = boto3.client('s3', region_name='us-east-2')
-            s3.create_bucket(Bucket='tenchi-assets',
-                             CreateBucketConfiguration={'LocationConstraint': 'us-east-2'})
-            s3.put_object(Bucket='tenchi-assets',
-                          Key='zanshin-service-role.template', Body=json.dumps(DUMMY_TEMPLATE))
+            s3 = boto3.client("s3", region_name="us-east-2")
+            s3.create_bucket(
+                Bucket="tenchi-assets",
+                CreateBucketConfiguration={"LocationConstraint": "us-east-2"},
+            )
+            s3.put_object(
+                Bucket="tenchi-assets",
+                Key="zanshin-service-role.template",
+                Body=json.dumps(DUMMY_TEMPLATE),
+            )
 
         # Call method onboard_scan_target with boto3_profile
         new_scan_target = client.onboard_scan_target(
-            region, organization_id, kind, name, credential, None, boto3_profile, schedule)
+            region,
+            organization_id,
+            kind,
+            name,
+            credential,
+            None,
+            boto3_profile,
+            schedule,
+        )
 
         # Assert that Scan Target was created
-        self.assertEqual(created_scan_target_id, new_scan_target['id'])
+        self.assertEqual(created_scan_target_id, new_scan_target["id"])
 
         # Assert that Scan Target was called with correct parameters
         client._client.request.assert_any_call(
             "POST",
             f"/organizations/{organization_id}/scantargets",
-            body={"name": name, "kind": kind, "schedule": schedule,
-                  "credential": {"account": aws_account_id}}
+            body={
+                "name": name,
+                "kind": kind,
+                "schedule": schedule,
+                "credential": {"account": aws_account_id},
+            },
         )
         # Assert that we checked Scan Target to start scan
         client._client.request.assert_any_call(
@@ -2707,21 +3098,22 @@ class TestClient(unittest.TestCase):
         )
 
         # Assert CloudFormation Stack was created successfully
-        zanshin_cloudformation_stack_name = 'tenchi-zanshin-service-role'
-        cloudformation = boto3.client(
-            'cloudformation', region_name='us-east-1')
+        zanshin_cloudformation_stack_name = "tenchi-zanshin-service-role"
+        cloudformation = boto3.client("cloudformation", region_name="us-east-1")
         zanshin_stack = cloudformation.describe_stacks(
-            StackName=zanshin_cloudformation_stack_name)['Stacks'][0]
-        self.assertEqual('CREATE_COMPLETE', zanshin_stack['StackStatus'])
-        self.assertEqual(zanshin_cloudformation_stack_name,
-                         zanshin_stack['StackName'])
+            StackName=zanshin_cloudformation_stack_name
+        )["Stacks"][0]
+        self.assertEqual("CREATE_COMPLETE", zanshin_stack["StackStatus"])
+        self.assertEqual(zanshin_cloudformation_stack_name, zanshin_stack["StackName"])
 
         # Clean Up CloudFormation
-        cf_stacks = cloudformation.describe_stacks(StackName=zanshin_cloudformation_stack_name)
-        for cf_stack in cf_stacks['Stacks']:
-            cloudformation.delete_stack(StackName=cf_stack['StackName'])
+        cf_stacks = cloudformation.describe_stacks(
+            StackName=zanshin_cloudformation_stack_name
+        )
+        for cf_stack in cf_stacks["Stacks"]:
+            cloudformation.delete_stack(StackName=cf_stack["StackName"])
 
-    @unittest.skipUnless('HAVE_BOTO3', "requires boto3")
+    @unittest.skipUnless("HAVE_BOTO3", "requires boto3")
     @patch("zanshinsdk.client.isfile")
     @patch("zanshinsdk.Client._request")
     @mock_sts
@@ -2748,8 +3140,9 @@ class TestClient(unittest.TestCase):
         >>> new_scan_target = self.sdk.onboard_scan_target(
                 region, organization_id, kind, name, credential, None, boto3_profile, schedule)
         """
-        import boto3
         import json
+
+        import boto3
 
         # Setup test data
         aws_account_id = "123456789012"
@@ -2762,9 +3155,9 @@ class TestClient(unittest.TestCase):
         region = "us-east-1"
 
         boto3_session = boto3.Session(
-            aws_access_key_id='EXAMPLE_NON_EXISTING_KEY',
-            aws_secret_access_key='&x@mP|e$3cReT',
-            aws_session_token='session_token'
+            aws_access_key_id="EXAMPLE_NON_EXISTING_KEY",
+            aws_secret_access_key="&x@mP|e$3cReT",
+            aws_session_token="session_token",
         )
 
         # Mock request to create new Scan Target
@@ -2772,33 +3165,53 @@ class TestClient(unittest.TestCase):
         _data = "[default]\napi_key=api_key"
 
         with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-            request.return_value = Mock(status_code=200, json=lambda: {
-                "id": created_scan_target_id})
+            request.return_value = Mock(
+                status_code=200, json=lambda: {"id": created_scan_target_id}
+            )
             client = zanshinsdk.Client()
             client._client.request = request
 
         # Create Mocked S3 tenchi-assets bucket
-        with open('zanshinsdk/dummy_cloudformation_zanshin_service_role_template.json', 'r') as dummy_template_file:
+        with open(
+            "zanshinsdk/dummy_cloudformation_zanshin_service_role_template.json", "r"
+        ) as dummy_template_file:
             DUMMY_TEMPLATE = json.load(dummy_template_file)
-            s3 = boto3.client('s3', region_name='us-east-2')
-            s3.create_bucket(Bucket='tenchi-assets',
-                             CreateBucketConfiguration={'LocationConstraint': 'us-east-2'})
-            s3.put_object(Bucket='tenchi-assets',
-                          Key='zanshin-service-role.template', Body=json.dumps(DUMMY_TEMPLATE))
+            s3 = boto3.client("s3", region_name="us-east-2")
+            s3.create_bucket(
+                Bucket="tenchi-assets",
+                CreateBucketConfiguration={"LocationConstraint": "us-east-2"},
+            )
+            s3.put_object(
+                Bucket="tenchi-assets",
+                Key="zanshin-service-role.template",
+                Body=json.dumps(DUMMY_TEMPLATE),
+            )
 
         # Call method onboard_scan_target with boto3_session instead of boto3_profile
         new_scan_target = client.onboard_scan_target(
-            region, organization_id, kind, name, credential, boto3_session, None, schedule)
+            region,
+            organization_id,
+            kind,
+            name,
+            credential,
+            boto3_session,
+            None,
+            schedule,
+        )
 
         # Assert that Scan Target was created
-        self.assertEqual(created_scan_target_id, new_scan_target['id'])
+        self.assertEqual(created_scan_target_id, new_scan_target["id"])
 
         # Assert that Scan Target was called with correct parameters
         client._client.request.assert_any_call(
             "POST",
             f"/organizations/{organization_id}/scantargets",
-            body={"name": name, "kind": kind, "schedule": schedule,
-                  "credential": {"account": aws_account_id}}
+            body={
+                "name": name,
+                "kind": kind,
+                "schedule": schedule,
+                "credential": {"account": aws_account_id},
+            },
         )
         # Assert that we checked Scan Target to start scan
         client._client.request.assert_any_call(
@@ -2807,19 +3220,21 @@ class TestClient(unittest.TestCase):
         )
 
         # Assert CloudFormation Stack was created successfully
-        zanshin_cloudformation_stack_name = 'tenchi-zanshin-service-role'
-        cloudformation = boto3.client(
-            'cloudformation', region_name='us-east-1')
+        zanshin_cloudformation_stack_name = "tenchi-zanshin-service-role"
+        cloudformation = boto3.client("cloudformation", region_name="us-east-1")
         zanshin_stack = cloudformation.describe_stacks(
-            StackName=zanshin_cloudformation_stack_name)['Stacks'][0]
-        self.assertEqual('CREATE_COMPLETE', zanshin_stack['StackStatus'])
-        self.assertEqual(zanshin_cloudformation_stack_name,
-                         zanshin_stack['StackName'])
+            StackName=zanshin_cloudformation_stack_name
+        )["Stacks"][0]
+        self.assertEqual("CREATE_COMPLETE", zanshin_stack["StackStatus"])
+        self.assertEqual(zanshin_cloudformation_stack_name, zanshin_stack["StackName"])
 
         # Clean Up CloudFormation
-        cf_stacks = cloudformation.describe_stacks(StackName=zanshin_cloudformation_stack_name)
-        for cf_stack in cf_stacks['Stacks']:
-            cloudformation.delete_stack(StackName=cf_stack['StackName'])
+        cf_stacks = cloudformation.describe_stacks(
+            StackName=zanshin_cloudformation_stack_name
+        )
+        for cf_stack in cf_stacks["Stacks"]:
+            cloudformation.delete_stack(StackName=cf_stack["StackName"])
+
 
 class TestScanTargetSchedule(unittest.TestCase):
     def test_from_value(self):
@@ -2827,17 +3242,34 @@ class TestScanTargetSchedule(unittest.TestCase):
         Tests the initialization of a new scan target schedule instance using the new enum class, its string equivalent
         and the old cron-style strings.
         """
-        for k,v in zanshinsdk.ScanTargetSchedule.__members__.items():
+        for k, v in zanshinsdk.ScanTargetSchedule.__members__.items():
             self.assertEqual(zanshinsdk.ScanTargetSchedule.from_value(v.value), v)
             self.assertEqual(zanshinsdk.ScanTargetSchedule.from_value(v), v)
 
-        self.assertEqual(zanshinsdk.ScanTargetSchedule.from_value('0 * * * *'), zanshinsdk.ScanTargetSchedule.ONE_HOUR)
-        self.assertEqual(zanshinsdk.ScanTargetSchedule.from_value('0 */6 * * *'), zanshinsdk.ScanTargetSchedule.SIX_HOURS)
-        self.assertEqual(zanshinsdk.ScanTargetSchedule.from_value('0 */12 * * *'), zanshinsdk.ScanTargetSchedule.TWELVE_HOURS)
-        self.assertEqual(zanshinsdk.ScanTargetSchedule.from_value('0 0 * * *'), zanshinsdk.ScanTargetSchedule.TWENTY_FOUR_HOURS)
-        self.assertEqual(zanshinsdk.ScanTargetSchedule.from_value('0 0 * * 0'), zanshinsdk.ScanTargetSchedule.SEVEN_DAYS)
+        self.assertEqual(
+            zanshinsdk.ScanTargetSchedule.from_value("0 * * * *"),
+            zanshinsdk.ScanTargetSchedule.ONE_HOUR,
+        )
+        self.assertEqual(
+            zanshinsdk.ScanTargetSchedule.from_value("0 */6 * * *"),
+            zanshinsdk.ScanTargetSchedule.SIX_HOURS,
+        )
+        self.assertEqual(
+            zanshinsdk.ScanTargetSchedule.from_value("0 */12 * * *"),
+            zanshinsdk.ScanTargetSchedule.TWELVE_HOURS,
+        )
+        self.assertEqual(
+            zanshinsdk.ScanTargetSchedule.from_value("0 0 * * *"),
+            zanshinsdk.ScanTargetSchedule.TWENTY_FOUR_HOURS,
+        )
+        self.assertEqual(
+            zanshinsdk.ScanTargetSchedule.from_value("0 0 * * 0"),
+            zanshinsdk.ScanTargetSchedule.SEVEN_DAYS,
+        )
 
         self.assertRaises(TypeError, zanshinsdk.ScanTargetSchedule.from_value, 1)
         self.assertRaises(TypeError, zanshinsdk.ScanTargetSchedule.from_value, 1.0)
         self.assertRaises(ValueError, zanshinsdk.ScanTargetSchedule.from_value, "foo")
-        self.assertRaises(ValueError, zanshinsdk.ScanTargetSchedule.from_value, '0 */8 * * *')
+        self.assertRaises(
+            ValueError, zanshinsdk.ScanTargetSchedule.from_value, "0 */8 * * *"
+        )

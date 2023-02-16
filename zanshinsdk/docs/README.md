@@ -6,7 +6,7 @@ This section contains information about how to use methods available in the Zans
 
 Onboarding is the process of adding new AWS Account (Scan Targets) to your Organization in Zanshin.
 Scan Targets can be of four kinds
-- AWS Accounts 
+- AWS Accounts
 - Azure Subscriptions
 - Google Cloud Projects
 - Domains
@@ -24,7 +24,7 @@ Currently using the Zanshin SDK you're only able to onboard **AWS Scan Targets**
 **Currently supports only AWS Scan Targets.**
 
 _For AWS Scan Target:_
-	
+
 If boto3 is installed, creates a Scan Target for the given organization and perform the onboard.
 
 Parameters:
@@ -69,8 +69,8 @@ boto3_session = boto3.Session( # Boto3 session with adequate privileges
     aws_session_token="IQSessionToken",
 )
 
-my_new_scan_target = client.onboard_scan_target(region=region, organization_id=organization_id, kind=kind, 
-                                                name=name, credential=credential, boto3_session=boto3_session, 
+my_new_scan_target = client.onboard_scan_target(region=region, organization_id=organization_id, kind=kind,
+                                                name=name, credential=credential, boto3_session=boto3_session,
                                                 schedule=schedule)
 
 
@@ -129,4 +129,3 @@ The minimum required privileges that you need in your boto3 profile to deploy su
 
 > **Attention**
 > :warning: Make sure to substitute the `your AWS account ID` to the correct value.
-

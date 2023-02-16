@@ -26,7 +26,7 @@ print(client.get_me())
 
 You can use the following Environment Variables to configure Zanshin SDK:
 - `ZANSHIN_API_KEY`: Will setup your Zanshin credentials
-- `ZANSHIN_API_URL`: Will define the API URL. Default is `https://api.zanshin.tenchisecurity.com` 
+- `ZANSHIN_API_URL`: Will define the API URL. Default is `https://api.zanshin.tenchisecurity.com`
 - `ZANSHIN_USER_AGENT`: If you want to overwrite the User Agent when calling Zanshin API
 - `HTTP_PROXY | HTTPS_PROXY`: Zanshin SDK uses HTTPX under the hood, checkout the [Environment Variables](https://www.python-httpx.org/environment_variables/#proxies) section of their documentation for more use cases
 
@@ -39,11 +39,11 @@ export ZANSHIN_API_KEY="eyJhbGciOiJIU..."
 > :warning: These Environment Variables will overwrite anything you set on the Config File.
 
 ### Config File
-Second is by using a configuration file in the format created by the Python [RawConfigParser](https://docs.python.org/3/library/configparser.html#configparser.RawConfigParser) class. 
+Second is by using a configuration file in the format created by the Python [RawConfigParser](https://docs.python.org/3/library/configparser.html#configparser.RawConfigParser) class.
 
 The file is located at `~/.tenchi/config`, where `~` is the [current user's home directory](https://docs.python.org/3/library/pathlib.html#pathlib.Path.home).
 
-Each section is treated as a configuration profile, and the SDK will look for a section called `default` if another is not explicitly selected. 
+Each section is treated as a configuration profile, and the SDK will look for a section called `default` if another is not explicitly selected.
 
 These are the supported options:
 
@@ -82,7 +82,7 @@ All operations call `raise_for_status` on the httpx [Response object](https://ww
 
 To install the SDK, you can use `pip`. You have two options to install ZanshinSDK:
 - *Essentials*
-  
+
 Using `pip install zanshinsdk` will install the SDK with all features exception ability to perform onboarding of new Scan Targets. For this, you'll need to install boto3.
 
 - *With Boto3*

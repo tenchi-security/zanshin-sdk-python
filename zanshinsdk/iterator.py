@@ -5,6 +5,7 @@ on new alerts, or even automating responses for some high-confidence alerts.
 """
 from abc import ABCMeta, abstractmethod
 from typing import Dict, Iterator
+
 from zanshinsdk import Client, validate_uuid
 
 
@@ -65,7 +66,9 @@ class AbstractPersistentAlertsIterator(Iterator):
 
     __metaclass__ = ABCMeta
 
-    def __init__(self, field_name, client, organization_id, filter_ids=None, cursor=None):
+    def __init__(
+        self, field_name, client, organization_id, filter_ids=None, cursor=None
+    ):
         """Initializes a persistent alert iterator
         :param field_name:
         :param client: an instance of zanshinsdk.Client
@@ -113,18 +116,27 @@ class AbstractPersistentAlertsIterator(Iterator):
             self._persistence_entry = self._load()
 
             if self._persistence_entry is None:
-                self._persistence_entry = PersistenceEntry(self._organization_id, self._filter_ids, self._cursor)
+                self._persistence_entry = PersistenceEntry(
+                    self._organization_id, self._filter_ids, self._cursor
+                )
             else:
                 if not isinstance(self._persistence_entry, PersistenceEntry):
-                    raise ValueError("load method should return a PersistenceEntry instance")
-                if not str(self._persistence_entry.organization_id) == str(self._organization_id):
                     raise ValueError(
-                        f"PersistenceEntry instance does not match organization ID: {str(self._organization_id)}")
-                if ",".join([str(filter_id) for filter_id in self._persistence_entry.filter_ids]) !=\
-                        ",".join([str(filter_id) for filter_id in self._filter_ids]):
+                        "load method should return a PersistenceEntry instance"
+                    )
+                if not str(self._persistence_entry.organization_id) == str(
+                    self._organization_id
+                ):
                     raise ValueError(
-                        f"PersistenceEntry instance does not match {self._field_name} IDs: " +
-                        ",".join([str(filter_id) for filter_id in self._filter_ids]))
+                        f"PersistenceEntry instance does not match organization ID: {str(self._organization_id)}"
+                    )
+                if ",".join(
+                    [str(filter_id) for filter_id in self._persistence_entry.filter_ids]
+                ) != ",".join([str(filter_id) for filter_id in self._filter_ids]):
+                    raise ValueError(
+                        f"PersistenceEntry instance does not match {self._field_name} IDs: "
+                        + ",".join([str(filter_id) for filter_id in self._filter_ids])
+                    )
         return self._persistence_entry
 
     @abstractmethod

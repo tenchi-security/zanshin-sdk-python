@@ -16,6 +16,9 @@ jobs:
         python-version: [ 3.8, 3.9, "3.10", 3.11 ]
         os: [ ubuntu-latest, windows-latest, macos-latest ]
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
     name: Test and Coverage
     timeout-minutes: 10
     steps:
@@ -27,27 +30,24 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install poetry
-        uses: snok/install-poetry@v1.2.0
+        uses: snok/install-poetry@v1.3.3
         with:
           version: 1.3.2
           virtualenvs-create: false
           virtualenvs-in-project: false
 
       - name: Install dependencies
-        run: |
-          poetry install
+        run: poetry install
 
-      - name: Lint with flake8
+      - name: Run pre-commit command
+        if: matrix.os == 'ubuntu-latest'
         run: |
-          pip install flake8
-          # stop the build if there are Python syntax errors or undefined names
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          poetry run pre-commit autoupdate
+          poetry run pre-commit run --all-files
 
       - name: Unit test
         run: |
-          make test
+          poetry run python -m unittest discover -v
 
       - name: Test coverage
         if: matrix.os == 'ubuntu-latest'

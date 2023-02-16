@@ -1,12 +1,11 @@
-from unittest.mock import patch, mock_open
-
 import unittest
+from unittest.mock import mock_open, patch
+
 from zanshinsdk.client import Client
 from zanshinsdk.following_alerts_history import FilePersistentFollowingAlertsIterator
 
 
 class TestAlertsHistoryIterator(unittest.TestCase):
-
     ###################################################
     # __init__
     ###################################################
@@ -18,9 +17,13 @@ class TestAlertsHistoryIterator(unittest.TestCase):
         cursor = "8b0620bdb1e3"
         client = Client(profile="", api_key="api_key")
 
-        self.file_persistent = FilePersistentFollowingAlertsIterator(filename="test_zanshin_following", client=client,
-                                                                     organization_id=organization_id,
-                                                                     following_ids=following_ids, cursor=cursor)
+        self.file_persistent = FilePersistentFollowingAlertsIterator(
+            filename="test_zanshin_following",
+            client=client,
+            organization_id=organization_id,
+            following_ids=following_ids,
+            cursor=cursor,
+        )
         self.file_persistent.client._request = request
 
     ###################################################
@@ -40,10 +43,14 @@ class TestAlertsHistoryIterator(unittest.TestCase):
     def test_load(self, mock_is_file):
         mock_is_file.return_value = True
 
-        data = '{"organization_id":"822f4225-43e9-4922-b6b8-8b0620bdb1e3", "following_ids": "", "cursor": ' \
-               '"8b0620bdb1e3"} '
+        data = (
+            '{"organization_id":"822f4225-43e9-4922-b6b8-8b0620bdb1e3", "following_ids": "", "cursor": '
+            '"8b0620bdb1e3"} '
+        )
 
-        with patch("__main__.__builtins__.open", mock_open(read_data=data)) as mock_file:
+        with patch(
+            "__main__.__builtins__.open", mock_open(read_data=data)
+        ) as mock_file:
             self.file_persistent._load()
 
         mock_file.assert_called_with("test_zanshin_following", "r")
@@ -62,6 +69,7 @@ class TestAlertsHistoryIterator(unittest.TestCase):
             pass
 
         self.file_persistent.client._request.assert_called_once_with(
-            "POST", f"/alerts/history/following",
-            body={"organizationId": organization_id, "pageSize": 100, "cursor": cursor}
+            "POST",
+            f"/alerts/history/following",
+            body={"organizationId": organization_id, "pageSize": 100, "cursor": cursor},
         )

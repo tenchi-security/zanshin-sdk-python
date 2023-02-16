@@ -1,12 +1,11 @@
-from unittest.mock import patch, mock_open
-
 import unittest
-from zanshinsdk.client import Client
+from unittest.mock import mock_open, patch
+
 from zanshinsdk.alerts_history import FilePersistentAlertsIterator
+from zanshinsdk.client import Client
 
 
 class TestAlertsHistoryIterator(unittest.TestCase):
-
     ###################################################
     # __init__
     ###################################################
@@ -18,9 +17,13 @@ class TestAlertsHistoryIterator(unittest.TestCase):
         cursor = "8b0620bdb1e3"
         client = Client(profile="", api_key="api_key")
 
-        self.file_persistent = FilePersistentAlertsIterator(filename="test_zanshin", client=client,
-                                                            organization_id=organization_id,
-                                                            scan_target_ids=scan_target_ids, cursor=cursor)
+        self.file_persistent = FilePersistentAlertsIterator(
+            filename="test_zanshin",
+            client=client,
+            organization_id=organization_id,
+            scan_target_ids=scan_target_ids,
+            cursor=cursor,
+        )
         self.file_persistent.client._request = request
 
     ###################################################
@@ -40,10 +43,14 @@ class TestAlertsHistoryIterator(unittest.TestCase):
     def test_load(self, mock_is_file):
         mock_is_file.return_value = True
 
-        data = '{"organization_id":"822f4225-43e9-4922-b6b8-8b0620bdb1e3", "scan_target_ids": "", "cursor": ' \
-               '"8b0620bdb1e3"}'
+        data = (
+            '{"organization_id":"822f4225-43e9-4922-b6b8-8b0620bdb1e3", "scan_target_ids": "", "cursor": '
+            '"8b0620bdb1e3"}'
+        )
 
-        with patch("__main__.__builtins__.open", mock_open(read_data=data)) as mock_file:
+        with patch(
+            "__main__.__builtins__.open", mock_open(read_data=data)
+        ) as mock_file:
             self.file_persistent._load()
 
         mock_file.assert_called_with("test_zanshin", "r")
@@ -62,6 +69,7 @@ class TestAlertsHistoryIterator(unittest.TestCase):
             pass
 
         self.file_persistent.client._request.assert_called_once_with(
-            "POST", f"/alerts/history",
-            body={"organizationId": organization_id, "pageSize": 100, "cursor": cursor}
+            "POST",
+            f"/alerts/history",
+            body={"organizationId": organization_id, "pageSize": 100, "cursor": cursor},
         )

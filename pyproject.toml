@@ -27,11 +27,10 @@ classifiers=[
 [tool.poetry.dependencies]
 python = "^3.8"
 httpx = "0.23.1"
-moto = {version = "4.0.9", extras = ["all"], optional = true}
-
+moto = {version = "4.0.9", extras = ["all"]}
+pre-commit = "3.0.2"
 
 [tool.poetry.group.dev.dependencies]
-moto = {version = "4.0.9", extras = ["cloudformation", "s3", "sts"]}
 coverage = "^7.1.0"
 mkdocs = "^1.4.2"
 mkdocs-material = "^9.0.12"
@@ -44,10 +43,3 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.extras]
 with_boto3 = ["moto[all]"]
-
-
-
-
-
-
-
