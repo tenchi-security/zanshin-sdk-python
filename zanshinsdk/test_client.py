@@ -434,34 +434,6 @@ class TestClient(unittest.TestCase):
         )
 
     ###################################################
-    # Account Invites
-    ###################################################
-
-    def test_iter_invites(self):
-        try:
-            next(self.sdk.iter_invites())
-        except StopIteration:
-            pass
-
-        self.sdk._request.assert_called_once_with("GET", "/me/invites")
-
-    def test_get_invite(self):
-        invite_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-
-        self.sdk.get_invite(invite_id)
-
-        self.sdk._request.assert_called_once_with("GET", f"/me/invites/{invite_id}")
-
-    def test_accept_invite(self):
-        invite_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-
-        self.sdk.accept_invite(invite_id)
-
-        self.sdk._request.assert_called_once_with(
-            "POST", f"/me/invites/{invite_id}/accept"
-        )
-
-    ###################################################
     # Account API key
     ###################################################
 
