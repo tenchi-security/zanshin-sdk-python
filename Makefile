@@ -14,3 +14,4 @@ coverage:
 coverage_missing:
 	poetry run coverage run -m unittest discover
 	poetry run coverage report -m
+
