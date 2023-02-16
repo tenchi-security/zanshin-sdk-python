@@ -38,7 +38,7 @@ jobs:
 
       - name: Install dependencies
         run: poetry install
-        
+
       - name: Run pre-commit command
         if: matrix.os == 'ubuntu-latest'
         run: |
