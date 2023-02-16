@@ -434,6 +434,15 @@ class TestClient(unittest.TestCase):
         )
 
     ###################################################
+    # Account
+    ###################################################
+
+    def test_get_me(self):
+        self.sdk.get_me()
+
+        self.sdk._request.assert_called_once_with("GET", "/me")
+
+    ###################################################
     # Account Invites
     ###################################################
 

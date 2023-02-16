@@ -439,6 +439,18 @@ class Client:
         return response
 
     ###################################################
+    # Account
+    ###################################################
+
+    def get_me(self) -> Dict:
+        """
+        Returns the details of the user account that owns the API key used by this Connection instance as per.
+        <https://api.zanshin.tenchisecurity.com/#operation/getMe>
+        :return: a dict representing the user
+        """
+        return self._request("GET", "/me").json()
+
+    ###################################################
     # Account Invites
     ###################################################
 
