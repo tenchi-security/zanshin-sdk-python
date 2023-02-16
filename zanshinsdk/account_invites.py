@@ -8,26 +8,26 @@ from client import Client, validate_uuid
 ###################################################
 
 
-def iter_invites(self) -> Iterator[Dict]:
+def iter_invites() -> Iterator[Dict]:
     """
     Iterates over the invites of current logged user.
     <https://api.zanshin.tenchisecurity.com/#operation/getInvites>
     :return: an iterator over the invites objects
     """
-    yield from self._request("GET", "/me/invites").json()
+    yield from Client._request("GET", "/me/invites").json()
 
 
-def get_invite(self, invite_id: Union[UUID, str]) -> Dict:
+def get_invite(invite_id: Union[UUID, str]) -> Dict:
     """
     Gets a specific invitation details, it only works if the invitation was made for the current logged user.
     <https://api.zanshin.tenchisecurity.com/#operation/getInviteById>
     :param invite_id: the ID of the invite
     :return: a dict representing the user invite
     """
-    return self._request("GET", f"/me/invites/{validate_uuid(invite_id)}").json()
+    return Client._request("GET", f"/me/invites/{validate_uuid(invite_id)}").json()
 
 
-def accept_invite(self, invite_id: Union[UUID, str]) -> Dict:
+def accept_invite(invite_id: Union[UUID, str]) -> Dict:
     """
     Accepts an invitation with the informed ID, it only works if the user accepting the invitation is the user that
     received the invitation.
@@ -35,6 +35,6 @@ def accept_invite(self, invite_id: Union[UUID, str]) -> Dict:
     :param invite_id: the ID of the invite
     :return: a dict representing the organization of this invite
     """
-    return self._request(
+    return Client._request(
         "POST", f"/me/invites/{validate_uuid(invite_id)}/accept"
     ).json()
