@@ -1,16 +1,11 @@
-from enum import Enum
 from typing import Dict, Iterable, Iterator, Optional, Union
 from uuid import UUID
 
-from client import Client, validate_uuid
+from client import Client, Roles, validate_uuid
 
 ###################################################
 # Organization Member
 ###################################################
-
-
-class Roles(str, Enum):
-    ADMIN = "ADMIN"
 
 
 def iter_organization_members(organization_id: Union[UUID, str]) -> Iterator[Dict]:

@@ -1,8 +1,7 @@
 import unittest
 
-from client import Client
+from client import Client, Roles
 from organization_member import (
-    Roles,
     delete_organization_member,
     get_organization_member,
     iter_organization_members,

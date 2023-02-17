@@ -434,65 +434,6 @@ class TestClient(unittest.TestCase):
         )
 
     ###################################################
-    # Organization Member Invite
-    ###################################################
-
-    def test_iter_organization_members_invites(self):
-        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-
-        try:
-            next(self.sdk.iter_organization_members_invites(organization_id))
-        except StopIteration:
-            pass
-
-        self.sdk._request.assert_called_once_with(
-            "GET", f"/organizations/{organization_id}/invites"
-        )
-
-    def test_create_organization_members_invite(self):
-        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        email = "juca@example.com"
-        role = [zanshinsdk.Roles.ADMIN]
-
-        self.sdk.create_organization_members_invite(organization_id, email, role)
-
-        self.sdk._request.assert_called_once_with(
-            "POST",
-            f"/organizations/{organization_id}/invites",
-            body={"email": email, "roles": role},
-        )
-
-    def test_get_organization_member_invite(self):
-        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        email = "juca@example.com"
-
-        self.sdk.get_organization_member_invite(organization_id, email)
-
-        self.sdk._request.assert_called_once_with(
-            "GET", f"/organizations/{organization_id}/invites/{email}"
-        )
-
-    def test_delete_organization_member_invite(self):
-        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        email = "juca@example.com"
-
-        self.sdk.delete_organization_member_invite(organization_id, email)
-
-        self.sdk._request.assert_called_once_with(
-            "DELETE", f"/organizations/{organization_id}/invites/{email}"
-        )
-
-    def test_resend_organization_member_invite(self):
-        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        email = "juca@example.com"
-
-        self.sdk.resend_organization_member_invite(organization_id, email)
-
-        self.sdk._request.assert_called_once_with(
-            "POST", f"/organizations/{organization_id}/invites/{email}/resend"
-        )
-
-    ###################################################
     # Organization Follower
     ###################################################
 
