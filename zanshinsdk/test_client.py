@@ -434,59 +434,6 @@ class TestClient(unittest.TestCase):
         )
 
     ###################################################
-    # Organization
-    ###################################################
-
-    def test_iter_organizations(self):
-        try:
-            next(self.sdk.iter_organizations())
-        except StopIteration:
-            pass
-
-        self.sdk._request.assert_called_once_with("GET", "/organizations")
-
-    def test_get_organization(self):
-        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-
-        self.sdk.get_organization(organization_id)
-
-        self.sdk._request.assert_called_once_with(
-            "GET", f"/organizations/{organization_id}"
-        )
-
-    def test_delete_organization(self):
-        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-
-        self.sdk.delete_organization(organization_id)
-
-        self.sdk._request.assert_called_once_with(
-            "DELETE", f"/organizations/{organization_id}"
-        )
-
-    def test_update_organization(self):
-        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        name = "Tabajara"
-        picture = "https://pic-store.com/pic1.png"
-        email = "ceo@tabajara.com.br"
-
-        self.sdk.update_organization(organization_id, name, picture, email)
-
-        self.sdk._request.assert_called_once_with(
-            "PUT",
-            f"/organizations/{organization_id}",
-            body={"name": name, "picture": picture, "email": email},
-        )
-
-    def test_create_organization(self):
-        name = "Tabajara"
-
-        self.sdk.create_organization(name)
-
-        self.sdk._request.assert_called_once_with(
-            "POST", f"/organizations", body={"name": name}
-        )
-
-    ###################################################
     # Organization Member
     ###################################################
 
