@@ -6,7 +6,7 @@ on new alerts, or even automating responses for some high-confidence alerts.
 from abc import ABCMeta, abstractmethod
 from typing import Dict, Iterator
 
-from zanshinsdk import Client, validate_uuid
+from src.bin.client import Client, validate_uuid
 
 
 class PersistenceEntry(object):

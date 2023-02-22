@@ -28,14 +28,6 @@ class AlertState(str, Enum):
     CLOSED = "CLOSED"
 
 
-class AlertSeverity(str, Enum):
-    CRITICAL = "CRITICAL"
-    HIGH = "HIGH"
-    MEDIUM = "MEDIUM"
-    LOW = "LOW"
-    INFO = "INFO"
-
-
 class ScanTargetKind(str, Enum):
     AWS = "AWS"
     GCP = "GCP"
@@ -43,21 +35,6 @@ class ScanTargetKind(str, Enum):
     HUAWEI = "HUAWEI"
     DOMAIN = "DOMAIN"
     ORACLE = "ORACLE"
-
-
-class AlertsOrderOpts(str, Enum):
-    SCAN_TARGET_ID = "scanTargetId"
-    RESOURCE = "resource"
-    RULE = "rule"
-    SEVERITY = "severity"
-    STATE = "state"
-    CREATED_AT = "createdAt"
-    UPDATED_AT = "updatedAt"
-
-
-class SortOpts(str, Enum):
-    ASC = "asc"
-    DESC = "desc"
 
 
 class ScanTargetSchedule(str, Enum):

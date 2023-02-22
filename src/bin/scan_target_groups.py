@@ -1,7 +1,7 @@
 from typing import Dict, Iterator, Union
 from uuid import UUID
 
-from client import (
+from src.bin.client import (
     Client,
     ScanTargetGroupCredentialListORACLE,
     ScanTargetKind,

@@ -1,7 +1,7 @@
 from typing import Dict, Iterator, Optional, Union
 from uuid import UUID
 
-from client import Client, validate_uuid
+from src.bin.client import Client, validate_uuid
 
 ###################################################
 # Account API key

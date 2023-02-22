@@ -7,7 +7,7 @@ import json
 from os.path import isfile
 from typing import Dict, Iterator
 
-from zanshinsdk.iterator import AbstractPersistentAlertsIterator, PersistenceEntry
+from src.bin.iterator import AbstractPersistentAlertsIterator, PersistenceEntry
 
 
 class FilePersistentFollowingAlertsIterator(AbstractPersistentAlertsIterator):

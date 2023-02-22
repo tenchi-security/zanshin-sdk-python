@@ -1,6 +1,6 @@
 from typing import Dict
 
-from client import Client
+from src.bin.client import Client
 
 ###################################################
 # Account

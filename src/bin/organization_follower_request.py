@@ -1,7 +1,7 @@
 from typing import Dict, Iterator, Union
 from uuid import UUID
 
-from client import Client, validate_uuid
+from src.bin.client import Client, validate_uuid
 
 ###################################################
 # Organization Follower Request

@@ -5,7 +5,8 @@ from typing import Dict, Union
 from uuid import UUID
 
 import scan_target
-from client import (
+
+from src.bin.client import (
     Client,
     ScanTargetAWS,
     ScanTargetAZURE,

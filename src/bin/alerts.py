@@ -2,7 +2,7 @@ from math import ceil
 from typing import Dict, Iterable, Iterator, Optional, Union
 from uuid import UUID
 
-from client import (
+from src.bin.client import (
     AlertSeverity,
     AlertsOrderOpts,
     AlertState,
