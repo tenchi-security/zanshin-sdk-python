@@ -1,8 +1,8 @@
 import unittest
 from typing import Dict, Iterator
 
-from zanshinsdk.client import Client
-from zanshinsdk.iterator import AbstractPersistentAlertsIterator, PersistenceEntry
+from src.bin.client import Client
+from src.bin.iterator import AbstractPersistentAlertsIterator, PersistenceEntry
 
 
 class TestPersistentAlertsIterator(AbstractPersistentAlertsIterator):

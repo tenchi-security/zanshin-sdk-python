@@ -1,6 +1,6 @@
 import logging
 
-from zanshinsdk.client import (
+from src.bin.client import (
     AlertSeverity,
     AlertsOrderOpts,
     AlertState,
@@ -18,10 +18,10 @@ from zanshinsdk.client import (
     SortOpts,
     validate_uuid,
 )
-from zanshinsdk.following_alerts_history import FilePersistentFollowingAlertsIterator
-from zanshinsdk.iterator import AbstractPersistentAlertsIterator, PersistenceEntry
+from src.bin.following_alerts_history import FilePersistentFollowingAlertsIterator
+from src.bin.iterator import AbstractPersistentAlertsIterator, PersistenceEntry
 from zanshinsdk.version import __version__
 
-from zanshinsdk.alerts_history import FilePersistentAlertsIterator  # isort:skip
+from src.bin.alerts_history import FilePersistentAlertsIterator  # isort:skip
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())

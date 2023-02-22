@@ -1,7 +1,7 @@
 import unittest
 
-from client import Client, Roles
-from organization_member_invite import (
+from src.bin.client import Client, Roles
+from src.bin.organization_member_invite import (
     create_organization_members_invite,
     delete_organization_member_invite,
     get_organization_member_invite,

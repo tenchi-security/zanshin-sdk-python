@@ -1,7 +1,7 @@
 import unittest
 
-from account_invites import accept_invite, get_invite, iter_invites
-from client import Client
+from src.bin.account_invites import accept_invite, get_invite, iter_invites
+from src.bin.client import Client
 
 
 ###################################################

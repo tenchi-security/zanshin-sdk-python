@@ -1,7 +1,13 @@
 from typing import Dict, Iterable, Optional, Union
 from uuid import UUID
 
-from client import Client, Languages, validate_class, validate_int, validate_uuid
+from src.bin.client import (
+    Client,
+    Languages,
+    validate_class,
+    validate_int,
+    validate_uuid,
+)
 
 ###################################################
 # Summary
@@ -99,7 +105,8 @@ def get_scan_summaries(
         validate_class(scan_target_ids, Iterable)
         body["scanTargetIds"] = [validate_uuid(x) for x in scan_target_ids]
 
-    return Client._request("POST", "/alerts/summaries/scans", body=body).json()
+    client = Client()
+    return client._request("POST", "/alerts/summaries/scans", body=body).json()
 
 
 def get_following_scan_summaries(

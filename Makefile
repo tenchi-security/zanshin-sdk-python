@@ -5,7 +5,7 @@ lint:
 	poetry run pre-commit run -a
 
 test:
-	poetry run python -m unittest discover -v
+	python -m unittest discover test -p "test_*.py"
 
 coverage:
 	poetry run coverage run -m unittest discover

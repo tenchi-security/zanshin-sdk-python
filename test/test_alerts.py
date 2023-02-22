@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import call, patch
 
-from alerts import (
+from src.bin.alerts import (
     _get_alerts_following_history_page,
     _get_alerts_history_page,
     _get_alerts_page,
@@ -20,7 +20,7 @@ from alerts import (
     iter_grouped_following_alerts,
     update_alert,
 )
-from client import (
+from src.bin.client import (
     AlertSeverity,
     AlertsOrderOpts,
     AlertState,

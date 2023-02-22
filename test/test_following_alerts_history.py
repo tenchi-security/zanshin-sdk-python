@@ -1,8 +1,8 @@
 import unittest
 from unittest.mock import mock_open, patch
 
-from zanshinsdk.client import Client
-from zanshinsdk.following_alerts_history import FilePersistentFollowingAlertsIterator
+from src.bin.client import Client
+from src.bin.following_alerts_history import FilePersistentFollowingAlertsIterator
 
 
 class TestAlertsHistoryIterator(unittest.TestCase):

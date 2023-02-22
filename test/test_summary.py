@@ -1,7 +1,7 @@
 import unittest
 
-from client import Client
-from summary import (
+from src.bin.client import Client
+from src.bin.summary import (
     get_alert_summaries,
     get_following_alert_summaries,
     get_following_scan_summaries,

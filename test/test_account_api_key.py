@@ -1,7 +1,7 @@
 import unittest
 
-from account_api_key import create_api_key, delete_api_key, iter_api_keys
-from client import Client
+from src.bin.account_api_key import create_api_key, delete_api_key, iter_api_keys
+from src.bin.client import Client
 
 ###################################################
 # Account API key

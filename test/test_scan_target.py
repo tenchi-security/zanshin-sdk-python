@@ -1,6 +1,6 @@
 import unittest
 
-from client import (
+from src.bin.client import (
     Client,
     ScanTargetAWS,
     ScanTargetAZURE,
@@ -8,10 +8,8 @@ from client import (
     ScanTargetGCP,
     ScanTargetHUAWEI,
     ScanTargetKind,
-    ScanTargetORACLE,
-    ScanTargetSchedule,
 )
-from scan_target import (
+from src.bin.scan_target import (
     check_organization_scan_target,
     create_organization_scan_target,
     delete_organization_scan_target,

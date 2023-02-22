@@ -1,7 +1,7 @@
 import unittest
 
-from client import Client
-from organization_following import (
+from src.bin.client import Client
+from src.bin.organization_following import (
     iter_organization_following,
     stop_organization_following,
 )

@@ -1,7 +1,7 @@
 import unittest
 
-from account import get_me
-from client import Client
+from src.bin.account import get_me
+from src.bin.client import Client
 
 ###################################################
 # Account

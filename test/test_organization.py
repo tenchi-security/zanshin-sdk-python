@@ -1,7 +1,7 @@
 import unittest
 
-from client import Client
-from organization import (
+from src.bin.client import Client
+from src.bin.organization import (
     create_organization,
     delete_organization,
     get_organization,

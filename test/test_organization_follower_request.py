@@ -1,7 +1,7 @@
 import unittest
 
-from client import Client
-from organization_follower_request import (
+from src.bin.client import Client
+from src.bin.organization_follower_request import (
     create_organization_follower_request,
     delete_organization_follower_request,
     get_organization_follower_request,

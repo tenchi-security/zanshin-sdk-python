@@ -1,7 +1,7 @@
 import unittest
 
-from client import Client, ScanTargetGroupCredentialListORACLE, ScanTargetKind
-from scan_target_groups import (
+from src.bin.client import Client, ScanTargetGroupCredentialListORACLE, ScanTargetKind
+from src.bin.scan_target_groups import (
     create_scan_target_by_compartments,
     create_scan_target_group,
     delete_organization_scan_target_group,

@@ -1,8 +1,8 @@
 import unittest
 from unittest.mock import Mock, mock_open, patch
 
-from client import Client
-from scan_target_scan import (
+from src.bin.client import Client
+from src.bin.scan_target_scan import (
     get_organization_scan_target_scan,
     iter_organization_scan_target_scans,
 )

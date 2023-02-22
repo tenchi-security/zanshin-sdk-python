@@ -1,7 +1,7 @@
 import unittest
 
-from client import Client
-from organization_following_request import (
+from src.bin.client import Client
+from src.bin.organization_following_request import (
     accept_organization_following_request,
     decline_organization_following_request,
     get_organization_following_request,

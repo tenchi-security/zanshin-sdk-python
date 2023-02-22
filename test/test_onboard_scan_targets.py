@@ -4,9 +4,10 @@ from pathlib import Path
 from unittest.mock import Mock, mock_open, patch
 
 import boto3
-from client import Client, ScanTargetAWS, ScanTargetAZURE, ScanTargetKind
 from moto import mock_cloudformation, mock_s3, mock_sts
-from onboard_scan_targets import onboard_scan_target
+
+from src.bin.client import Client, ScanTargetAWS, ScanTargetAZURE, ScanTargetKind
+from src.bin.onboard_scan_targets import onboard_scan_target
 
 ###################################################
 # __mock_aws_credentials__
