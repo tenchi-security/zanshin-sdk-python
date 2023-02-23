@@ -1,14 +1,6 @@
 import unittest
 
-from src.bin.client import (
-    Client,
-    ScanTargetAWS,
-    ScanTargetAZURE,
-    ScanTargetDOMAIN,
-    ScanTargetGCP,
-    ScanTargetHUAWEI,
-    ScanTargetKind,
-)
+from src.bin.client import Client
 from src.bin.scan_target import (
     check_organization_scan_target,
     create_organization_scan_target,
@@ -19,6 +11,14 @@ from src.bin.scan_target import (
     start_organization_scan_target_scan,
     stop_organization_scan_target_scan,
     update_organization_scan_target,
+)
+from src.lib.models import (
+    ScanTargetAWS,
+    ScanTargetAZURE,
+    ScanTargetDOMAIN,
+    ScanTargetGCP,
+    ScanTargetHUAWEI,
+    ScanTargetKind,
 )
 
 ###################################################

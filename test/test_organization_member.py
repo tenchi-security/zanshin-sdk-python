@@ -1,6 +1,6 @@
 import unittest
 
-from src.bin.client import Client, Roles
+from src.bin.client import Client
 from src.bin.organization_member import (
     delete_organization_member,
     get_organization_member,
@@ -9,6 +9,7 @@ from src.bin.organization_member import (
     reset_organization_member_mfa,
     update_organization_member,
 )
+from src.lib.models import Roles
 
 ###################################################
 # Organization Member

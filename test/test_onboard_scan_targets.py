@@ -6,8 +6,9 @@ from unittest.mock import Mock, mock_open, patch
 import boto3
 from moto import mock_cloudformation, mock_s3, mock_sts
 
-from src.bin.client import Client, ScanTargetAWS, ScanTargetAZURE, ScanTargetKind
+from src.bin.client import Client
 from src.bin.onboard_scan_targets import onboard_scan_target
+from src.lib.models import ScanTargetAWS, ScanTargetAZURE, ScanTargetKind
 
 ###################################################
 # __mock_aws_credentials__

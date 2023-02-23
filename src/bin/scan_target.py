@@ -1,8 +1,8 @@
-from typing import Dict, Iterator, Optional, Union
+from typing import Iterator, Optional, Union
 from uuid import UUID
 
-from src.bin.client import (
-    Client,
+from src.bin.client import Client, validate_class, validate_uuid
+from src.lib.models import (
     ScanTargetAWS,
     ScanTargetAZURE,
     ScanTargetDOMAIN,
@@ -11,8 +11,6 @@ from src.bin.client import (
     ScanTargetKind,
     ScanTargetORACLE,
     ScanTargetSchedule,
-    validate_class,
-    validate_uuid,
 )
 
 ###################################################
@@ -20,7 +18,7 @@ from src.bin.client import (
 ###################################################
 
 
-def iter_organization_scan_targets(organization_id: Union[UUID, str]) -> Iterator[Dict]:
+def iter_organization_scan_targets(organization_id: Union[UUID, str]) -> Iterator[dict]:
     """
     Iterates over the scan targets of an organization.
     <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationScanTargets>
@@ -45,7 +43,7 @@ def create_organization_scan_target(
         ScanTargetORACLE,
     ],
     schedule: Union[str, ScanTargetSchedule] = ScanTargetSchedule.TWENTY_FOUR_HOURS,
-) -> Dict:
+) -> dict:
     """
     Create a new scan target in organization.
     <https://api.zanshin.tenchisecurity.com/#operation/createOrganizationScanTargets>
@@ -91,7 +89,7 @@ def create_organization_scan_target(
 
 def get_organization_scan_target(
     organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]
-) -> Dict:
+) -> dict:
     """
     Get scan target of organization.
     <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationScanTargetById>
@@ -111,7 +109,7 @@ def update_organization_scan_target(
     scan_target_id: Union[UUID, str],
     name: str,
     schedule: Union[str, ScanTargetSchedule],
-) -> Dict:
+) -> dict:
     """
     Update scan target of organization.
     <https://api.zanshin.tenchisecurity.com/#operation/editOrganizationScanTargetById>
@@ -193,7 +191,7 @@ def stop_organization_scan_target_scan(
 
 def check_organization_scan_target(
     organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]
-) -> Dict:
+) -> dict:
     """
     Check scan target.
     <https://api.zanshin.tenchisecurity.com/#operation/checkOrganizationScanTarget>
@@ -210,7 +208,7 @@ def check_organization_scan_target(
 
 def get_gworkspace_oauth_link(
     organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]
-) -> Dict:
+) -> dict:
     """
     Retrieve a link to allow the user to authorize zanshin to read info from their gworkspace environment.
     <https://api.zanshin.tenchisecurity.com/#operation/getGworkspaceOauthLink>

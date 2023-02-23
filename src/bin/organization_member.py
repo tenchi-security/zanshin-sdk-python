@@ -1,7 +1,8 @@
 from typing import Dict, Iterable, Iterator, Optional, Union
 from uuid import UUID
 
-from src.bin.client import Client, Roles, validate_uuid
+from src.bin.client import Client, validate_uuid
+from src.lib.models import Roles
 
 ###################################################
 # Organization Member

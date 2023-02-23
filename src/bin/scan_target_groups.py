@@ -1,13 +1,8 @@
 from typing import Dict, Iterator, Union
 from uuid import UUID
 
-from src.bin.client import (
-    Client,
-    ScanTargetGroupCredentialListORACLE,
-    ScanTargetKind,
-    validate_class,
-    validate_uuid,
-)
+from src.bin.client import Client, validate_class, validate_uuid
+from src.lib.models import ScanTargetGroupCredentialListORACLE, ScanTargetKind
 
 ###################################################
 # Organization Scan Target Groups

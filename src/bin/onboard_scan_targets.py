@@ -4,10 +4,14 @@ from importlib.util import find_spec, module_from_spec
 from typing import Dict, Union
 from uuid import UUID
 
-import scan_target
-
-from src.bin.client import (
-    Client,
+from src.bin.client import Client, validate_class
+from src.bin.scan_target import (
+    check_organization_scan_target,
+    create_organization_scan_target,
+    get_organization_scan_target,
+    start_organization_scan_target_scan,
+)
+from src.lib.models import (
     ScanTargetAWS,
     ScanTargetAZURE,
     ScanTargetDOMAIN,
@@ -15,7 +19,6 @@ from src.bin.client import (
     ScanTargetHUAWEI,
     ScanTargetKind,
     ScanTargetSchedule,
-    validate_class,
 )
 
 ###################################################
@@ -76,7 +79,7 @@ def onboard_scan_target(
     if len(name) < 3:
         name = f"{name}_{credential['account']}"
 
-    new_scan_target = scan_target.create_organization_scan_target(
+    new_scan_target = create_organization_scan_target(
         organization_id, kind, name, credential, schedule
     )
     new_scan_target_id = new_scan_target["id"]
@@ -115,15 +118,15 @@ def onboard_scan_target(
             f"Failed to confirm CloudFormation Stack {zanshin_stack_name} completion."
         )
 
-    scan_target.check_organization_scan_target(
+    check_organization_scan_target(
         organization_id=organization_id, scan_target_id=new_scan_target_id
     )
-    scan_target.start_organization_scan_target_scan(
+    start_organization_scan_target_scan(
         organization_id=organization_id,
         scan_target_id=new_scan_target_id,
         force=True,
     )
-    return scan_target.get_organization_scan_target(
+    return get_organization_scan_target(
         organization_id=organization_id, scan_target_id=new_scan_target_id
     )
 

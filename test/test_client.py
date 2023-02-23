@@ -9,13 +9,12 @@ from src.bin import client
 from src.bin.client import (
     CONFIG_FILE,
     Client,
-    Roles,
-    ScanTargetSchedule,
     isfile,
     validate_class,
     validate_int,
     validate_uuid,
 )
+from src.lib.models import Roles, ScanTargetSchedule
 
 
 class TestClient(unittest.TestCase):
@@ -23,7 +22,7 @@ class TestClient(unittest.TestCase):
     # setUp
     ###################################################
 
-    @patch("isfile")
+    @patch("os.path.isfile")
     @patch("Client._request")
     def setUp(self, request, mock_is_file):
         mock_is_file.return_value = True
@@ -46,7 +45,7 @@ class TestClient(unittest.TestCase):
     # __init__
     ###################################################
 
-    @patch("isfile")
+    @patch("os.path.isfile")
     def test_init_empty_profile(self, mock_is_file):
         mock_is_file.return_value = True
         _data = "[default]\napi_key=api_key"
@@ -57,7 +56,7 @@ class TestClient(unittest.TestCase):
         except Exception as e:
             self.assertIn("profile  not found", str(e))
 
-    @patch("isfile")
+    @patch("os.path.isfile")
     def test_init_wrong_profile(self, mock_is_file):
         mock_is_file.return_value = True
         _profile = "XYZ"
@@ -72,7 +71,7 @@ class TestClient(unittest.TestCase):
                 f"profile {_profile} not found in {CONFIG_FILE}",
             )
 
-    @patch("isfile")
+    @patch("os.path.isfile")
     def test_init_api_url(self, mock_is_file):
         mock_is_file.return_value = True
         _api_url = "https://api.test"
@@ -83,7 +82,7 @@ class TestClient(unittest.TestCase):
 
         self.assertEqual(client._api_url, _api_url)
 
-    @patch("isfile")
+    @patch("os.path.isfile")
     def test_init_invalid_api_url(self, mock_is_file):
         mock_is_file.return_value = True
         _api_url = "invalid://api.test"
@@ -95,7 +94,7 @@ class TestClient(unittest.TestCase):
         except Exception as e:
             self.assertEqual(str(e), f"Invalid API URL: {_api_url}")
 
-    @patch("isfile")
+    @patch("os.path.isfile")
     def test_init_api_url_from_config(self, mock_is_file):
         mock_is_file.return_value = True
         _api_url = "https://api.test"
@@ -106,7 +105,7 @@ class TestClient(unittest.TestCase):
 
         self.assertEqual(client._api_url, _api_url)
 
-    @patch("isfile")
+    @patch("os.path.isfile")
     def test_init_proxy_url(self, mock_is_file):
         mock_is_file.return_value = True
         _proxy_url = "https://proxy.test"
@@ -117,7 +116,7 @@ class TestClient(unittest.TestCase):
 
         self.assertEqual(client._proxy_url, _proxy_url)
 
-    @patch("isfile")
+    @patch("os.path.isfile")
     def test_init_invalid_proxy_url(self, mock_is_file):
         mock_is_file.return_value = True
         _proxy_url = "invalid://proxy.api.test"
@@ -129,7 +128,7 @@ class TestClient(unittest.TestCase):
         except Exception as e:
             self.assertEqual(str(e), f"Invalid proxy URL: {_proxy_url}")
 
-    @patch("isfile")
+    @patch("os.path.isfile")
     def test_init_proxy_url_from_config(self, mock_is_file):
         mock_is_file.return_value = True
         _proxy_url = "https://proxy.test"
@@ -140,7 +139,7 @@ class TestClient(unittest.TestCase):
 
         self.assertEqual(client._proxy_url, _proxy_url)
 
-    @patch("isfile")
+    @patch("os.path.isfile")
     def test_init_user_agent(self, mock_is_file):
         mock_is_file.return_value = True
         _user_agent = "test_agent"
@@ -154,7 +153,7 @@ class TestClient(unittest.TestCase):
             f"{_user_agent} (Zanshin Python SDK v{zanshinsdk.version.__version__})",
         )
 
-    @patch("isfile")
+    @patch("os.path.isfile")
     def test_init_user_agent_from_config(self, mock_is_file):
         mock_is_file.return_value = True
         _user_agent = "test_agent"
@@ -172,7 +171,7 @@ class TestClient(unittest.TestCase):
     # _update_client except
     ###################################################
 
-    @patch("isfile")
+    @patch("os.path.isfile")
     def test_update_client_except(self, mock_is_file):
         mock_is_file.return_value = True
         _data = "[default]\napi_key=api_key"
@@ -189,7 +188,7 @@ class TestClient(unittest.TestCase):
     # Properties
     ###################################################
 
-    @patch("isfile")
+    @patch("os.path.isfile")
     def test_get_api_url(self, mock_is_file):
         mock_is_file.return_value = True
         _api_url = "https://api.test"
@@ -200,7 +199,7 @@ class TestClient(unittest.TestCase):
 
         self.assertEqual(client.api_url, _api_url)
 
-    @patch("isfile")
+    @patch("os.path.isfile")
     def test_set_api_url(self, mock_is_file):
         mock_is_file.return_value = True
         _api_url = "https://api.test"
@@ -214,7 +213,7 @@ class TestClient(unittest.TestCase):
 
         self.assertEqual(client.api_url, _new_api_url)
 
-    @patch("isfile")
+    @patch("os.path.isfile")
     def test_set_invalid_api_url(self, mock_is_file):
         mock_is_file.return_value = True
         _api_url = "https://api.test"
@@ -229,7 +228,7 @@ class TestClient(unittest.TestCase):
         except Exception as e:
             self.assertEqual(str(e), f"Invalid API URL: {_new_api_url}")
 
-    @patch("isfile")
+    @patch("os.path.isfile")
     def test_set_none_api_url(self, mock_is_file):
         mock_is_file.return_value = True
         _api_key = "https://api.test"
@@ -243,7 +242,7 @@ class TestClient(unittest.TestCase):
         except Exception as e:
             self.assertEqual(str(e), f"API URL cannot be null")
 
-    @patch("isfile")
+    @patch("os.path.isfile")
     def test_get_api_key(self, mock_is_file):
         mock_is_file.return_value = True
         _api_key = "api_key"
@@ -254,7 +253,7 @@ class TestClient(unittest.TestCase):
 
         self.assertEqual(client.api_key, _api_key)
 
-    @patch("isfile")
+    @patch("os.path.isfile")
     def test_set_api_key(self, mock_is_file):
         mock_is_file.return_value = True
         _api_key = "api_key"
@@ -268,7 +267,7 @@ class TestClient(unittest.TestCase):
 
         self.assertEqual(client.api_key, _new_api_key)
 
-    @patch("isfile")
+    @patch("os.path.isfile")
     def test_get_proxy_url(self, mock_is_file):
         mock_is_file.return_value = True
         _proxy_url = "https://proxy.test"
@@ -279,7 +278,7 @@ class TestClient(unittest.TestCase):
 
         self.assertEqual(client.proxy_url, _proxy_url)
 
-    @patch("isfile")
+    @patch("os.path.isfile")
     def test_set_proxy_url(self, mock_is_file):
         mock_is_file.return_value = True
         _proxy_url = "https://proxy.test"
@@ -293,7 +292,7 @@ class TestClient(unittest.TestCase):
 
         self.assertEqual(client.proxy_url, _new_proxy_url)
 
-    @patch("isfile")
+    @patch("os.path.isfile")
     def test_set_invalid_proxy_url(self, mock_is_file):
         mock_is_file.return_value = True
         _proxy_url = "https://proxy.test"
@@ -308,7 +307,7 @@ class TestClient(unittest.TestCase):
         except Exception as e:
             self.assertEqual(str(e), f"Invalid proxy URL: {_new_proxy_url}")
 
-    @patch("isfile")
+    @patch("os.path.isfile")
     def test_set_equal_proxy_url(self, mock_is_file):
         mock_is_file.return_value = True
         _proxy_url = "https://proxy.test"
@@ -321,7 +320,7 @@ class TestClient(unittest.TestCase):
 
         self.assertEqual(client.proxy_url, _proxy_url)
 
-    @patch("isfile")
+    @patch("os.path.isfile")
     def test_set_none_proxy_url(self, mock_is_file):
         mock_is_file.return_value = True
         _proxy_url = "https://proxy.test"
@@ -334,7 +333,7 @@ class TestClient(unittest.TestCase):
 
         self.assertIsNone(client.proxy_url)
 
-    @patch("isfile")
+    @patch("os.path.isfile")
     def test_get_user_agent(self, mock_is_file):
         mock_is_file.return_value = True
         _user_agent = "test_agent"
@@ -348,7 +347,7 @@ class TestClient(unittest.TestCase):
             f"{_user_agent} (Zanshin Python SDK v{zanshinsdk.version.__version__})",
         )
 
-    @patch("isfile")
+    @patch("os.path.isfile")
     def test_set_user_agent(self, mock_is_file):
         mock_is_file.return_value = True
         _user_agent = "test_agent"
@@ -365,7 +364,7 @@ class TestClient(unittest.TestCase):
             f"{_new_user_agent} (Zanshin Python SDK v{zanshinsdk.version.__version__})",
         )
 
-    @patch("isfile")
+    @patch("os.path.isfile")
     def test_get_sanitized_proxy_url_none(self, mock_is_file):
         mock_is_file.return_value = True
         _data = "[default]\napi_key=api_key"
@@ -375,7 +374,7 @@ class TestClient(unittest.TestCase):
 
         self.assertIsNone(client._get_sanitized_proxy_url())
 
-    @patch("isfile")
+    @patch("os.path.isfile")
     def test_get_sanitized_proxy_url(self, mock_is_file):
         mock_is_file.return_value = True
         _proxy_url = "https://username:password@proxy.test:8000"
@@ -390,7 +389,7 @@ class TestClient(unittest.TestCase):
     # Request
     ###################################################
 
-    @patch("isfile")
+    @patch("os.path.isfile")
     @patch("client.httpx.Client.request")
     def test_request(self, request, mock_is_file):
         mock_is_file.return_value = True
@@ -410,7 +409,7 @@ class TestClient(unittest.TestCase):
             method="GET", url=f"{_api_url}/path", params=None, json=None
         )
 
-    @patch("isfile")
+    @patch("os.path.isfile")
     @patch("client.httpx.Client.request")
     def test_request_without_content(self, request, mock_is_file):
         mock_is_file.return_value = True

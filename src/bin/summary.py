@@ -1,13 +1,8 @@
 from typing import Dict, Iterable, Optional, Union
 from uuid import UUID
 
-from src.bin.client import (
-    Client,
-    Languages,
-    validate_class,
-    validate_int,
-    validate_uuid,
-)
+from src.bin.client import Client, validate_class, validate_int, validate_uuid
+from src.lib.models import Languages
 
 ###################################################
 # Summary

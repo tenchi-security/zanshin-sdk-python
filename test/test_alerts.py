@@ -20,11 +20,11 @@ from src.bin.alerts import (
     iter_grouped_following_alerts,
     update_alert,
 )
-from src.bin.client import (
+from src.bin.client import Client
+from src.lib.models import (
     AlertSeverity,
     AlertsOrderOpts,
     AlertState,
-    Client,
     Languages,
     SortOpts,
 )

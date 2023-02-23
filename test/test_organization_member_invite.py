@@ -1,6 +1,6 @@
 import unittest
 
-from src.bin.client import Client, Roles
+from src.bin.client import Client
 from src.bin.organization_member_invite import (
     create_organization_members_invite,
     delete_organization_member_invite,
@@ -8,6 +8,7 @@ from src.bin.organization_member_invite import (
     iter_organization_members_invites,
     resend_organization_member_invite,
 )
+from src.lib.models import Roles
 
 ###################################################
 # Organization Member Invite

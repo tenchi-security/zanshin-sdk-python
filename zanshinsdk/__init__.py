@@ -1,10 +1,12 @@
 import logging
 
-from src.bin.client import (
+from src.bin.client import Client, validate_uuid
+from src.bin.following_alerts_history import FilePersistentFollowingAlertsIterator
+from src.bin.iterator import AbstractPersistentAlertsIterator, PersistenceEntry
+from src.lib.models import (
     AlertSeverity,
     AlertsOrderOpts,
     AlertState,
-    Client,
     Languages,
     Roles,
     ScanTargetAWS,
@@ -16,10 +18,7 @@ from src.bin.client import (
     ScanTargetKind,
     ScanTargetSchedule,
     SortOpts,
-    validate_uuid,
 )
-from src.bin.following_alerts_history import FilePersistentFollowingAlertsIterator
-from src.bin.iterator import AbstractPersistentAlertsIterator, PersistenceEntry
 from zanshinsdk.version import __version__
 
 from src.bin.alerts_history import FilePersistentAlertsIterator  # isort:skip

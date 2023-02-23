@@ -2,16 +2,13 @@ from math import ceil
 from typing import Dict, Iterable, Iterator, Optional, Union
 from uuid import UUID
 
-from src.bin.client import (
+from src.bin.client import Client, validate_class, validate_int, validate_uuid
+from src.lib.models import (
     AlertSeverity,
     AlertsOrderOpts,
     AlertState,
-    Client,
     Languages,
     SortOpts,
-    validate_class,
-    validate_int,
-    validate_uuid,
 )
 
 ###################################################
