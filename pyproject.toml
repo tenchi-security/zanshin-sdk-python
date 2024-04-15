@@ -29,6 +29,7 @@ python = "^3.8"
 httpx = "0.23.1"
 moto = {version = "4.0.9", extras = ["all"]}
 pre-commit = "3.0.2"
+openapi-schema-validator = "^0.6.2"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "^7.1.0"
@@ -41,5 +42,3 @@ mkdocstrings-python = "^0.8.3"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.poetry.extras]
-with_boto3 = ["moto[all]"]
