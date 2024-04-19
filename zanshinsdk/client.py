@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 import sys
 import time
@@ -64,41 +65,63 @@ class SortOpts(str, Enum):
     DESC = "desc"
 
 
-class ScanTargetSchedule(str, Enum):
+class Frequency(Enum):
     ONE_HOUR = "1h"
     SIX_HOURS = "6h"
-    TWELVE_HOURS = "12h"
-    TWENTY_FOUR_HOURS = "24h"
-    SEVEN_DAYS = "7d"
+    TWELVE_HOURS = ("12h",)
+    DAILY = ("1d",)
+    WEEKLY = ("7d",)
 
-    @classmethod
-    def from_value(cls, schedule: Union[str, ScanTargetSchedule]) -> ScanTargetSchedule:
-        if isinstance(schedule, cls):
-            return schedule
-        elif isinstance(schedule, str):
-            # try to match with current enum values
-            try:
-                return cls(schedule.lower())
-            except ValueError:
-                pass
 
-            # failing that, let's convert cron format to the new one
-            if schedule == "0 * * * *":
-                return cls.ONE_HOUR
-            elif schedule == "0 */6 * * *":
-                return cls.SIX_HOURS
-            elif schedule == "0 */12 * * *":
-                return cls.TWELVE_HOURS
-            elif schedule == "0 0 * * *":
-                return cls.TWENTY_FOUR_HOURS
-            elif schedule == "0 0 * * 0":
-                return cls.SEVEN_DAYS
-            else:
-                raise ValueError(f"Unexpected schedule value '{schedule}'")
-        else:
-            raise TypeError(
-                "schedule must be a string or an instance of ScanTargetSchedule"
-            )
+class TimeOfDay(Enum):
+    MORNING = "MORNING"
+    AFTERNOON = "AFTERNOON"
+    EVENING = "EVENING"
+    NIGHT = "NIGHT"
+
+
+class Day(Enum):
+    SUNDAY = "SUNDAY"
+    MONDAY = "MONDAY"
+    TUESDAY = "TUESDAY"
+    WEDNESDAY = "WEDNESDAY"
+    THURSDAY = "THURSDAY"
+    FRIDAY = "FRIDAY"
+    SATURDAY = "SATURDAY"
+
+
+class ScanTargetSchedule:
+    def __init__(
+        self,
+        frequency: Frequency,
+        timeOfDay: TimeOfDay = TimeOfDay.NIGHT,
+        day: Day = Day.SUNDAY,
+    ):
+        self._frequency = frequency
+        self._timeOfDay = timeOfDay
+        self._day = day
+
+    def value(self):
+        if self._frequency.value < Frequency.DAILY.value:
+            return {"frequency": self._frequency.name}
+        if self._frequency == Frequency.WEEKLY:
+            return {
+                "frequency": Frequency.WEEKLY.name,
+                "timeOfDay": self._timeOfDay.name,
+                "day": self._day.name,
+            }
+        return {
+            "frequency": Frequency.DAILY.name,
+            "timeOfDay": self._timeOfDay.name,
+        }
+
+    def json(self):
+        return json.dumps(self.value())
+
+
+DAILY = ScanTargetSchedule(Frequency.DAILY, TimeOfDay.NIGHT)
+HOURLY = ScanTargetSchedule(Frequency.ONE_HOUR)
+WEEKLY = ScanTargetSchedule(Frequency.WEEKLY, TimeOfDay.NIGHT, Day.SUNDAY)
 
 
 class ScanTargetAWS(dict):
@@ -999,7 +1022,7 @@ class Client:
             ScanTargetDOMAIN,
             ScanTargetORACLE,
         ],
-        schedule: Union[str, ScanTargetSchedule] = ScanTargetSchedule.TWENTY_FOUR_HOURS,
+        schedule: ScanTargetSchedule = DAILY,
     ) -> Dict:
         """
         Create a new scan target in organization.
@@ -1035,7 +1058,7 @@ class Client:
             "name": name,
             "kind": kind,
             "credential": credential,
-            "schedule": ScanTargetSchedule.from_value(schedule).value,
+            "schedule": schedule.value(),
         }
         return self._request(
             "POST",
@@ -1064,7 +1087,7 @@ class Client:
         organization_id: Union[UUID, str],
         scan_target_id: Union[UUID, str],
         name: str,
-        schedule: Union[str, ScanTargetSchedule],
+        schedule: ScanTargetSchedule = DAILY,
     ) -> Dict:
         """
         Update scan target of organization.
@@ -1078,7 +1101,7 @@ class Client:
 
         body = {
             "name": name,
-            "schedule": ScanTargetSchedule.from_value(schedule).value,
+            "schedule": schedule.value(),
         }
 
         return self._request(
@@ -2403,7 +2426,7 @@ class Client:
         ],
         boto3_session: any = None,
         boto3_profile: str = "default",
-        schedule: Union[str, ScanTargetSchedule] = ScanTargetSchedule.TWENTY_FOUR_HOURS,
+        schedule: ScanTargetSchedule = DAILY,
     ) -> Dict:
         """
         Currently supports only AWS Scan Targets.
