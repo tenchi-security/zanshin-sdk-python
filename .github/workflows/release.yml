@@ -43,6 +43,7 @@ jobs:
 
       - name: Generate updated documentation
         run: |
+          sudo apt-get install -y pandoc
           pip install mkdocs-material mkdocstrings-python
           rm -f README.rst
           make README.rst
