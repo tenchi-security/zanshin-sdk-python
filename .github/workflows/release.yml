@@ -48,11 +48,6 @@ jobs:
           poetry run mkdocs build
           poetry run mkdocs gh-deploy --force
 
-      - name: Build and publish to PyPI Test
-        run: |
-          poetry config repositories.testpypi https://test.pypi.org/legacy/
-          poetry publish --build -r testpypi -u __token__ -p ${{ secrets.TEST_PYPI_TOKEN }}
-
       - name: Build and publish to PyPI
         run: |
           poetry config repositories.pypi https://upload.pypi.org/legacy/
