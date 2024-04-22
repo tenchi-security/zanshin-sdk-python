@@ -48,7 +48,7 @@ jobs:
           rm -f README.rst
           make README.rst
           mkdocs build
-          mkdocs gh-deploy
+          mkdocs gh-deploy --force
 
       - name: Build and publish to PyPI Test
         run: |
