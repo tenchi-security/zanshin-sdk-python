@@ -44,11 +44,10 @@ jobs:
       - name: Generate updated documentation
         run: |
           sudo apt-get install -y pandoc
-          pip install mkdocs-material mkdocstrings-python
           rm -f README.rst
           make README.rst
-          mkdocs build
-          mkdocs gh-deploy --force
+          poetry run mkdocs build
+          poetry run mkdocs gh-deploy --force
 
       - name: Build and publish to PyPI Test
         run: |
