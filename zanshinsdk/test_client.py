@@ -862,7 +862,7 @@ class TestClient(unittest.TestCase):
                 "name": name,
                 "kind": kind,
                 "credential": credential,
-                "schedule": {"frequency": "DAILY", "timeOfDay": "NIGHT"},
+                "schedule": {"frequency": "1d", "timeOfDay": "NIGHT"},
             },
         )
 
@@ -886,7 +886,7 @@ class TestClient(unittest.TestCase):
                 "name": name,
                 "kind": kind,
                 "credential": credential,
-                "schedule": {"frequency": "DAILY", "timeOfDay": "NIGHT"},
+                "schedule": {"frequency": "1d", "timeOfDay": "NIGHT"},
             },
         )
 
@@ -908,7 +908,7 @@ class TestClient(unittest.TestCase):
                 "name": name,
                 "kind": kind,
                 "credential": credential,
-                "schedule": {"frequency": "DAILY", "timeOfDay": "NIGHT"},
+                "schedule": {"frequency": "1d", "timeOfDay": "NIGHT"},
             },
         )
 
@@ -930,7 +930,7 @@ class TestClient(unittest.TestCase):
                 "name": name,
                 "kind": kind,
                 "credential": credential,
-                "schedule": {"frequency": "DAILY", "timeOfDay": "NIGHT"},
+                "schedule": {"frequency": "1d", "timeOfDay": "NIGHT"},
             },
         )
 
@@ -952,7 +952,7 @@ class TestClient(unittest.TestCase):
                 "name": name,
                 "kind": kind,
                 "credential": credential,
-                "schedule": {"frequency": "DAILY", "timeOfDay": "NIGHT"},
+                "schedule": {"frequency": "1d", "timeOfDay": "NIGHT"},
             },
         )
 
@@ -3090,7 +3090,7 @@ class TestClient(unittest.TestCase):
             body={
                 "name": name,
                 "kind": kind,
-                "schedule": {"frequency": "DAILY", "timeOfDay": "NIGHT"},
+                "schedule": {"frequency": "1d", "timeOfDay": "NIGHT"},
                 "credential": {"account": aws_account_id},
             },
         )
@@ -3212,7 +3212,7 @@ class TestClient(unittest.TestCase):
             body={
                 "name": name,
                 "kind": kind,
-                "schedule": {"frequency": "DAILY", "timeOfDay": "NIGHT"},
+                "schedule": {"frequency": "1d", "timeOfDay": "NIGHT"},
                 "credential": {"account": aws_account_id},
             },
         )
