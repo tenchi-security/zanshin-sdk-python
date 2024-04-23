@@ -28,7 +28,7 @@ jobs:
       - name: Install poetry
         uses: snok/install-poetry@v1.2.0
         with:
-          version: 1.3.2
+          version: 1.8.2
           virtualenvs-create: false
           virtualenvs-in-project: false
 
@@ -38,21 +38,15 @@ jobs:
 
       - name: Unit tests
         run: |
-          pip install -r requirements.txt
           make test
 
       - name: Generate updated documentation
         run: |
-          pip install mkdocs-material mkdocstrings-python
+          sudo apt-get install -y pandoc
           rm -f README.rst
           make README.rst
-          mkdocs build
-          mkdocs gh-deploy
-
-      - name: Build and publish to PyPI Test
-        run: |
-          poetry config repositories.testpypi https://test.pypi.org/legacy/
-          poetry publish --build -r testpypi -u __token__ -p ${{ secrets.TEST_PYPI_TOKEN }}
+          poetry run mkdocs build
+          poetry run mkdocs gh-deploy --force
 
       - name: Build and publish to PyPI
         run: |
