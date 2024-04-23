@@ -981,7 +981,7 @@ class TestClient(unittest.TestCase):
             f"/organizations/{organization_id}/scantargets/{scan_target_id}",
             body={
                 "name": name,
-                "schedule": {"frequency": "DAILY", "timeOfDay": "NIGHT"},
+                "schedule": {"frequency": "1d", "timeOfDay": "NIGHT"},
             },
         )
 
