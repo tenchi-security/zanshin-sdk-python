@@ -2,7 +2,6 @@ import logging
 
 from zanshinsdk.client import (
     DAILY,
-    HOURLY,
     WEEKLY,
     AlertSeverity,
     AlertsOrderOpts,

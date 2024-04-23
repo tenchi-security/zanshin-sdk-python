@@ -16,6 +16,7 @@ from urllib.parse import urlparse
 from uuid import UUID
 
 import httpx
+from pydantic import BaseModel, Field
 
 from zanshinsdk.version import __version__ as sdk_version
 
@@ -66,11 +67,10 @@ class SortOpts(str, Enum):
 
 
 class Frequency(Enum):
-    ONE_HOUR = "1h"
     SIX_HOURS = "6h"
-    TWELVE_HOURS = ("12h",)
-    DAILY = ("1d",)
-    WEEKLY = ("7d",)
+    TWELVE_HOURS = "12h"
+    DAILY = "1d"
+    WEEKLY = "7d"
 
 
 class TimeOfDay(Enum):
@@ -90,38 +90,33 @@ class Day(Enum):
     SATURDAY = "SATURDAY"
 
 
-class ScanTargetSchedule:
-    def __init__(
-        self,
-        frequency: Frequency,
-        timeOfDay: TimeOfDay = TimeOfDay.NIGHT,
-        day: Day = Day.SUNDAY,
-    ):
-        self._frequency = frequency
-        self._timeOfDay = timeOfDay
-        self._day = day
+class ScanTargetSchedule(BaseModel):
+    frequency: Frequency
+    time_of_day: Optional[TimeOfDay] = Field(None, alias="timeOfDay")
+    day: Optional[Day] = None
 
     def value(self):
-        if self._frequency.value < Frequency.DAILY.value:
-            return {"frequency": self._frequency.name}
-        if self._frequency == Frequency.WEEKLY:
+        if self.frequency in (Frequency.SIX_HOURS, Frequency.TWELVE_HOURS):
+            return {"frequency": self.frequency.value}
+        if self.frequency == Frequency.WEEKLY:
             return {
-                "frequency": Frequency.WEEKLY.name,
-                "timeOfDay": self._timeOfDay.name,
-                "day": self._day.name,
+                "frequency": self.frequency.value,
+                "timeOfDay": self.time_of_day.value,
+                "day": self.day.value,
             }
         return {
-            "frequency": Frequency.DAILY.name,
-            "timeOfDay": self._timeOfDay.name,
+            "frequency": self.frequency.value,
+            "timeOfDay": self.time_of_day.value,
         }
 
     def json(self):
         return json.dumps(self.value())
 
 
-DAILY = ScanTargetSchedule(Frequency.DAILY, TimeOfDay.NIGHT)
-HOURLY = ScanTargetSchedule(Frequency.ONE_HOUR)
-WEEKLY = ScanTargetSchedule(Frequency.WEEKLY, TimeOfDay.NIGHT, Day.SUNDAY)
+DAILY = ScanTargetSchedule(frequency=Frequency.DAILY, time_of_day=TimeOfDay.NIGHT)
+WEEKLY = ScanTargetSchedule(
+    frequency=Frequency.WEEKLY, time_of_day=TimeOfDay.NIGHT, day=Day.SUNDAY
+)
 
 
 class ScanTargetAWS(dict):
