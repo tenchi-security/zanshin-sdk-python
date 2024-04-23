@@ -92,8 +92,8 @@ class Day(Enum):
 
 class ScanTargetSchedule(BaseModel):
     frequency: Frequency
-    time_of_day: Optional[TimeOfDay] = Field(None, alias="timeOfDay")
-    day: Optional[Day] = None
+    time_of_day: Optional[TimeOfDay] = Field(TimeOfDay.NIGHT, alias="timeOfDay")
+    day: Optional[Day] = Day.SUNDAY
 
     def value(self):
         if self.frequency in (Frequency.SIX_HOURS, Frequency.TWELVE_HOURS):
