@@ -100,7 +100,5 @@ class ScanTargetMS365(dict):
 class ScanTargetGITHUB(dict):
     def __init__(self, organization_name, installation_id):
         dict.__init__(
-            self,
-            organizationName=organization_name,
-            installationId=installation_id
+            self, organizationName=organization_name, installationId=installation_id
         )

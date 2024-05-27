@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class AlertState(str, Enum):
     OPEN = "OPEN"
     ACTIVE = "ACTIVE"
@@ -89,6 +90,7 @@ class Day(Enum):
     THURSDAY = "THURSDAY"
     FRIDAY = "FRIDAY"
     SATURDAY = "SATURDAY"
+
 
 class Roles(str, Enum):
     ADMIN = "ADMIN"

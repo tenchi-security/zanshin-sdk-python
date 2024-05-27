@@ -3093,7 +3093,8 @@ class TestClient(unittest.TestCase):
 
         # Create Mocked S3 tenchi-assets bucket
         with open(
-            "zanshinsdk/tests/data/dummy_cloudformation_zanshin_service_role_template.json", "r"
+            "zanshinsdk/tests/data/dummy_cloudformation_zanshin_service_role_template.json",
+            "r",
         ) as dummy_template_file:
             DUMMY_TEMPLATE = json.load(dummy_template_file)
             s3 = boto3.client("s3", region_name="us-east-2")
@@ -3215,7 +3216,8 @@ class TestClient(unittest.TestCase):
 
         # Create Mocked S3 tenchi-assets bucket
         with open(
-            "zanshinsdk/tests/data/dummy_cloudformation_zanshin_service_role_template.json", "r"
+            "zanshinsdk/tests/data/dummy_cloudformation_zanshin_service_role_template.json",
+            "r",
         ) as dummy_template_file:
             DUMMY_TEMPLATE = json.load(dummy_template_file)
             s3 = boto3.client("s3", region_name="us-east-2")

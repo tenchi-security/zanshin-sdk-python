@@ -1,6 +1,7 @@
 from typing import Optional, Union
 from uuid import UUID
 
+
 def validate_int(
     value, min_value=None, max_value=None, required=False
 ) -> Optional[int]:
