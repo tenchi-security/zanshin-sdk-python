@@ -1129,7 +1129,7 @@ class Client:
             * SALESFORCE
         :return: a dict with the link
         """
-        if kind.value not in OAuthTargetKind.__members__.values():
+        if kind.value not in [member.value for member in OAuthTargetKind]:
             raise ValueError(f"{repr(kind.value)} is not eligible for OAuth link")
 
         scan_type = (
@@ -1144,7 +1144,7 @@ class Client:
             f"&{scan_type}={validate_uuid(scan_target_id)}"
         )
 
-        return self._request("GET", path)
+        return self._request("GET", path).json()
 
     def get_gworkspace_oauth_link(
         self, organization_id: Union[UUID, str], scan_target_id: Union[UUID, str]
@@ -1246,10 +1246,11 @@ class Client:
         """
         validate_class(kind, ScanTargetKind)
         validate_class(name, str)
+        group_kinds = [member.value for member in ScanTargetGroupKind]
 
-        if kind not in ScanTargetGroupKind.__members__.values():
+        if kind not in group_kinds:
             raise ValueError(
-                f"{repr(kind.value)} is not accepted. '{ScanTargetGroupKind.__members__.values()}' is expected"
+                f"{repr(kind.value)} is not accepted. '{group_kinds}' is expected"
             )
 
         body = {
