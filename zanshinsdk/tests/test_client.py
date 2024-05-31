@@ -167,7 +167,7 @@ class TestClient(unittest.TestCase):
     def mock_aws_credentials(self):
         """Mocked AWS Credentials for moto."""
         moto_credentials_file_path = (
-            Path(__file__).parent.absolute() / "dummy_aws_credentials"
+            Path(__file__).parent.absolute() / "data/dummy_aws_credentials"
         )
         os.environ["AWS_SHARED_CREDENTIALS_FILE"] = str(moto_credentials_file_path)
 
@@ -1031,6 +1031,42 @@ class TestClient(unittest.TestCase):
             f"/organizations/{organization_id}/scantargets/{scan_target_id}/check",
         )
 
+    def test_get_kind_oauth_link_should_call_api_with_scan_target_id(self):
+        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
+        scan_target_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
+        kind = zanshinsdk.ScanTargetKind.GITLAB
+
+        self.sdk.get_kind_oauth_link(organization_id, scan_target_id, kind)
+
+        self.sdk._request.assert_called_once_with(
+            "GET",
+            f"/oauth/link?"
+            f"organizationId={organization_id}"
+            f"&scanTargetGroupId={scan_target_id}",
+        )
+
+    def test_get_kind_oauth_link_should_call_api_with_scan_target_group_id(self):
+        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
+        scan_target_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
+        kind = zanshinsdk.ScanTargetKind.JIRA
+
+        self.sdk.get_kind_oauth_link(organization_id, scan_target_id, kind)
+
+        self.sdk._request.assert_called_once_with(
+            "GET",
+            f"/oauth/link?"
+            f"organizationId={organization_id}"
+            f"&scanTargetId={scan_target_id}",
+        )
+
+    def test_get_kind_oauth_link_should_raise_exception_with_invalid_kind(self):
+        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
+        scan_target_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
+        kind = zanshinsdk.ScanTargetKind.AWS
+
+        with self.assertRaises(ValueError):
+            self.sdk.get_kind_oauth_link(organization_id, scan_target_id, kind)
+
     def test_get_gworkspace_oauth_link(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         scan_target_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
@@ -1213,23 +1249,26 @@ class TestClient(unittest.TestCase):
             body={"name": name},
         )
 
-    def test_create_scan_target_group(self):
+    def test_create_scan_target_group_should_call_api_with_valid_kind(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        kind = zanshinsdk.ScanTargetKind.ORACLE
+        kind = zanshinsdk.ScanTargetKind.BITBUCKET
         name = "ScanTargetTest"
 
         self.sdk.create_scan_target_group(organization_id, kind, name)
-
-        with self.assertRaises(ValueError):
-            self.sdk.create_scan_target_group(
-                organization_id, zanshinsdk.ScanTargetKind.AWS, name
-            )
 
         self.sdk._request.assert_called_once_with(
             "POST",
             f"/organizations/{organization_id}/scantargetgroups",
             body={"name": name, "kind": kind},
         )
+
+    def test_create_scan_target_group_should_throw_exception_with_invalid_kind(self):
+        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
+        kind = zanshinsdk.ScanTargetKind.AWS
+        name = "ScanTargetTest"
+
+        with self.assertRaises(ValueError):
+            self.sdk.create_scan_target_group(organization_id, kind, name)
 
     def test_iter_scan_target_group_compartments(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
@@ -3054,7 +3093,8 @@ class TestClient(unittest.TestCase):
 
         # Create Mocked S3 tenchi-assets bucket
         with open(
-            "zanshinsdk/dummy_cloudformation_zanshin_service_role_template.json", "r"
+            "zanshinsdk/tests/data/dummy_cloudformation_zanshin_service_role_template.json",
+            "r",
         ) as dummy_template_file:
             DUMMY_TEMPLATE = json.load(dummy_template_file)
             s3 = boto3.client("s3", region_name="us-east-2")
@@ -3176,7 +3216,8 @@ class TestClient(unittest.TestCase):
 
         # Create Mocked S3 tenchi-assets bucket
         with open(
-            "zanshinsdk/dummy_cloudformation_zanshin_service_role_template.json", "r"
+            "zanshinsdk/tests/data/dummy_cloudformation_zanshin_service_role_template.json",
+            "r",
         ) as dummy_template_file:
             DUMMY_TEMPLATE = json.load(dummy_template_file)
             s3 = boto3.client("s3", region_name="us-east-2")
