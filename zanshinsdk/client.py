@@ -1135,11 +1135,11 @@ class Client:
         )
 
         return self._request("GET", path).json()
-    
+
     def get_scan_target_group_oauth_link(
-            self,
-            organization_id: Union[UUID, str],
-            scan_target_group_id: Union[UUID, str],
+        self,
+        organization_id: Union[UUID, str],
+        scan_target_group_id: Union[UUID, str],
     ):
         """
         Retrieve a link to authorize zanshin to read info from their target group.
