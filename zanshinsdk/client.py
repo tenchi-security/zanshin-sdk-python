@@ -1110,11 +1110,10 @@ class Client:
     # Scan Target OAuth
     ###################################################
 
-    def get_kind_oauth_link(
+    def get_scan_target_oauth_link(
         self,
         organization_id: Union[UUID, str],
         scan_target_id: Union[UUID, str],
-        kind: Union[ScanTargetKind, OAuthTargetKind],
     ) -> Dict:
         """
         Retrieve a link to authorize zanshin to read info from their target.
@@ -1129,19 +1128,31 @@ class Client:
             * SALESFORCE
         :return: a dict with the link
         """
-        if kind.value not in [member.value for member in OAuthTargetKind]:
-            raise ValueError(f"{repr(kind.value)} is not eligible for OAuth link")
-
-        scan_type = (
-            "scanTargetGroupId"
-            if kind in [ScanTargetKind.BITBUCKET, ScanTargetKind.GITLAB]
-            else "scanTargetId"
-        )
-
         path = (
             f"/oauth/link"
             f"?organizationId={validate_uuid(organization_id)}"
-            f"&{scan_type}={validate_uuid(scan_target_id)}"
+            f"&scanTargetId={validate_uuid(scan_target_id)}"
+        )
+
+        return self._request("GET", path).json()
+    
+    def get_scan_target_group_oauth_link(
+            self,
+            organization_id: Union[UUID, str],
+            scan_target_group_id: Union[UUID, str],
+    ):
+        """
+        Retrieve a link to authorize zanshin to read info from their target group.
+
+        Mandatory for scan target groups of kind:
+            * BITBUCKET
+            * GITLAB
+        :return: a dict with the link
+        """
+        path = (
+            f"/oauth/link"
+            f"?organizationId={validate_uuid(organization_id)}"
+            f"&scanTargetGroupId={validate_uuid(scan_target_group_id)}"
         )
 
         return self._request("GET", path).json()
