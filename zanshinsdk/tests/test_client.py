@@ -1031,26 +1031,24 @@ class TestClient(unittest.TestCase):
             f"/organizations/{organization_id}/scantargets/{scan_target_id}/check",
         )
 
-    def test_get_kind_oauth_link_should_call_api_with_scan_target_id(self):
+    def test_get_scan_target_group_oauth_link_should_call_apiß(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        scan_target_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
-        kind = zanshinsdk.ScanTargetKind.GITLAB
+        scan_target_group_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
 
-        self.sdk.get_kind_oauth_link(organization_id, scan_target_id, kind)
+        self.sdk.get_scan_target_group_oauth_link(organization_id, scan_target_group_id)
 
         self.sdk._request.assert_called_once_with(
             "GET",
             f"/oauth/link?"
             f"organizationId={organization_id}"
-            f"&scanTargetGroupId={scan_target_id}",
+            f"&scanTargetGroupId={scan_target_group_id}",
         )
 
-    def test_get_kind_oauth_link_should_call_api_with_scan_target_group_id(self):
+    def test_get_scan_target_oauth_link_should_call_api_with_scan_target_group_id(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         scan_target_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
-        kind = zanshinsdk.ScanTargetKind.JIRA
 
-        self.sdk.get_kind_oauth_link(organization_id, scan_target_id, kind)
+        self.sdk.get_scan_target_oauth_link(organization_id, scan_target_id)
 
         self.sdk._request.assert_called_once_with(
             "GET",
@@ -1058,14 +1056,6 @@ class TestClient(unittest.TestCase):
             f"organizationId={organization_id}"
             f"&scanTargetId={scan_target_id}",
         )
-
-    def test_get_kind_oauth_link_should_raise_exception_with_invalid_kind(self):
-        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        scan_target_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
-        kind = zanshinsdk.ScanTargetKind.AWS
-
-        with self.assertRaises(ValueError):
-            self.sdk.get_kind_oauth_link(organization_id, scan_target_id, kind)
 
     def test_get_gworkspace_oauth_link(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
