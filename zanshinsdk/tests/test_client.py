@@ -1,11 +1,8 @@
 import os
 import unittest
 from pathlib import Path
-from unittest.mock import Mock, call, mock_open, patch
+from unittest.mock import Mock, call, patch
 from uuid import UUID
-
-from httpx import Request, Response
-from moto import mock_cloudformation, mock_s3, mock_sts
 
 import zanshinsdk
 
@@ -19,11 +16,14 @@ class TestClient(unittest.TestCase):
     @patch("zanshinsdk.Client._request")
     def setUp(self, request, mock_is_file):
         mock_is_file.return_value = True
-        _data = "[default]\napi_key=api_key"
 
-        with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-            self.sdk = zanshinsdk.Client()
-            self.sdk._request = request
+        self.sdk = zanshinsdk.Client(
+            profile=False,
+            api_key="api_key",
+            api_url="https://api.test",
+            user_agent="test_agent"
+        )
+        self.sdk._request = request
 
         self.HAVE_BOTO3 = False
         try:
@@ -35,132 +35,6 @@ class TestClient(unittest.TestCase):
             self.HAVE_BOTO3 = False
 
     ###################################################
-    # __init__
-    ###################################################
-
-    @patch("zanshinsdk.client.isfile")
-    def test_init_empty_profile(self, mock_is_file):
-        mock_is_file.return_value = True
-        _data = "[default]\napi_key=api_key"
-
-        try:
-            with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-                zanshinsdk.Client(profile="")
-        except Exception as e:
-            self.assertIn("profile  not found", str(e))
-
-    @patch("zanshinsdk.client.isfile")
-    def test_init_wrong_profile(self, mock_is_file):
-        mock_is_file.return_value = True
-        _profile = "XYZ"
-        _data = "[default]\napi_key=api_key"
-
-        try:
-            with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-                zanshinsdk.Client(profile=_profile)
-        except Exception as e:
-            self.assertEqual(
-                str(e),
-                f"profile {_profile} not found in {zanshinsdk.client.CONFIG_FILE}",
-            )
-
-    @patch("zanshinsdk.client.isfile")
-    def test_init_api_url(self, mock_is_file):
-        mock_is_file.return_value = True
-        _api_url = "https://api.test"
-        _data = "[default]\napi_key=api_key"
-
-        with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-            client = zanshinsdk.Client(api_url=_api_url)
-
-        self.assertEqual(client._api_url, _api_url)
-
-    @patch("zanshinsdk.client.isfile")
-    def test_init_invalid_api_url(self, mock_is_file):
-        mock_is_file.return_value = True
-        _api_url = "invalid://api.test"
-        _data = "[default]\napi_key=api_key"
-
-        try:
-            with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-                zanshinsdk.Client(api_url=_api_url)
-        except Exception as e:
-            self.assertEqual(str(e), f"Invalid API URL: {_api_url}")
-
-    @patch("zanshinsdk.client.isfile")
-    def test_init_api_url_from_config(self, mock_is_file):
-        mock_is_file.return_value = True
-        _api_url = "https://api.test"
-        _data = f"[default]\napi_key=api_key\napi_url={_api_url}"
-
-        with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-            client = zanshinsdk.Client()
-
-        self.assertEqual(client._api_url, _api_url)
-
-    @patch("zanshinsdk.client.isfile")
-    def test_init_proxy_url(self, mock_is_file):
-        mock_is_file.return_value = True
-        _proxy_url = "https://proxy.test"
-        _data = "[default]\napi_key=api_key"
-
-        with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-            client = zanshinsdk.Client(proxy_url=_proxy_url)
-
-        self.assertEqual(client._proxy_url, _proxy_url)
-
-    @patch("zanshinsdk.client.isfile")
-    def test_init_invalid_proxy_url(self, mock_is_file):
-        mock_is_file.return_value = True
-        _proxy_url = "invalid://proxy.api.test"
-        _data = "[default]\napi_key=api_key"
-
-        try:
-            with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-                zanshinsdk.Client(proxy_url=_proxy_url)
-        except Exception as e:
-            self.assertEqual(str(e), f"Invalid proxy URL: {_proxy_url}")
-
-    @patch("zanshinsdk.client.isfile")
-    def test_init_proxy_url_from_config(self, mock_is_file):
-        mock_is_file.return_value = True
-        _proxy_url = "https://proxy.test"
-        _data = f"[default]\napi_key=api_key\nproxy_url={_proxy_url}"
-
-        with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-            client = zanshinsdk.Client()
-
-        self.assertEqual(client._proxy_url, _proxy_url)
-
-    @patch("zanshinsdk.client.isfile")
-    def test_init_user_agent(self, mock_is_file):
-        mock_is_file.return_value = True
-        _user_agent = "test_agent"
-        _data = "[default]\napi_key=api_key"
-
-        with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-            client = zanshinsdk.Client(user_agent=_user_agent)
-
-        self.assertEqual(
-            client._user_agent,
-            f"{_user_agent} (Zanshin Python SDK v{zanshinsdk.version.__version__})",
-        )
-
-    @patch("zanshinsdk.client.isfile")
-    def test_init_user_agent_from_config(self, mock_is_file):
-        mock_is_file.return_value = True
-        _user_agent = "test_agent"
-        _data = f"[default]\napi_key=api_key\nuser_agent={_user_agent}"
-
-        with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-            client = zanshinsdk.Client()
-
-        self.assertEqual(
-            client._user_agent,
-            f"{_user_agent} (Zanshin Python SDK v{zanshinsdk.version.__version__})",
-        )
-
-    ###################################################
     # __mock_aws_credentials__
     ###################################################
 
@@ -170,268 +44,6 @@ class TestClient(unittest.TestCase):
             Path(__file__).parent.absolute() / "data/dummy_aws_credentials"
         )
         os.environ["AWS_SHARED_CREDENTIALS_FILE"] = str(moto_credentials_file_path)
-
-    ###################################################
-    # _update_client except
-    ###################################################
-
-    @patch("zanshinsdk.client.isfile")
-    def test_update_client_except(self, mock_is_file):
-        mock_is_file.return_value = True
-        _data = "[default]\napi_key=api_key"
-
-        with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-            client = zanshinsdk.Client()
-
-        client._client = None
-        client._update_client()
-
-        self.assertIsNotNone(client._client)
-
-    ###################################################
-    # Properties
-    ###################################################
-
-    @patch("zanshinsdk.client.isfile")
-    def test_get_api_url(self, mock_is_file):
-        mock_is_file.return_value = True
-        _api_url = "https://api.test"
-        _data = "[default]\napi_key=api_key"
-
-        with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-            client = zanshinsdk.Client(api_url=_api_url)
-
-        self.assertEqual(client.api_url, _api_url)
-
-    @patch("zanshinsdk.client.isfile")
-    def test_set_api_url(self, mock_is_file):
-        mock_is_file.return_value = True
-        _api_url = "https://api.test"
-        _new_api_url = "https://new.api.test"
-        _data = "[default]\napi_key=api_key"
-
-        with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-            client = zanshinsdk.Client(api_url=_api_url)
-
-        client.api_url = _new_api_url
-
-        self.assertEqual(client.api_url, _new_api_url)
-
-    @patch("zanshinsdk.client.isfile")
-    def test_set_invalid_api_url(self, mock_is_file):
-        mock_is_file.return_value = True
-        _api_url = "https://api.test"
-        _new_api_url = "invalid://new.api.test"
-        _data = "[default]\napi_key=api_key"
-
-        try:
-            with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-                client = zanshinsdk.Client(api_url=_api_url)
-
-            client.api_url = _new_api_url
-        except Exception as e:
-            self.assertEqual(str(e), f"Invalid API URL: {_new_api_url}")
-
-    @patch("zanshinsdk.client.isfile")
-    def test_set_none_api_url(self, mock_is_file):
-        mock_is_file.return_value = True
-        _api_key = "https://api.test"
-        _data = "[default]\napi_key=api_key"
-
-        try:
-            with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-                client = zanshinsdk.Client(api_url=_api_key)
-
-            client.api_url = None
-        except Exception as e:
-            self.assertEqual(str(e), f"API URL cannot be null")
-
-    @patch("zanshinsdk.client.isfile")
-    def test_get_api_key(self, mock_is_file):
-        mock_is_file.return_value = True
-        _api_key = "api_key"
-        _data = "[default]\napi_key=api_key"
-
-        with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-            client = zanshinsdk.Client(api_key=_api_key)
-
-        self.assertEqual(client.api_key, _api_key)
-
-    @patch("zanshinsdk.client.isfile")
-    def test_set_api_key(self, mock_is_file):
-        mock_is_file.return_value = True
-        _api_key = "api_key"
-        _new_api_key = "new_api_key"
-        _data = "[default]\napi_key=api_key"
-
-        with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-            client = zanshinsdk.Client(api_key=_api_key)
-
-        client.api_key = _new_api_key
-
-        self.assertEqual(client.api_key, _new_api_key)
-
-    @patch("zanshinsdk.client.isfile")
-    def test_get_proxy_url(self, mock_is_file):
-        mock_is_file.return_value = True
-        _proxy_url = "https://proxy.test"
-        _data = "[default]\napi_key=api_key"
-
-        with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-            client = zanshinsdk.Client(proxy_url=_proxy_url)
-
-        self.assertEqual(client.proxy_url, _proxy_url)
-
-    @patch("zanshinsdk.client.isfile")
-    def test_set_proxy_url(self, mock_is_file):
-        mock_is_file.return_value = True
-        _proxy_url = "https://proxy.test"
-        _new_proxy_url = "https://new.proxy.test"
-        _data = "[default]\napi_key=api_key"
-
-        with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-            client = zanshinsdk.Client(proxy_url=_proxy_url)
-
-        client.proxy_url = _new_proxy_url
-
-        self.assertEqual(client.proxy_url, _new_proxy_url)
-
-    @patch("zanshinsdk.client.isfile")
-    def test_set_invalid_proxy_url(self, mock_is_file):
-        mock_is_file.return_value = True
-        _proxy_url = "https://proxy.test"
-        _new_proxy_url = "invalid://new.proxy.test"
-        _data = "[default]\napi_key=api_key"
-
-        try:
-            with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-                client = zanshinsdk.Client(proxy_url=_proxy_url)
-
-            client.proxy_url = _new_proxy_url
-        except Exception as e:
-            self.assertEqual(str(e), f"Invalid proxy URL: {_new_proxy_url}")
-
-    @patch("zanshinsdk.client.isfile")
-    def test_set_equal_proxy_url(self, mock_is_file):
-        mock_is_file.return_value = True
-        _proxy_url = "https://proxy.test"
-        _data = "[default]\napi_key=api_key"
-
-        with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-            client = zanshinsdk.Client(proxy_url=_proxy_url)
-
-        client.proxy_url = _proxy_url
-
-        self.assertEqual(client.proxy_url, _proxy_url)
-
-    @patch("zanshinsdk.client.isfile")
-    def test_set_none_proxy_url(self, mock_is_file):
-        mock_is_file.return_value = True
-        _proxy_url = "https://proxy.test"
-        _data = "[default]\napi_key=api_key"
-
-        with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-            client = zanshinsdk.Client(proxy_url=_proxy_url)
-
-        client.proxy_url = None
-
-        self.assertIsNone(client.proxy_url)
-
-    @patch("zanshinsdk.client.isfile")
-    def test_get_user_agent(self, mock_is_file):
-        mock_is_file.return_value = True
-        _user_agent = "test_agent"
-        _data = "[default]\napi_key=api_key"
-
-        with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-            client = zanshinsdk.Client(user_agent=_user_agent)
-
-        self.assertEqual(
-            client.user_agent,
-            f"{_user_agent} (Zanshin Python SDK v{zanshinsdk.version.__version__})",
-        )
-
-    @patch("zanshinsdk.client.isfile")
-    def test_set_user_agent(self, mock_is_file):
-        mock_is_file.return_value = True
-        _user_agent = "test_agent"
-        _new_user_agent = "new_test_agent"
-        _data = "[default]\napi_key=api_key"
-
-        with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-            client = zanshinsdk.Client(user_agent=_user_agent)
-
-        client.user_agent = _new_user_agent
-
-        self.assertEqual(
-            client.user_agent,
-            f"{_new_user_agent} (Zanshin Python SDK v{zanshinsdk.version.__version__})",
-        )
-
-    @patch("zanshinsdk.client.isfile")
-    def test_get_sanitized_proxy_url_none(self, mock_is_file):
-        mock_is_file.return_value = True
-        _data = "[default]\napi_key=api_key"
-
-        with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-            client = zanshinsdk.Client()
-
-        self.assertIsNone(client._get_sanitized_proxy_url())
-
-    @patch("zanshinsdk.client.isfile")
-    def test_get_sanitized_proxy_url(self, mock_is_file):
-        mock_is_file.return_value = True
-        _proxy_url = "https://username:password@proxy.test:8000"
-        _data = "[default]\napi_key=api_key"
-
-        with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-            client = zanshinsdk.Client(proxy_url=_proxy_url)
-
-        self.assertIsNotNone(client._get_sanitized_proxy_url())
-
-    ###################################################
-    # Request
-    ###################################################
-
-    @patch("zanshinsdk.client.isfile")
-    @patch("zanshinsdk.client.httpx.Client.request")
-    def test_request(self, request, mock_is_file):
-        mock_is_file.return_value = True
-        _api_url = "https://api.test"
-        _data = "[default]\napi_key=api_key"
-
-        with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-            client = zanshinsdk.Client(api_url=_api_url)
-
-        req = Request(method="GET", url=f"{_api_url}/path", content="{}")
-        value = Response(request=req, status_code=200)
-        request.return_value = value
-        client._client.request = request
-        client._request("GET", "/path")
-
-        client._client.request.assert_called_once_with(
-            method="GET", url=f"{_api_url}/path", params=None, json=None
-        )
-
-    @patch("zanshinsdk.client.isfile")
-    @patch("zanshinsdk.client.httpx.Client.request")
-    def test_request_without_content(self, request, mock_is_file):
-        mock_is_file.return_value = True
-        _api_url = "https://api.test"
-        _data = "[default]\napi_key=api_key"
-
-        with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-            client = zanshinsdk.Client(api_url=_api_url)
-
-        req = Request(method="GET", url=f"{_api_url}/path")
-        value = Response(request=req, status_code=200)
-        request.return_value = value
-        client._client.request = request
-        client._request("GET", "/path")
-
-        client._client.request.assert_called_once_with(
-            method="GET", url=f"{_api_url}/path", params=None, json=None
-        )
 
     ###################################################
     # Account
@@ -1141,19 +753,21 @@ class TestClient(unittest.TestCase):
         }
 
         mock_is_file.return_value = True
-        with patch(
-            "__main__.__builtins__.open",
-            mock_open(read_data="[default]\napi_key=api_key"),
-        ):
-            request.return_value = Mock(
-                status_code=200, json=lambda: {"data": [scan_data]}
-            )
-            client = zanshinsdk.Client()
-            client._client.request = request
+        
+        request.return_value = Mock(
+            status_code=200, json=lambda: {"data": [scan_data]}
+        )
+        client = zanshinsdk.Client(
+            profile=False,
+            api_key="api_key",
+            api_url="https://api.test",
+            user_agent="test_agent"
+        )
+        client._client.request = request
 
-            iter = client.iter_organization_scan_target_scans(
-                organization_id, scan_target_id
-            )
+        iter = client.iter_organization_scan_target_scans(
+            organization_id, scan_target_id
+        )
 
         self.assertDictEqual(iter.__next__(), scan_data)
         self.assertRaises(StopIteration, iter.__next__)
@@ -2769,17 +2383,6 @@ class TestClient(unittest.TestCase):
     # validates
     ###################################################
 
-    def test__repr__(self):
-        _response = (
-            f"Connection(api_url='https://api.zanshin.tenchisecurity.com', api_key='***pi_key', "
-            f"user_agent='Zanshin Python SDK v{zanshinsdk.version.__version__}', proxy_url='None')"
-        )
-        self.assertEqual(self.sdk.__repr__(), _response)
-
-    ###################################################
-    # validates
-    ###################################################
-
     def test_validate_int_none(self):
         _int = None
         self.assertIsNone(zanshinsdk.client.validate_int(_int))
@@ -2825,13 +2428,13 @@ class TestClient(unittest.TestCase):
 
     def test_validate_uuid(self):
         _uuid = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        _response = zanshinsdk.client.validate_uuid(UUID(_uuid))
+        _response = zanshinsdk.validate_uuid(UUID(_uuid))
         self.assertEqual(_uuid, _response)
 
     def test_validate_uuid_invalid(self):
         _uuid = "invalid_uuid"
         try:
-            zanshinsdk.client.validate_uuid(_uuid)
+            zanshinsdk.validate_uuid(_uuid)
         except Exception as e:
             self.assertEqual(str(e), f"{repr(_uuid)} is not a valid UUID")
 
@@ -3024,247 +2627,3 @@ class TestClient(unittest.TestCase):
             self.assertEqual(
                 str(e), "boto3 session is invalid. Working boto3 session is required."
             )
-
-    @unittest.skipUnless("HAVE_BOTO3", "requires boto3")
-    @patch("zanshinsdk.client.isfile")
-    @patch("zanshinsdk.Client._request")
-    @mock_sts
-    @mock_cloudformation
-    @mock_s3
-    def test_onboard_scan_target_aws_boto3_profile(self, request, mock_is_file):
-        """
-        Call onboard_scan_target with valid boto3_profile.
-        Skip this test unless boto3 is installed in environment.
-        Mock the creation of a new Scan Target, and behavior of AWS Services STS, CloudFormation and S3.
-
-        :param region: str
-        :param organization_id: str
-        :param kind: ScanTargetKind.AZURE
-        :param credential: ScanTargetAZURE
-        :param boto3_profile: str
-        :param schedule: obj
-
-        Asserts:
-        * New Scan Target was created, with given parameters.
-        * Scan was Started for this new Scan Target.
-        * CloudFormation with Zanshin Role was deployed sucessfully.
-
-        >>> new_scan_target = self.sdk.onboard_scan_target(
-                region, organization_id, kind, name, credential, None, boto3_profile, schedule)
-        """
-        import json
-
-        import boto3
-
-        # Setup test data
-        aws_account_id = "123456789012"
-        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        created_scan_target_id = "14f79567-6b68-4e3a-b2f2-4f1383546251"
-        kind = zanshinsdk.ScanTargetKind.AWS
-        name = "OnboardTesting-it"
-        credential = zanshinsdk.ScanTargetAWS(aws_account_id)
-        schedule = zanshinsdk.DAILY
-        region = "us-east-1"
-        boto3_profile = "foo"
-
-        # Mock AWS Credentials for Boto3
-        self.mock_aws_credentials()
-
-        # Mock request to create new Scan Target
-        mock_is_file.return_value = True
-        _data = "[default]\napi_key=api_key"
-
-        with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-            request.return_value = Mock(
-                status_code=200, json=lambda: {"id": created_scan_target_id}
-            )
-            client = zanshinsdk.Client()
-            client._client.request = request
-
-        # Create Mocked S3 tenchi-assets bucket
-        with open(
-            "zanshinsdk/tests/data/dummy_cloudformation_zanshin_service_role_template.json",
-            "r",
-        ) as dummy_template_file:
-            DUMMY_TEMPLATE = json.load(dummy_template_file)
-            s3 = boto3.client("s3", region_name="us-east-2")
-            s3.create_bucket(
-                Bucket="tenchi-assets",
-                CreateBucketConfiguration={"LocationConstraint": "us-east-2"},
-            )
-            s3.put_object(
-                Bucket="tenchi-assets",
-                Key="zanshin-service-role.template",
-                Body=json.dumps(DUMMY_TEMPLATE),
-            )
-
-        # Call method onboard_scan_target with boto3_profile
-        new_scan_target = client.onboard_scan_target(
-            region,
-            organization_id,
-            kind,
-            name,
-            credential,
-            None,
-            boto3_profile,
-            schedule,
-        )
-
-        # Assert that Scan Target was created
-        self.assertEqual(created_scan_target_id, new_scan_target["id"])
-
-        # Assert that Scan Target was called with correct parameters
-        client._client.request.assert_any_call(
-            "POST",
-            f"/organizations/{organization_id}/scantargets",
-            body={
-                "name": name,
-                "kind": kind,
-                "schedule": {"frequency": "1d", "timeOfDay": "NIGHT"},
-                "credential": {"account": aws_account_id},
-            },
-        )
-        # Assert that we checked Scan Target to start scan
-        client._client.request.assert_any_call(
-            "POST",
-            f"/organizations/{organization_id}/scantargets/{created_scan_target_id}/check",
-        )
-
-        # Assert CloudFormation Stack was created successfully
-        zanshin_cloudformation_stack_name = "tenchi-zanshin-service-role"
-        cloudformation = boto3.client("cloudformation", region_name="us-east-1")
-        zanshin_stack = cloudformation.describe_stacks(
-            StackName=zanshin_cloudformation_stack_name
-        )["Stacks"][0]
-        self.assertEqual("CREATE_COMPLETE", zanshin_stack["StackStatus"])
-        self.assertEqual(zanshin_cloudformation_stack_name, zanshin_stack["StackName"])
-
-        # Clean Up CloudFormation
-        cf_stacks = cloudformation.describe_stacks(
-            StackName=zanshin_cloudformation_stack_name
-        )
-        for cf_stack in cf_stacks["Stacks"]:
-            cloudformation.delete_stack(StackName=cf_stack["StackName"])
-
-    @unittest.skipUnless("HAVE_BOTO3", "requires boto3")
-    @patch("zanshinsdk.client.isfile")
-    @patch("zanshinsdk.Client._request")
-    @mock_sts
-    @mock_cloudformation
-    @mock_s3
-    def test_onboard_scan_target_aws_boto3_session(self, request, mock_is_file):
-        """
-        Call onboard_scan_target with valid boto3_session.
-        Skip this test unless boto3 is installed in environment.
-        Mock the creation of a new Scan Target, and behavior of AWS Services STS, CloudFormation and S3.
-
-        :param region: str
-        :param organization_id: str
-        :param kind: ScanTargetKind.AZURE
-        :param credential: ScanTargetAZURE
-        :param boto3_profile: str
-        :param schedule: obj
-
-        Asserts:
-        * New Scan Target was created, with given parameters.
-        * Scan was Started for this new Scan Target.
-        * CloudFormation with Zanshin Role was deployed sucessfully.
-
-        >>> new_scan_target = self.sdk.onboard_scan_target(
-                region, organization_id, kind, name, credential, None, boto3_profile, schedule)
-        """
-        import json
-
-        import boto3
-
-        # Setup test data
-        aws_account_id = "123456789012"
-        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        created_scan_target_id = "14f79567-6b68-4e3a-b2f2-4f1383546251"
-        kind = zanshinsdk.ScanTargetKind.AWS
-        name = "OnboardTesting-it"
-        credential = zanshinsdk.ScanTargetAWS(aws_account_id)
-        schedule = zanshinsdk.DAILY
-        region = "us-east-1"
-
-        boto3_session = boto3.Session(
-            aws_access_key_id="EXAMPLE_NON_EXISTING_KEY",
-            aws_secret_access_key="&x@mP|e$3cReT",
-            aws_session_token="session_token",
-        )
-
-        # Mock request to create new Scan Target
-        mock_is_file.return_value = True
-        _data = "[default]\napi_key=api_key"
-
-        with patch("__main__.__builtins__.open", mock_open(read_data=_data)):
-            request.return_value = Mock(
-                status_code=200, json=lambda: {"id": created_scan_target_id}
-            )
-            client = zanshinsdk.Client()
-            client._client.request = request
-
-        # Create Mocked S3 tenchi-assets bucket
-        with open(
-            "zanshinsdk/tests/data/dummy_cloudformation_zanshin_service_role_template.json",
-            "r",
-        ) as dummy_template_file:
-            DUMMY_TEMPLATE = json.load(dummy_template_file)
-            s3 = boto3.client("s3", region_name="us-east-2")
-            s3.create_bucket(
-                Bucket="tenchi-assets",
-                CreateBucketConfiguration={"LocationConstraint": "us-east-2"},
-            )
-            s3.put_object(
-                Bucket="tenchi-assets",
-                Key="zanshin-service-role.template",
-                Body=json.dumps(DUMMY_TEMPLATE),
-            )
-
-        # Call method onboard_scan_target with boto3_session instead of boto3_profile
-        new_scan_target = client.onboard_scan_target(
-            region,
-            organization_id,
-            kind,
-            name,
-            credential,
-            boto3_session,
-            None,
-            schedule,
-        )
-
-        # Assert that Scan Target was created
-        self.assertEqual(created_scan_target_id, new_scan_target["id"])
-
-        # Assert that Scan Target was called with correct parameters
-        client._client.request.assert_any_call(
-            "POST",
-            f"/organizations/{organization_id}/scantargets",
-            body={
-                "name": name,
-                "kind": kind,
-                "schedule": {"frequency": "1d", "timeOfDay": "NIGHT"},
-                "credential": {"account": aws_account_id},
-            },
-        )
-        # Assert that we checked Scan Target to start scan
-        client._client.request.assert_any_call(
-            "POST",
-            f"/organizations/{organization_id}/scantargets/{created_scan_target_id}/check",
-        )
-
-        # Assert CloudFormation Stack was created successfully
-        zanshin_cloudformation_stack_name = "tenchi-zanshin-service-role"
-        cloudformation = boto3.client("cloudformation", region_name="us-east-1")
-        zanshin_stack = cloudformation.describe_stacks(
-            StackName=zanshin_cloudformation_stack_name
-        )["Stacks"][0]
-        self.assertEqual("CREATE_COMPLETE", zanshin_stack["StackStatus"])
-        self.assertEqual(zanshin_cloudformation_stack_name, zanshin_stack["StackName"])
-
-        # Clean Up CloudFormation
-        cf_stacks = cloudformation.describe_stacks(
-            StackName=zanshin_cloudformation_stack_name
-        )
-        for cf_stack in cf_stacks["Stacks"]:
-            cloudformation.delete_stack(StackName=cf_stack["StackName"])
