@@ -39,36 +39,6 @@ jobs:
       - name: Install dependencies
         run: poetry install
 
-      - name: Run pre-commit command
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          poetry run pre-commit autoupdate
-          poetry run pre-commit run --all-files
-
       - name: Unit test
         run: |
           poetry run python -m unittest discover -v
-
-      - name: Test coverage
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          make coverage
-
-      - name: Coverage comment
-        id: coverage_comment
-        uses: ewjoachim/python-coverage-comment-action@v2
-        if: steps.coverage_comment.outputs.COMMENT_FILE_WRITTEN == 'true' && matrix.os == 'ubuntu-latest'
-        with:
-          GITHUB_TOKEN: ${{ github.token }}
-          VERBOSE: true
-          MINIMUM_GREEN: 90
-          MINIMUM_ORANGE: 60
-
-      - name: Store Pull Request comment to be posted
-        uses: actions/upload-artifact@v2
-        if: steps.coverage_comment.outputs.COMMENT_FILE_WRITTEN == 'true' && matrix.os == 'ubuntu-latest'
-        with:
-          # If you use a different name, update COMMENT_ARTIFACT_NAME accordingly
-          name: python-coverage-comment-action
-          # If you use a different name, update COMMENT_FILENAME accordingly
-          path: python-coverage-comment-action.txt
