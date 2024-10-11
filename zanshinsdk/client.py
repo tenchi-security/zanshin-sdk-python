@@ -5,7 +5,6 @@ import logging
 import sys
 import time
 from configparser import RawConfigParser
-from enum import Enum
 from importlib.util import find_spec, module_from_spec
 from math import ceil
 from os import environ
@@ -337,6 +336,10 @@ class Client:
         """
 
         self._logger.debug("Requesting body=%s", body)
+
+        print(body)
+        print(path)
+        print(method)
 
         response = self._client.request(
             method=method, url=self.api_url + path, params=params, json=body
@@ -1482,7 +1485,7 @@ class Client:
             validate_class(scan_target_ids, Iterable)
             body["scanTargetIds"] = [validate_uuid(x) for x in scan_target_ids]
         if rule:
-            body["rule"] = rule
+            body["rules"] = [rule]
         if states:
             if isinstance(states, str) or isinstance(states, AlertState):
                 states = [states]
@@ -2222,6 +2225,42 @@ class Client:
             f"{validate_uuid(scan_target_id)}/alerts/{validate_uuid(alert_id)}",
             body=body,
         ).json()
+
+    def batch_update_alerts_state(
+        self,
+        organization_id: Union[UUID, str],
+        scan_target_ids: Iterable[Union[UUID, str]],
+        alert_ids: Iterable[str],
+        states: Iterable[AlertState],
+        rules: Iterable[str],
+        severities: Iterable[str],
+        state: AlertState,
+        comment: Optional[str] = None,
+        dry_run: Optional[bool] = False,
+    ) -> bool:
+        body = {
+            "state": validate_class(state, AlertState).value,
+            "comment": validate_class(comment, str) if comment else None,
+            "condition": {
+                "dryRun": validate_class(dry_run, bool),
+                "scanTargetIds": [
+                    validate_uuid(scan_target_id) for scan_target_id in scan_target_ids
+                ],
+                "states": [validate_class(state, AlertState).value for state in states],
+                "severities": [
+                    validate_class(severity, AlertSeverity) for severity in severities
+                ],
+                "rules": [validate_class(rule, str) for rule in rules],
+                "selection": {
+                    "alertIds": [validate_uuid(alert_id) for alert_id in alert_ids],
+                },
+            },
+        }
+        return self._request(
+            "PUT",
+            f"/organizations/{validate_uuid(organization_id)}/alerts/status/batch",
+            body=body,
+        )
 
     def create_alert_comment(
         self,

@@ -1501,7 +1501,7 @@ class TestClient(unittest.TestCase):
                 "organizationId": organization_id,
                 "page": page,
                 "pageSize": page_size,
-                "rule": rule,
+                "rules": [rule],
                 "lang": language,
                 "search": search,
                 "order": order,
