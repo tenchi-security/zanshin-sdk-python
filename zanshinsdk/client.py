@@ -336,15 +336,9 @@ class Client:
         """
 
         self._logger.debug("Requesting body=%s", body)
-
-        print(body)
-        print(path)
-        print(method)
-
         response = self._client.request(
             method=method, url=self.api_url + path, params=params, json=body
         )
-
         if response.request.content:
             self._logger.debug(
                 "%s %s (%d bytes in request body) status code %d",
