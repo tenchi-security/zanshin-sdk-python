@@ -36,6 +36,10 @@ jobs:
           virtualenvs-create: false
           virtualenvs-in-project: false
 
+      - name: Install poetry-plugin-export
+        run: |
+          poetry self add poetry-plugin-export
+
       - name: Install dependencies
         run: poetry install
 
