@@ -39,6 +39,9 @@ jobs:
       - name: Install dependencies
         run: poetry install
 
+      - name: Install poetry-plugin-export
+        run: poetry self add poetry-plugin-export        
+
       - name: Run pre-commit command
         if: matrix.os == 'ubuntu-latest'
         run: |
