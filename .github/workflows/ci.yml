@@ -40,6 +40,10 @@ jobs:
         run: |
           poetry self add poetry-plugin-export
 
+      - name: Suppress export warning
+        run: |
+          poetry config warnings.export false
+
       - name: Install dependencies
         run: poetry install
 
