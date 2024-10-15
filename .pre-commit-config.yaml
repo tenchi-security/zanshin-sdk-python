@@ -42,3 +42,11 @@ repos:
             "--allow-missing-credentials"
           ]
       - id: no-commit-to-branch
+  - repo: local
+    hooks:
+      - id: export-requirements
+        name: Export requeriments.txt
+        language: python
+        pass_filenames: false
+        entry: poetry export -f requirements.txt --output requirements.txt --without-hashes
+        files: ^(pyproject.toml|poetry.lock)$
