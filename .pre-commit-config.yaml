@@ -42,4 +42,3 @@ repos:
             "--allow-missing-credentials"
           ]
       - id: no-commit-to-branch
-
