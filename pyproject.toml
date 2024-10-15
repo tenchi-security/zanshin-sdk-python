@@ -37,7 +37,7 @@ mkdocs-material = "^9.0.12"
 mkdocstrings-python = "^1.10.0"
 openapi-schema-validator = "^0.6.2"
 moto = {version = "4.0.9", extras = ["all"]}
-pre-commit = "3.0.2"
+pre-commit = "^4.0.0"
 
 [build-system]
 requires = ["poetry-core", "setuptools"]
