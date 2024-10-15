@@ -5,11 +5,11 @@ repos:
       - id: isort
         args: ["--profile", "black"]
   - repo: https://github.com/psf/black
-    rev: 24.4.2
+    rev: 24.10.0
     hooks:
       - id: black
   - repo: https://github.com/pycqa/flake8
-    rev: 7.0.0
+    rev: 7.1.1
     hooks:
       - id: flake8
         args:
@@ -23,7 +23,7 @@ repos:
             "--statistics"
           ]
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       - id: check-merge-conflict
       - id: end-of-file-fixer
@@ -44,9 +44,12 @@ repos:
       - id: no-commit-to-branch
   - repo: local
     hooks:
-      - id: export-requirements
-        name: Export requeriments.txt
-        language: system
+      - id: poetry-export
+        name: poetry-export
+        description: run poetry export to sync lock file with requirements.txt
+        entry: poetry export
+        language: python
+        language_version: python3
         pass_filenames: false
-        entry: poetry export -f requirements.txt --output requirements.txt --without-hashes
-        files: ^(pyproject.toml|poetry.lock)$
+        files: ^(.*/)?poetry\.lock$
+        args: ["-f", "requirements.txt", "-o", "requirements.txt", "--without-hashes"]
