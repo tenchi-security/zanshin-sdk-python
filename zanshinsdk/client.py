@@ -2324,6 +2324,16 @@ class Client:
         scan_target_kinds: Optional[Iterable[Union[ScanTargetKind, str]]] = None,
         alert_severities: Optional[Iterable[Union[AlertSeverity, str]]] = None,
     ) -> Dict:
+        """
+        Get scan target following summary.
+        <https://api.zanshin.tenchisecurity.com/#tag/Summaries/operation/summaries_getScanTargetFollowingSummaryHandler>
+        :param organization_id: the ID of the organization
+        :param following_ids: optional list of IDs of organizations being followed
+        :param following_tags: optional list of tags of followed scan targets
+        :param scan_target_kinds: optional list of scan targets kinds (AWS, GCP, AZURE)
+        :param alert_severities: optional list of severities
+        :return: JSON object containing the following summaries
+        """
         body = {}
 
         if following_ids:
@@ -2367,6 +2377,16 @@ class Client:
         scan_target_kinds: Optional[Iterable[Union[ScanTargetKind, str]]] = None,
         alert_severities: Optional[Iterable[Union[AlertSeverity, str]]] = None,
     ) -> Dict:
+        """
+        Get scan target following summary.
+        <https://api.zanshin.tenchisecurity.com/#tag/Summaries/operation/summaries_getScanTargetDetailSummaryHandler>
+        :param organization_id: the ID of the organization
+        :param scan_target_ids: optional list of scan target IDs
+        :param scan_target_tags: optional list of tags of organization scan targets
+        :param scan_target_kinds: optional list of scan targets kinds (AWS, GCP, AZURE)
+        :param alert_severities: optional list of severities
+        :return: JSON object containing the following summaries
+        """
         body = {}
 
         if scan_target_ids:
