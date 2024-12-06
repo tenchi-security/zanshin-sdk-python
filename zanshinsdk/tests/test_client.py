@@ -2592,11 +2592,51 @@ class TestClient(unittest.TestCase):
 
         self.sdk._request.assert_called_once_with(
             "POST",
-            f"/alerts/summaries/scans/following",
+            "/alerts/summaries/scans/following",
             body={
                 "organizationId": organization_id,
                 "daysBefore": days,
                 "followingIds": following_ids,
+            },
+        )
+
+    def test_get_scan_targets_following_summary(self):
+        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
+        scan_target_kinds = [zanshinsdk.ScanTargetKind.DOMAIN]
+        alert_severities = [zanshinsdk.AlertSeverity.HIGH]
+
+        self.sdk.get_scan_targets_following_summary(
+            organization_id=organization_id,
+            scan_target_kinds=scan_target_kinds,
+            alert_severities=alert_severities,
+        )
+
+        self.sdk._request.assert_called_once_with(
+            "POST",
+            f"/organizations/{organization_id}/summaries/scantargets/followings",
+            body={
+                "scanTargetKinds": scan_target_kinds,
+                "alertSeverities": alert_severities,
+            },
+        )
+
+    def test_get_scan_target_detail_summary(self):
+        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
+        scan_target_kinds = [zanshinsdk.ScanTargetKind.SLACK]
+        alert_severities = [zanshinsdk.AlertSeverity.MEDIUM]
+
+        self.sdk.get_scan_target_detail_summary(
+            organization_id=organization_id,
+            scan_target_kinds=scan_target_kinds,
+            alert_severities=alert_severities,
+        )
+
+        self.sdk._request.assert_called_once_with(
+            "POST",
+            f"/organizations/{organization_id}/summaries/scantargets/details",
+            body={
+                "scanTargetKinds": scan_target_kinds,
+                "alertSeverities": alert_severities,
             },
         )
 
