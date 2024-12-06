@@ -2316,6 +2316,93 @@ class Client:
             "POST", "/alerts/summaries/scans/following", body=body
         ).json()
 
+    def get_scan_targets_following_summary(
+        self,
+        organization_id: Union[UUID, str],
+        following_ids: Optional[Iterable[Union[UUID, str]]] = None,
+        following_tags: Optional[Iterable[str]] = None,
+        scan_target_kinds: Optional[Iterable[Union[ScanTargetKind, str]]] = None,
+        alert_severities: Optional[Iterable[Union[AlertSeverity, str]]] = None,
+    ) -> Dict:
+        body = {}
+
+        if following_ids:
+            validate_class(following_ids, Iterable)
+            body["followingIds"] = [
+                validate_uuid(following_id) for following_id in following_ids
+            ]
+
+        if following_tags:
+            validate_class(following_tags, Iterable)
+            body["followingTags"] = [
+                validate_class(following_tag, str) for following_tag in following_tags
+            ]
+
+        if scan_target_kinds:
+            validate_class(scan_target_kinds, Iterable)
+            body["scanTargetKinds"] = [
+                validate_class(scan_target_kind, ScanTargetKind)
+                for scan_target_kind in scan_target_kinds
+            ]
+
+        if alert_severities:
+            validate_class(alert_severities, Iterable)
+            body["alertSeverities"] = [
+                validate_class(alert_severity, AlertSeverity)
+                for alert_severity in alert_severities
+            ]
+
+        return self._request(
+            "POST",
+            f"/organizations/{validate_uuid(organization_id)}/summaries"
+            "/scantargets/followings",
+            body=body,
+        ).json()
+
+    def get_scan_target_detail_summary(
+        self,
+        organization_id: Union[UUID, str],
+        scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
+        scan_target_tags: Optional[Iterable[str]] = None,
+        scan_target_kinds: Optional[Iterable[Union[ScanTargetKind, str]]] = None,
+        alert_severities: Optional[Iterable[Union[AlertSeverity, str]]] = None,
+    ) -> Dict:
+        body = {}
+
+        if scan_target_ids:
+            validate_class(scan_target_ids, Iterable)
+            body["scanTargetIds"] = [
+                validate_uuid(scan_target_id) for scan_target_id in scan_target_ids
+            ]
+
+        if scan_target_tags:
+            validate_class(scan_target_tags, Iterable)
+            body["scanTargetTags"] = [
+                validate_class(scan_target_tag, str)
+                for scan_target_tag in scan_target_tags
+            ]
+
+        if scan_target_kinds:
+            validate_class(scan_target_kinds, Iterable)
+            body["scanTargetKinds"] = [
+                validate_class(scan_target_kind, ScanTargetKind)
+                for scan_target_kind in scan_target_kinds
+            ]
+
+        if alert_severities:
+            validate_class(alert_severities, Iterable)
+            body["alertSeverities"] = [
+                validate_class(alert_severity, AlertSeverity)
+                for alert_severity in alert_severities
+            ]
+
+        return self._request(
+            "POST",
+            f"/organizations/{validate_uuid(organization_id)}/summaries"
+            "/scantargets/details",
+            body=body,
+        ).json()
+
     ###################################################
     # Onboard Scan Targets
     ###################################################
