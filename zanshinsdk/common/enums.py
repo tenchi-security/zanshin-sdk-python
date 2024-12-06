@@ -21,20 +21,20 @@ class AlertSeverity(str, Enum):
 
 class ScanTargetKind(str, Enum):
     AWS = "AWS"
-    GCP = "GCP"
     AZURE = "AZURE"
-    HUAWEI = "HUAWEI"
-    DOMAIN = "DOMAIN"
-    ORACLE = "ORACLE"
-    MS365 = "MS365"
-    GITHUB = "GITHUB"
-    ZENDESK = "ZENDESK"
-    GWORKSPACE = "GWORKSPACE"
-    SLACK = "SLACK"
+    GCP = "GCP"
     BITBUCKET = "BITBUCKET"
-    JIRA = "JIRA"
+    DOMAIN = "DOMAIN"
+    GITHUB = "GITHUB"
     GITLAB = "GITLAB"
+    GWORKSPACE = "GWORKSPACE"
+    HUAWEI = "HUAWEI"
+    JIRA = "JIRA"
+    MS365 = "MS365"
+    ORACLE = "ORACLE"
     SALESFORCE = "SALESFORCE"
+    SLACK = "SLACK"
+    ZENDESK = "ZENDESK"
 
 
 class ScanTargetGroupKind(str, Enum):
