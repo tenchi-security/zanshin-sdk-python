@@ -2130,6 +2130,7 @@ class Client:
         following_tags: Optional[Iterable[str]] = None,
         scan_target_kinds: Optional[Iterable[Union[ScanTargetKind, str]]] = None,
         alert_severities: Optional[Iterable[Union[AlertSeverity, str]]] = None,
+        include_empty_following_tags: Optional[bool] = None,
     ) -> Dict:
         """
         Get scan target following summary.
@@ -2168,6 +2169,10 @@ class Client:
                 validate_class(alert_severity, AlertSeverity)
                 for alert_severity in alert_severities
             ]
+
+        if include_empty_following_tags is not None:
+            validate_class(include_empty_following_tags, bool)
+            body["includeEmptyFollowingTags"] = include_empty_following_tags
 
         return self._request(
             "POST",
