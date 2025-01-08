@@ -1706,227 +1706,54 @@ class TestClient(unittest.TestCase):
 
     def test_get_following_alerts_page(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        page = 1
-        page_size = 100
-        rule = "rule"
-        language = zanshinsdk.Languages.EN_US
-        created_at_start = "created_at_start"
-        created_at_end = "created_at_end"
-        updated_at_start = "updated_at_start"
-        updated_at_end = "updated_at_end"
+        following_ids = ["421cfe8a-1777-4000-a000-f836dfdfcfb8"]
+        order = zanshinsdk.AlertsOrderOpts.SEVERITY
+        following_tags = None
+        include_empty_following_tags = None
+        cursor = "eyJpZCI6IjAyYWQxOGU3LTY1ODUtNDAwMC1hMDAwLWY2YTQzMTFlYzI4NyJ9"
 
         self.sdk._get_following_alerts_page(
-            organization_id,
-            page=page,
-            page_size=page_size,
-            rule=rule,
-            language=language,
-            created_at_start=created_at_start,
-            created_at_end=created_at_end,
-            updated_at_start=updated_at_start,
-            updated_at_end=updated_at_end,
+            organization_id=organization_id,
+            following_ids=following_ids,
+            following_tags=following_tags,
+            include_empty_following_tags=include_empty_following_tags,
+            cursor=cursor,
+            order=order,
         )
-
         self.sdk._request.assert_called_once_with(
             "POST",
-            f"/alerts/following",
+            f"/organizations/{organization_id}/followings/alerts",
             body={
-                "organizationId": organization_id,
-                "page": page,
-                "pageSize": page_size,
-                "rule": rule,
-                "lang": language,
-                "CreatedAtStart": created_at_start,
-                "CreatedAtEnd": created_at_end,
-                "UpdatedAtStart": updated_at_start,
-                "UpdatedAtEnd": updated_at_end,
-            },
-        )
-
-    def test_get_following_alerts_page_str_following_ids(self):
-        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        page = 1
-        page_size = 100
-        following_ids = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
-
-        self.sdk._get_following_alerts_page(
-            organization_id, page=page, page_size=page_size, following_ids=following_ids
-        )
-
-        self.sdk._request.assert_called_once_with(
-            "POST",
-            f"/alerts/following",
-            body={
-                "organizationId": organization_id,
-                "page": page,
-                "pageSize": page_size,
-                "followingIds": [following_ids],
-            },
-        )
-
-    def test_get_following_alerts_page_iterable_following_ids(self):
-        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        page = 1
-        page_size = 100
-        following_ids = [
-            "e22f4225-43e9-4922-b6b8-8b0620bdb110",
-            "e22f4225-43e9-4922-b6b8-8b0620bdb112",
-        ]
-
-        self.sdk._get_following_alerts_page(
-            organization_id, page=page, page_size=page_size, following_ids=following_ids
-        )
-
-        self.sdk._request.assert_called_once_with(
-            "POST",
-            f"/alerts/following",
-            body={
-                "organizationId": organization_id,
-                "page": page,
-                "pageSize": page_size,
+                "order": order,
                 "followingIds": following_ids,
             },
-        )
-
-    def test_get_following_alerts_page_str_states(self):
-        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        page = 1
-        page_size = 100
-        states = zanshinsdk.AlertState.OPEN
-
-        self.sdk._get_following_alerts_page(
-            organization_id, page=page, page_size=page_size, states=states
-        )
-
-        self.sdk._request.assert_called_once_with(
-            "POST",
-            f"/alerts/following",
-            body={
-                "organizationId": organization_id,
-                "page": page,
-                "pageSize": page_size,
-                "states": [states],
-            },
-        )
-
-    def test_get_following_alerts_page_iterable_states(self):
-        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        page = 1
-        page_size = 100
-        states = [zanshinsdk.AlertState.OPEN, zanshinsdk.AlertState.CLOSED]
-
-        self.sdk._get_following_alerts_page(
-            organization_id, page=page, page_size=page_size, states=states
-        )
-
-        self.sdk._request.assert_called_once_with(
-            "POST",
-            f"/alerts/following",
-            body={
-                "organizationId": organization_id,
-                "page": page,
-                "pageSize": page_size,
-                "states": states,
-            },
-        )
-
-    def test_get_following_alerts_page_str_severities(self):
-        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        page = 1
-        page_size = 100
-        severities = zanshinsdk.AlertSeverity.CRITICAL
-
-        self.sdk._get_following_alerts_page(
-            organization_id, page=page, page_size=page_size, severities=severities
-        )
-
-        self.sdk._request.assert_called_once_with(
-            "POST",
-            f"/alerts/following",
-            body={
-                "organizationId": organization_id,
-                "page": page,
-                "pageSize": page_size,
-                "severities": [severities],
-            },
-        )
-
-    def test_get_following_alerts_page_iterable_severities(self):
-        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        page = 1
-        page_size = 100
-        severities = [zanshinsdk.AlertSeverity.CRITICAL, zanshinsdk.AlertSeverity.HIGH]
-
-        self.sdk._get_following_alerts_page(
-            organization_id, page=page, page_size=page_size, severities=severities
-        )
-
-        self.sdk._request.assert_called_once_with(
-            "POST",
-            f"/alerts/following",
-            body={
-                "organizationId": organization_id,
-                "page": page,
-                "pageSize": page_size,
-                "severities": severities,
+            params={
+                "cursor": "eyJpZCI6IjAyYWQxOGU3LTY1ODUtNDAwMC1hMDAwLWY2YTQzMTFlYzI4NyJ9"
             },
         )
 
     @patch("zanshinsdk.client.Client._get_following_alerts_page")
     def test_iter_following_alerts(self, request):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        page = 1
-        page_size = 1
-
+        following_ids = ["421cfe8a-1777-4000-a000-f836dfdfcfb8"]
         request.return_value = {
             "data": [""],
-            "total": 2,
+            "cursor": None,
         }
-
         self.sdk._get_following_alerts_page = request
-        iterator = self.sdk.iter_following_alerts(organization_id, page_size=page_size)
-
-        next(iterator)
-        next(iterator)
-
-        self.sdk._get_following_alerts_page.assert_has_calls(
-            [
-                call(
-                    organization_id,
-                    None,
-                    None,
-                    None,
-                    None,
-                    page=page,
-                    page_size=page_size,
-                    language=None,
-                    created_at_start=None,
-                    created_at_end=None,
-                    updated_at_start=None,
-                    updated_at_end=None,
-                    search=None,
-                    order=None,
-                    sort=None,
-                ),
-                call(
-                    organization_id,
-                    None,
-                    None,
-                    None,
-                    None,
-                    page=page + 1,
-                    page_size=page_size,
-                    language=None,
-                    created_at_start=None,
-                    created_at_end=None,
-                    updated_at_start=None,
-                    updated_at_end=None,
-                    search=None,
-                    order=None,
-                    sort=None,
-                ),
-            ]
+        iterator = self.sdk.iter_following_alerts(
+            organization_id, following_ids=following_ids
         )
+        next(iterator)
+        self.sdk._get_following_alerts_page.assert_called_once_with(
+            organization_id,
+            following_ids,
+            following_tags=None,
+            include_empty_following_tags=None,
+            cursor=None,
+            order=None,
+        )
+        
 
     def test_get_alerts_history_page(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"

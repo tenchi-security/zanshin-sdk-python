@@ -1442,19 +1442,11 @@ class Client:
         Internal method to retrieve a single page of alerts from an organization
         :param organization_id: the ID of the organization
         :param scan_target_ids: optional list of scan target IDs to list alerts from, defaults to all
-        :param rule: to filter alerts from (rule), not passing the field will fetch all
-        :param states: optional list of states to filter returned alerts, defaults to all
-        :param severities: optional list of severities to filter returned alerts, defaults to all
-        :param page: page number, starting from 1
-        :param page_size: page size of alerts
-        :param language: language the rule will be returned
-        :param created_at_start: Search alerts by creation date - greater or equals than
-        :param created_at_end: Search alerts by creation date - less or equals than
-        :param updated_at_start: Search alerts by update date - greater or equals than
-        :param updated_at_end: Search alerts by update date - less or equals than
+        :param scan_target_tags: optional list of scan tags to list alerts from
+        :param include_empty_scan_target_tags: optional boolean to include empty tags scan targets
+        :param cursor: Cursor of the last alert consumed, when this value is passed, subsequent alert histories will be returned.
         :param order: Sort order to use (ascending or descending)
-        :param sort: Which field to sort on
-        :return: an iterator over the JSON decoded alerts
+        :return: a JSON decoded alerts
         :return:
         """
         validate_int(page, min_value=1, required=True)
@@ -1587,165 +1579,90 @@ class Client:
         self,
         organization_id: Union[UUID, str],
         following_ids: Optional[Iterable[Union[UUID, str]]] = None,
-        rule: Optional[str] = None,
-        states: Optional[Iterable[AlertState]] = None,
-        severities: Optional[Iterable[AlertSeverity]] = None,
-        page: int = 1,
-        page_size: int = 100,
-        language: Optional[Languages] = None,
-        created_at_start: Optional[str] = None,
-        created_at_end: Optional[str] = None,
-        updated_at_start: Optional[str] = None,
-        updated_at_end: Optional[str] = None,
-        search: Optional[str] = None,
+        following_tags: Optional[Iterable[str]] = None,
+        include_empty_following_tags: Optional[bool] = None,
+        cursor: Optional[str] = None,
         order: Optional[AlertsOrderOpts] = None,
-        sort: Optional[SortOpts] = None,
     ) -> Dict:
         """
         Internal method to retrieve a single page of alerts from organizations being followed
         :param organization_id: the ID of the organization
         :param following_ids: optional list of scan target IDs to list alerts from, defaults to all
-        :param rule: to filter alerts from (rule), not passing the field will fetch all
-        :param states: optional list of states to filter returned alerts, defaults to all
-        :param severities: optional list of severities to filter returned alerts, defaults to all
-        :param page: page number, starting from 1
-        :param page_size: page size of alerts
-        :param language: language the rule will be returned
-        :param created_at_start: Search alerts by creation date - greater or equals than
-        :param created_at_end: Search alerts by creation date - less or equals than
-        :param updated_at_start: Search alerts by update date - greater or equals than
-        :param updated_at_end: Search alerts by update date - less or equals than
-        :param search: Search string to find in alerts
-        :param order: Sort order to use (ascending or descending)
-        :param sort: Which field to sort on
-        :return: the decoded JSON response from the API
+        :param following_tags: optional list of following tags to list alerts from
+        :param include_empty_following_tags: optional boolean to include following scan without tags
+        :param cursor: Cursor of the last alert consumed, when this value is passed, subsequent alert histories will be returned.
+        :param order: Sort order to use based od alert order opts
+        :return: a JSON decoded following alerts
         """
-        validate_int(page, min_value=1, required=True)
-        validate_int(page_size, min_value=1, required=True)
-        body = {
-            "organizationId": validate_uuid(organization_id),
-            "page": page,
-            "pageSize": page_size,
-        }
-
-        if search:
-            validate_class(search, str)
-            body["search"] = search
+        body = {}
+        params = {}
+        if cursor:
+            validate_class(cursor, str)
+            params["cursor"] = cursor
         if order:
             validate_class(order, AlertsOrderOpts)
             body["order"] = order.value
-        if sort:
-            validate_class(sort, SortOpts)
-            body["sort"] = sort.value
         if following_ids:
             if isinstance(following_ids, str):
                 following_ids = [following_ids]
             validate_class(following_ids, Iterable)
             body["followingIds"] = [validate_uuid(x) for x in following_ids]
-        if rule:
-            body["rule"] = rule
-        if states:
-            if isinstance(states, str) or isinstance(states, AlertState):
-                states = [states]
-            validate_class(states, Iterable)
-            body["states"] = [validate_class(x, AlertState).value for x in states]
-        if severities:
-            if isinstance(severities, str):
-                severities = [severities]
-            validate_class(severities, Iterable)
-            body["severities"] = [
-                validate_class(x, AlertSeverity).value for x in severities
-            ]
-        if language:
-            validate_class(language, Languages)
-            body["lang"] = language.value
-        if created_at_start:
-            body["CreatedAtStart"] = created_at_start
-        if created_at_end:
-            body["CreatedAtEnd"] = created_at_end
-        if updated_at_start:
-            body["UpdatedAtStart"] = updated_at_start
-        if updated_at_end:
-            body["UpdatedAtEnd"] = updated_at_end
-
-        return self._request("POST", "/alerts/following", body=body).json()
+        if following_tags:
+            if isinstance(following_tags, str):
+                following_tags = [following_tags]
+            validate_class(following_tags, Iterable)
+            body["followingTags"] = [validate_uuid(x) for x in following_tags]
+        if include_empty_following_tags is not None:
+            validate_class(include_empty_following_tags, bool)
+            body["includeEmptyFollowingTags"] = include_empty_following_tags
+        return self._request(
+            "POST",
+            f"/organizations/{validate_uuid(organization_id)}/followings/alerts",
+            body=body,
+            params=params,
+        ).json()
 
     def iter_following_alerts(
         self,
         organization_id: Union[UUID, str],
         following_ids: Optional[Iterable[Union[UUID, str]]] = None,
-        rule: Optional[str] = None,
-        states: Optional[Iterable[AlertState]] = None,
-        severities: Optional[Iterable[AlertSeverity]] = None,
-        page_size: int = 100,
-        language: Optional[Languages] = None,
-        created_at_start: Optional[str] = None,
-        created_at_end: Optional[str] = None,
-        updated_at_start: Optional[str] = None,
-        updated_at_end: Optional[str] = None,
-        search: Optional[str] = None,
+        following_tags: Optional[Iterable[str]] = None,
+        include_empty_following_tags: Optional[bool] = None,
+        cursor: Optional[str] = None,
         order: Optional[AlertsOrderOpts] = None,
-        sort: Optional[SortOpts] = None,
     ) -> Iterator[Dict]:
         """
-        Iterates over the following alerts froms organizations being followed by transparently paginating on the API.
-        <https://api.zanshin.tenchisecurity.com/#operation/listFollowingAlerts>
+        Iterates over the following alerts from organizations being followed by transparently paginating on the API.
         :param organization_id: the ID of the organization
-        :param following_ids: optional list of IDs of organizations you are following to list alerts from, defaults to
-               all
-        :param rule: to filter alerts from (rule), not passing the field will fetch all
-        :param states: optional list of states to filter returned alerts, defaults to all
-        :param severities: optional list of severities to filter returned alerts, defaults to all
-        :param page_size: the number of alerts to load from the API at a time
-        :param language: language the rule will be returned
-        :param created_at_start: Search alerts by creation date - greater or equals than
-        :param created_at_end: Search alerts by creation date - less or equals than
-        :param updated_at_start: Search alerts by update date - greater or equals than
-        :param updated_at_end: Search alerts by update date - less or equals than
-        :param search: Search string to find in alerts
-        :param order: Sort order to use (ascending or descending)
-        :param sort: Which field to sort on
+        :param following_ids: optional list of scan target IDs to list alerts from, defaults to all
+        :param following_tags: optional list of following tags to list alerts from
+        :param include_empty_following_tags: optional boolean to include following scan without tags
+        :param cursor: Cursor of the last alert consumed, when this value is passed, subsequent alert histories will be returned.
+        :param order: Sort order to use based od alert order opts
         :return: an iterator over the JSON decoded alerts
         """
-
         page = self._get_following_alerts_page(
             organization_id,
             following_ids,
-            rule,
-            states,
-            severities,
-            page=1,
-            page_size=page_size,
-            language=language,
-            created_at_start=created_at_start,
-            created_at_end=created_at_end,
-            updated_at_start=updated_at_start,
-            updated_at_end=updated_at_end,
-            search=search,
+            following_tags=following_tags,
+            include_empty_following_tags=include_empty_following_tags,
+            cursor=cursor,
             order=order,
-            sort=sort,
         )
         yield from page.get("data", [])
-        for page_number in range(
-            2, int(ceil(page.get("total", 0) / float(page_size))) + 1
-        ):
+        if not cursor:
+            cursor = page.get("cursor")
+        while cursor:
+            print(f"Cursor found {cursor}")
             page = self._get_following_alerts_page(
                 organization_id,
                 following_ids,
-                rule,
-                states,
-                severities,
-                page=page_number,
-                page_size=page_size,
-                language=language,
-                created_at_start=created_at_start,
-                created_at_end=created_at_end,
-                updated_at_start=updated_at_start,
-                updated_at_end=updated_at_end,
-                search=search,
+                following_tags=following_tags,
+                include_empty_following_tags=include_empty_following_tags,
+                cursor=cursor,
                 order=order,
-                sort=sort,
             )
+            cursor = page.get("cursor")
             yield from page.get("data", [])
 
     def _get_alerts_history_page(
