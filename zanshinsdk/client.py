@@ -1424,19 +1424,10 @@ class Client:
         self,
         organization_id: Union[UUID, str],
         scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
-        rule: Optional[str] = None,
-        states: Optional[Iterable[AlertState]] = None,
-        severities: Optional[Iterable[AlertSeverity]] = None,
-        page: int = 1,
-        page_size: int = 100,
-        language: Optional[Languages] = None,
-        created_at_start: Optional[str] = None,
-        created_at_end: Optional[str] = None,
-        updated_at_start: Optional[str] = None,
-        updated_at_end: Optional[str] = None,
-        search: Optional[str] = None,
+        scan_target_tags: Optional[Iterable[str]] = None,
+        include_empty_scan_target_tags: Optional[bool] = None,
+        cursor: Optional[str] = None,
         order: Optional[AlertsOrderOpts] = None,
-        sort: Optional[SortOpts] = None,
     ) -> Dict:
         """
         Internal method to retrieve a single page of alerts from an organization
@@ -1449,130 +1440,74 @@ class Client:
         :return: a JSON decoded alerts
         :return:
         """
-        validate_int(page, min_value=1, required=True)
-        validate_int(page_size, min_value=1, required=True)
-        body = {
-            "organizationId": validate_uuid(organization_id),
-            "page": page,
-            "pageSize": page_size,
-        }
-        if search:
-            validate_class(search, str)
-            body["search"] = search
+        body = {}
+        params = {}
+        if cursor:
+            validate_class(cursor, str)
+            params["cursor"] = cursor
         if order:
             validate_class(order, AlertsOrderOpts)
             body["order"] = order.value
-        if sort:
-            validate_class(sort, SortOpts)
-            body["sort"] = sort.value
         if scan_target_ids:
             if isinstance(scan_target_ids, str):
                 scan_target_ids = [scan_target_ids]
             validate_class(scan_target_ids, Iterable)
             body["scanTargetIds"] = [validate_uuid(x) for x in scan_target_ids]
-        if rule:
-            body["rules"] = [rule]
-        if states:
-            if isinstance(states, str) or isinstance(states, AlertState):
-                states = [states]
-            validate_class(states, Iterable)
-            body["states"] = [validate_class(x, AlertState).value for x in states]
-        if severities:
-            if isinstance(severities, str):
-                severities = [severities]
-            validate_class(severities, Iterable)
-            body["severities"] = [
-                validate_class(x, AlertSeverity).value for x in severities
-            ]
-        if language:
-            validate_class(language, Languages)
-            body["lang"] = language.value
-        # TODO: Validate these dates.
-        if created_at_start:
-            body["createdAtStart"] = created_at_start
-        if created_at_end:
-            body["createdAtEnd"] = created_at_end
-        if updated_at_start:
-            body["updatedAtStart"] = updated_at_start
-        if updated_at_end:
-            body["updatedAtEnd"] = updated_at_end
-
-        return self._request("POST", "/alerts", body=body).json()
+        if scan_target_tags:
+            if isinstance(scan_target_tags, str):
+                scan_target_tags = [scan_target_tags]
+            validate_class(scan_target_tags, Iterable)
+            body["scanTargetTags"] = [validate_uuid(x) for x in scan_target_tags]
+        if include_empty_scan_target_tags is not None:
+            validate_class(include_empty_scan_target_tags, bool)
+            body["includeEmptyScanTargetTags"] = include_empty_scan_target_tags
+        return self._request(
+            "POST",
+            f"/organizations/{validate_uuid(organization_id)}/alerts",
+            body=body,
+            params=params,
+        ).json()
 
     def iter_alerts(
         self,
         organization_id: Union[UUID, str],
         scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
-        rule: Optional[str] = None,
-        states: Optional[Iterable[AlertState]] = None,
-        severities: Optional[Iterable[AlertSeverity]] = None,
-        page_size: int = 100,
-        language: Optional[Languages] = None,
-        created_at_start: Optional[str] = None,
-        created_at_end: Optional[str] = None,
-        updated_at_start: Optional[str] = None,
-        updated_at_end: Optional[str] = None,
-        search: Optional[str] = None,
+        scan_target_tags: Optional[Iterable[str]] = None,
+        include_empty_scan_target_tags: Optional[bool] = None,
+        cursor: Optional[str] = None,
         order: Optional[AlertsOrderOpts] = None,
-        sort: Optional[SortOpts] = None,
     ) -> Iterator[Dict]:
         """
         Iterates over the alerts of an organization by loading them, transparently paginating on the API
-        <https://api.zanshin.tenchisecurity.com/#operation/listAllAlert>
         :param organization_id: the ID of the organization
         :param scan_target_ids: optional list of scan target IDs to list alerts from, defaults to all
-        :param rule: to filter alerts from (rule), not passing the field will fetch all
-        :param states: optional list of states to filter returned alerts, defaults to all
-        :param severities: optional list of severities to filter returned alerts, defaults to all
-        :param page_size: the number of alerts to load from the API at a time
-        :param language: language the rule will be returned. Ignored when historical is enabled
-        :param created_at_start: Search alerts by creation date - greater or equals than
-        :param created_at_end: Search alerts by creation date - less or equals than
-        :param updated_at_start: Search alerts by update date - greater or equals than
-        :param updated_at_end: Search alerts by update date - less or equals than
-        :param search: Search string to find in alerts
+        :param scan_target_tags: optional list of scan tags to list alerts from
+        :param include_empty_scan_target_tags: optional boolean to include empty tags scan targets
+        :param cursor: Cursor of the last alert consumed, when this value is passed, subsequent alert histories will be returned.
         :param order: Sort order to use (ascending or descending)
-        :param sort: Which field to sort on
         :return: an iterator over the JSON decoded alerts
         """
         page = self._get_alerts_page(
             organization_id,
             scan_target_ids,
-            rule,
-            states,
-            severities,
-            page=1,
-            page_size=page_size,
-            language=language,
-            created_at_start=created_at_start,
-            created_at_end=created_at_end,
-            updated_at_start=updated_at_start,
-            updated_at_end=updated_at_end,
-            search=search,
+            scan_target_tags=scan_target_tags,
+            include_empty_scan_target_tags=include_empty_scan_target_tags,
+            cursor=cursor,
             order=order,
-            sort=sort,
         )
         yield from page.get("data", [])
-        for page_number in range(
-            2, int(ceil(page.get("total", 0) / float(page_size))) + 1
-        ):
+        if not cursor:
+            cursor = page.get("cursor")
+        while cursor:
             page = self._get_alerts_page(
                 organization_id,
                 scan_target_ids,
-                rule,
-                states,
-                severities,
-                page=page_number,
-                page_size=page_size,
-                language=language,
-                created_at_start=created_at_start,
-                created_at_end=created_at_end,
-                updated_at_start=updated_at_start,
-                updated_at_end=updated_at_end,
-                search=search,
+                scan_target_tags=scan_target_tags,
+                include_empty_scan_target_tags=include_empty_scan_target_tags,
+                cursor=cursor,
                 order=order,
-                sort=sort,
             )
+            cursor = page.get("cursor")
             yield from page.get("data", [])
 
     def _get_following_alerts_page(

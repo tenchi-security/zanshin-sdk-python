@@ -59,6 +59,8 @@ class AlertsOrderOpts(str, Enum):
     RULE = "rule"
     SEVERITY = "severity"
     STATE = "state"
+    OPENED_AT = "openedAt"
+    RESOLVED_AT = "resolvedAt"
     CREATED_AT = "createdAt"
     UPDATED_AT = "updatedAt"
 
