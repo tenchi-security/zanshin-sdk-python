@@ -1947,7 +1947,6 @@ class Client:
         )
         yield from page.get("data", [])
         while page.get("cursor"):
-            print("Cursor founded", page.get("cursor"))
             page = self._get_grouped_following_alerts_page(
                 organization_id,
                 following_ids,
