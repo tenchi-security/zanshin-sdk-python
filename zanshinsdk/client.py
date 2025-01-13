@@ -1433,8 +1433,8 @@ class Client:
         Internal method to retrieve a single page of alerts from an organization
         :param organization_id: the ID of the organization
         :param scan_target_ids: optional list of scan target IDs to list alerts from, defaults to all
-        :param scan_target_tags: optional list of scan tags to list alerts from
-        :param include_empty_scan_target_tags: optional boolean to include empty tags scan targets
+        :param scan_target_tags: optional list of scan target tags to list alerts from
+        :param include_empty_scan_target_tags: optional boolean to include scan targets without tags
         :param cursor: Cursor of the last alert consumed, when this value is passed, subsequent alert histories will be returned.
         :param order: Sort order to use (ascending or descending)
         :return: a JSON decoded alerts
@@ -1481,8 +1481,8 @@ class Client:
         Iterates over the alerts of an organization by loading them, transparently paginating on the API
         :param organization_id: the ID of the organization
         :param scan_target_ids: optional list of scan target IDs to list alerts from, defaults to all
-        :param scan_target_tags: optional list of scan tags to list alerts from
-        :param include_empty_scan_target_tags: optional boolean to include empty tags scan targets
+        :param scan_target_tags: optional list of scan target tags to list alerts from
+        :param include_empty_scan_target_tags: optional boolean to include scan targets without tags
         :param cursor: Cursor of the last alert consumed, when this value is passed, subsequent alert histories will be returned.
         :param order: Sort order to use (ascending or descending)
         :return: an iterator over the JSON decoded alerts
@@ -1520,10 +1520,10 @@ class Client:
         Internal method to retrieve a single page of alerts from organizations being followed
         :param organization_id: the ID of the organization
         :param following_ids: optional list of scan target IDs to list alerts from, defaults to all
-        :param following_tags: optional list of following tags to list alerts from
-        :param include_empty_following_tags: optional boolean to include following scan without tags
+        :param following_tags: optional boolean to include followings without tags
+        :param include_empty_following_tags: optional boolean to include followings without tags
         :param cursor: Cursor of the last alert consumed, when this value is passed, subsequent alert histories will be returned.
-        :param order: Sort order to use based od alert order opts
+        :param order: Sort order to use based on alert order opts
         :return: a JSON decoded following alerts
         """
         body = {}
@@ -1567,8 +1567,8 @@ class Client:
         Iterates over the following alerts from organizations being followed by transparently paginating on the API.
         :param organization_id: the ID of the organization
         :param following_ids: optional list of scan target IDs to list alerts from, defaults to all
-        :param following_tags: optional list of following tags to list alerts from
-        :param include_empty_following_tags: optional boolean to include following scan without tags
+        :param following_tags: optional boolean to include followings without tags
+        :param include_empty_following_tags: optional boolean to include followings without tags
         :param cursor: Cursor of the last alert consumed, when this value is passed, subsequent alert histories will be returned.
         :param order: Sort order to use based od alert order opts
         :return: an iterator over the JSON decoded alerts
@@ -1884,8 +1884,8 @@ class Client:
         Internal method to retrieve a single page of alerts from organizations being followed
         :param organization_id: the ID of the organization
         :param following_ids: optional list of scan target IDs to list alerts from, defaults to all
-        :param following_tags: optional list of following tags to list alerts from
-        :param include_empty_following_tags: optional boolean to include following scan without tags
+        :param following_tags: optional boolean to include followings without tags
+        :param include_empty_following_tags: optional boolean to include followings without tags
         :param cursor: Cursor of the last alert consumed, when this value is passed, subsequent alert histories will be returned.
         :param order: Sort order to use (ascending or descending)
         :return: the decoded JSON response from the API
@@ -1931,8 +1931,8 @@ class Client:
         Iterates over the grouped following alerts from organizations being followed by transparently paginating on the API.
         :param organization_id: the ID of the organization
         :param following_ids: optional list of scan target IDs to list alerts from, defaults to all
-        :param following_tags: optional list of following tags to list alerts from
-        :param include_empty_following_tags: optional boolean to include following scan without tags
+        :param following_tags: optional boolean to include followings without tags
+        :param include_empty_following_tags: optional boolean to include followings without tags
         :param cursor: Cursor of the last alert consumed, when this value is passed, subsequent alert histories will be returned.
         :param order: Sort order to use (ascending or descending)
         """
