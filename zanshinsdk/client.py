@@ -2175,8 +2175,8 @@ class Client:
 
         return self._request(
             "POST",
-            f"/organizations/{validate_uuid(organization_id)}/summaries"
-            "/scantargets/followings",
+            f"/organizations/{validate_uuid(organization_id)}"
+            "/followings/summaries/scantargets/details",
             body=body,
         ).json()
 

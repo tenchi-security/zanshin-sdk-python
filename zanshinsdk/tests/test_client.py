@@ -2108,7 +2108,7 @@ class TestClient(unittest.TestCase):
 
         self.sdk._request.assert_called_once_with(
             "POST",
-            f"/organizations/{organization_id}/summaries/scantargets/followings",
+            f"/organizations/{organization_id}/followings/summaries/scantargets/details",
             body={
                 "scanTargetKinds": scan_target_kinds,
                 "alertSeverities": alert_severities,
