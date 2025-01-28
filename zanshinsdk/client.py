@@ -2029,31 +2029,54 @@ class Client:
     def batch_update_alerts_state(
         self,
         organization_id: Union[UUID, str],
-        scan_target_ids: Iterable[Union[UUID, str]],
-        alert_ids: Iterable[str],
-        states: Iterable[AlertState],
-        rules: Iterable[str],
-        severities: Iterable[str],
         state: AlertState,
-        comment: Optional[str] = None,
-        dry_run: Optional[bool] = False,
+        dry_run: bool,
+        comment: str,
+        scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
+        alert_ids: Optional[Iterable[str]] = None,
+        states: Optional[Iterable[AlertState]] = None,
+        rules: Optional[Iterable[str]] = None,
+        severities: Optional[Iterable[str]] = None,
+        include_empty_scan_target_tags: Optional[bool] = None,
     ) -> bool:
         body = {
             "state": validate_class(state, AlertState).value,
-            "comment": validate_class(comment, str) if comment else None,
+            "comment": validate_class(comment, str),
             "condition": {
                 "dryRun": validate_class(dry_run, bool),
-                "scanTargetIds": [
-                    validate_uuid(scan_target_id) for scan_target_id in scan_target_ids
-                ],
-                "states": [validate_class(state, AlertState).value for state in states],
-                "severities": [
-                    validate_class(severity, AlertSeverity) for severity in severities
-                ],
-                "rules": [validate_class(rule, str) for rule in rules],
+                "scanTargetIds": (
+                    [
+                        validate_uuid(scan_target_id)
+                        for scan_target_id in scan_target_ids
+                    ]
+                    if scan_target_ids
+                    else None
+                ),
+                "states": (
+                    [validate_class(state, AlertState).value for state in states]
+                    if states
+                    else None
+                ),
+                "severities": (
+                    [validate_class(severity, AlertSeverity) for severity in severities]
+                    if severities
+                    else None
+                ),
                 "selection": {
-                    "alertIds": [validate_uuid(alert_id) for alert_id in alert_ids],
+                    "rules": (
+                        [validate_class(rule, str) for rule in rules] if rules else None
+                    ),
+                    "alertIds": (
+                        [validate_uuid(alert_id) for alert_id in alert_ids]
+                        if alert_ids
+                        else None
+                    ),
                 },
+                "includeEmptyScanTargetTags": (
+                    validate_class(include_empty_scan_target_tags, bool)
+                    if include_empty_scan_target_tags
+                    else None
+                ),
             },
         }
         return self._request(
