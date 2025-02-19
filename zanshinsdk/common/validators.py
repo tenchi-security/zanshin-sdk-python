@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional, Union
 from uuid import UUID
 
@@ -37,3 +38,29 @@ def validate_uuid(uuid: Union[UUID, str]) -> str:
     except (ValueError, TypeError) as ex:
         ex.args = (f"{repr(uuid)} is not a valid UUID",)
         raise ex
+
+
+def validate_date(
+    date: Union[str, datetime],
+    date_formats: list = ["%Y-%m-%d", "%Y-%m-%dT%H:%M:%S.%fZ"],
+    required: bool = False,
+) -> Optional[datetime]:
+    if date is None:
+        if required:
+            raise ValueError("required date parameter missing")
+        return None
+
+    if isinstance(date, datetime):
+        return date
+
+    if isinstance(date, str):
+        for date_format in date_formats:
+            try:
+                return datetime.strptime(date, date_format)
+            except ValueError:
+                continue
+        raise ValueError(
+            f"{repr(date)} is not a valid date in the supported formats {date_formats}"
+        )
+
+    raise TypeError(f"{repr(date)} is not a valid date type")
