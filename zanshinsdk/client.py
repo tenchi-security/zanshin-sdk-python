@@ -1454,8 +1454,21 @@ class Client:
         :param scan_target_ids: optional list of scan target IDs to list alerts from, defaults to all
         :param scan_target_tags: optional list of scan target tags to list alerts from
         :param include_empty_scan_target_tags: optional boolean to include scan targets without tags
+        :param rules: list of rules to filter alerts, not passing the field will fetch all
+        :param states: optional list of states to filter returned alerts, defaults to all
+        :param severities: optional list of severities to filter returned alerts, defaults to all
+        :param lang: language the rule will be returned. Ignored when historical is enabled
+        :param opened_at_start: Search alerts by opened date - greater or equals than
+        :param opened_at_end: Search alerts by opened date - less or equals than
+        :param resolved_at_start: Search alerts by resolved date - greater or equals than
+        :param resolved_at_end: Search alerts by resolved date - less or equals than
+        :param created_at_start: Search alerts by creation date - greater or equals than
+        :param created_at_end: Search alerts by creation date - less or equals than
+        :param updated_at_start: Search alerts by update date - greater or equals than
+        :param updated_at_end: Search alerts by update date - less or equals than
         :param cursor: Cursor of the last alert consumed, when this value is passed, subsequent alert histories will be returned.
         :param order: Sort order to use (ascending or descending)
+        :param sort: Which field to sort on
         :return: a JSON decoded alerts
         :return:
         """
@@ -1557,8 +1570,21 @@ class Client:
         :param scan_target_ids: optional list of scan target IDs to list alerts from, defaults to all
         :param scan_target_tags: optional list of scan target tags to list alerts from
         :param include_empty_scan_target_tags: optional boolean to include scan targets without tags
+        :param rules: list of rules to filter alerts, not passing the field will fetch all
+        :param states: optional list of states to filter returned alerts, defaults to all
+        :param severities: optional list of severities to filter returned alerts, defaults to all
+        :param lang: language the rule will be returned. Ignored when historical is enabled
+        :param opened_at_start: Search alerts by opened date - greater or equals than
+        :param opened_at_end: Search alerts by opened date - less or equals than
+        :param resolved_at_start: Search alerts by resolved date - greater or equals than
+        :param resolved_at_end: Search alerts by resolved date - less or equals than
+        :param created_at_start: Search alerts by creation date - greater or equals than
+        :param created_at_end: Search alerts by creation date - less or equals than
+        :param updated_at_start: Search alerts by update date - greater or equals than
+        :param updated_at_end: Search alerts by update date - less or equals than
         :param cursor: Cursor of the last alert consumed, when this value is passed, subsequent alert histories will be returned.
         :param order: Sort order to use (ascending or descending)
+        :param sort: Which field to sort on
         :return: an iterator over the JSON decoded alerts
         """
         page = self._get_alerts_page(
@@ -1638,8 +1664,21 @@ class Client:
         :param following_ids: optional list of scan target IDs to list alerts from, defaults to all
         :param following_tags: optional boolean to include followings without tags
         :param include_empty_following_tags: optional boolean to include followings without tags
+        :param rules: list of rules to filter alerts, not passing the field will fetch all
+        :param states: optional list of states to filter returned alerts, defaults to all
+        :param severities: optional list of severities to filter returned alerts, defaults to all
+        :param lang: language the rule will be returned. Ignored when historical is enabled
+        :param opened_at_start: Search alerts by opened date - greater or equals than
+        :param opened_at_end: Search alerts by opened date - less or equals than
+        :param resolved_at_start: Search alerts by resolved date - greater or equals than
+        :param resolved_at_end: Search alerts by resolved date - less or equals than
+        :param created_at_start: Search alerts by creation date - greater or equals than
+        :param created_at_end: Search alerts by creation date - less or equals than
+        :param updated_at_start: Search alerts by update date - greater or equals than
+        :param updated_at_end: Search alerts by update date - less or equals than
         :param cursor: Cursor of the last alert consumed, when this value is passed, subsequent alert histories will be returned.
         :param order: Sort order to use based on alert order opts
+        :param sort: Which field to sort on
         :return: a JSON decoded following alerts
         """
         body = {}
@@ -1740,8 +1779,21 @@ class Client:
         :param following_ids: optional list of scan target IDs to list alerts from, defaults to all
         :param following_tags: optional boolean to include followings without tags
         :param include_empty_following_tags: optional boolean to include followings without tags
+        :param rules: list of rules to filter alerts, not passing the field will fetch all
+        :param states: optional list of states to filter returned alerts, defaults to all
+        :param severities: optional list of severities to filter returned alerts, defaults to all
+        :param lang: language the rule will be returned. Ignored when historical is enabled
+        :param opened_at_start: Search alerts by opened date - greater or equals than
+        :param opened_at_end: Search alerts by opened date - less or equals than
+        :param resolved_at_start: Search alerts by resolved date - greater or equals than
+        :param resolved_at_end: Search alerts by resolved date - less or equals than
+        :param created_at_start: Search alerts by creation date - greater or equals than
+        :param created_at_end: Search alerts by creation date - less or equals than
+        :param updated_at_start: Search alerts by update date - greater or equals than
+        :param updated_at_end: Search alerts by update date - less or equals than
         :param cursor: Cursor of the last alert consumed, when this value is passed, subsequent alert histories will be returned.
         :param order: Sort order to use based od alert order opts
+        :param sort: Which field to sort on
         :return: an iterator over the JSON decoded alerts
         """
         page = self._get_following_alerts_page(
