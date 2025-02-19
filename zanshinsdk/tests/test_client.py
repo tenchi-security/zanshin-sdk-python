@@ -1471,6 +1471,9 @@ class TestClient(unittest.TestCase):
         scan_target_tags = None
         include_empty_scan_target_tags = None
         cursor = "eyJpZCI6IjAyYWQxOGU3LTY1ODUtNDAwMC1hMDAwLWY2YTQzMTFlYzI4NyJ9"
+        resolved_at_start = "2025-02-10"
+        resolved_at_end = "2025-02-12T20:22:54.440101Z"
+        severities = zanshinsdk.AlertSeverity.CRITICAL
 
         self.sdk._get_alerts_page(
             organization_id=organization_id,
@@ -1479,14 +1482,20 @@ class TestClient(unittest.TestCase):
             include_empty_scan_target_tags=include_empty_scan_target_tags,
             cursor=cursor,
             order=order,
+            severities=severities,
+            resolved_at_start=resolved_at_start,
+            resolved_at_end=resolved_at_end,
         )
 
         self.sdk._request.assert_called_once_with(
             "POST",
             f"/organizations/{organization_id}/alerts",
             body={
-                "order": order,
+                "order": order.value,
                 "scanTargetIds": scan_target_ids,
+                "severities": ["CRITICAL"],
+                "resolvedAtStart": "2025-02-10T00:00:00",
+                "resolvedAtEnd": "2025-02-12T20:22:54.440101",
             },
             params={
                 "cursor": "eyJpZCI6IjAyYWQxOGU3LTY1ODUtNDAwMC1hMDAwLWY2YTQzMTFlYzI4NyJ9"
@@ -1514,6 +1523,20 @@ class TestClient(unittest.TestCase):
             include_empty_scan_target_tags=None,
             cursor=None,
             order=None,
+            rules=None,
+            states=None,
+            severities=None,
+            lang=None,
+            opened_at_start=None,
+            opened_at_end=None,
+            resolved_at_start=None,
+            resolved_at_end=None,
+            created_at_start=None,
+            created_at_end=None,
+            updated_at_start=None,
+            updated_at_end=None,
+            search=None,
+            sort=None,
         )
 
     def test_get_following_alerts_page(self):
@@ -1523,12 +1546,16 @@ class TestClient(unittest.TestCase):
         following_tags = None
         include_empty_following_tags = None
         cursor = "eyJpZCI6IjAyYWQxOGU3LTY1ODUtNDAwMC1hMDAwLWY2YTQzMTFlYzI4NyJ9"
+        opened_at_start = "2025-01-10"
+        severities = [zanshinsdk.AlertSeverity.CRITICAL, zanshinsdk.AlertSeverity.HIGH]
 
         self.sdk._get_following_alerts_page(
             organization_id=organization_id,
             following_ids=following_ids,
             following_tags=following_tags,
             include_empty_following_tags=include_empty_following_tags,
+            opened_at_start=opened_at_start,
+            severities=severities,
             cursor=cursor,
             order=order,
         )
@@ -1536,8 +1563,10 @@ class TestClient(unittest.TestCase):
             "POST",
             f"/organizations/{organization_id}/followings/alerts",
             body={
-                "order": order,
+                "order": zanshinsdk.AlertsOrderOpts.SEVERITY.value,
                 "followingIds": following_ids,
+                "severities": ["CRITICAL", "HIGH"],
+                "openedAtStart": "2025-01-10T00:00:00",
             },
             params={
                 "cursor": "eyJpZCI6IjAyYWQxOGU3LTY1ODUtNDAwMC1hMDAwLWY2YTQzMTFlYzI4NyJ9"
@@ -1564,6 +1593,20 @@ class TestClient(unittest.TestCase):
             include_empty_following_tags=None,
             cursor=None,
             order=None,
+            rules=None,
+            states=None,
+            severities=None,
+            lang=None,
+            opened_at_start=None,
+            opened_at_end=None,
+            resolved_at_start=None,
+            resolved_at_end=None,
+            created_at_start=None,
+            created_at_end=None,
+            updated_at_start=None,
+            updated_at_end=None,
+            search=None,
+            sort=None,
         )
 
     def test_get_alerts_history_page(self):

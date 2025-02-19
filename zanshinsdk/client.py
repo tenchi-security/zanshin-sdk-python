@@ -49,7 +49,12 @@ from zanshinsdk.common.targets import (
     ScanTargetSLACK,
     ScanTargetZENDESK,
 )
-from zanshinsdk.common.validators import validate_class, validate_int, validate_uuid
+from zanshinsdk.common.validators import (
+    validate_class,
+    validate_date,
+    validate_int,
+    validate_uuid,
+)
 from zanshinsdk.version import __version__ as sdk_version
 
 CONFIG_DIR = Path.home() / ".tenchi"
@@ -1426,8 +1431,22 @@ class Client:
         scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
         scan_target_tags: Optional[Iterable[str]] = None,
         include_empty_scan_target_tags: Optional[bool] = None,
+        rules: Optional[Iterable[str]] = None,
+        states: Optional[Iterable[AlertState]] = None,
+        severities: Optional[Iterable[AlertSeverity]] = None,
+        lang: Optional[Languages] = None,
+        opened_at_start: Optional[str] = None,
+        opened_at_end: Optional[str] = None,
+        resolved_at_start: Optional[str] = None,
+        resolved_at_end: Optional[str] = None,
+        created_at_start: Optional[str] = None,
+        created_at_end: Optional[str] = None,
+        updated_at_start: Optional[str] = None,
+        updated_at_end: Optional[str] = None,
+        search: Optional[str] = None,
         cursor: Optional[str] = None,
         order: Optional[AlertsOrderOpts] = None,
+        sort: Optional[SortOpts] = None,
     ) -> Dict:
         """
         Internal method to retrieve a single page of alerts from an organization
@@ -1448,6 +1467,12 @@ class Client:
         if order:
             validate_class(order, AlertsOrderOpts)
             body["order"] = order.value
+        if search:
+            validate_class(search, str)
+            body["search"] = search
+        if sort:
+            validate_class(sort, SortOpts)
+            body["sort"] = sort.value
         if scan_target_ids:
             if isinstance(scan_target_ids, str):
                 scan_target_ids = [scan_target_ids]
@@ -1461,6 +1486,41 @@ class Client:
         if include_empty_scan_target_tags is not None:
             validate_class(include_empty_scan_target_tags, bool)
             body["includeEmptyScanTargetTags"] = include_empty_scan_target_tags
+        if rules:
+            body["rules"] = [validate_class(rule, str) for rule in rules]
+        if states:
+            if isinstance(states, str) or isinstance(states, AlertState):
+                states = [states]
+            validate_class(states, Iterable)
+            body["states"] = [
+                validate_class(state, AlertState).value for state in states
+            ]
+        if severities:
+            if isinstance(severities, str):
+                severities = [severities]
+            validate_class(severities, Iterable)
+            body["severities"] = [
+                validate_class(severity, AlertSeverity).value for severity in severities
+            ]
+        if lang:
+            validate_class(lang, Languages)
+            body["lang"] = lang.value
+        if opened_at_start:
+            body["openedAtStart"] = validate_date(opened_at_start).isoformat()
+        if opened_at_end:
+            body["openedAtEnd"] = validate_date(opened_at_end).isoformat()
+        if resolved_at_start:
+            body["resolvedAtStart"] = validate_date(resolved_at_start).isoformat()
+        if resolved_at_end:
+            body["resolvedAtEnd"] = validate_date(resolved_at_end).isoformat()
+        if created_at_start:
+            body["createdAtStart"] = validate_date(created_at_start).isoformat()
+        if created_at_end:
+            body["createdAtEnd"] = validate_date(created_at_end).isoformat()
+        if updated_at_start:
+            body["updatedAtStart"] = validate_date(updated_at_start).isoformat()
+        if updated_at_end:
+            body["updatedAtEnd"] = validate_date(updated_at_end).isoformat()
         return self._request(
             "POST",
             f"/organizations/{validate_uuid(organization_id)}/alerts",
@@ -1474,8 +1534,22 @@ class Client:
         scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
         scan_target_tags: Optional[Iterable[str]] = None,
         include_empty_scan_target_tags: Optional[bool] = None,
+        rules: Optional[Iterable[str]] = None,
+        states: Optional[Iterable[AlertState]] = None,
+        severities: Optional[Iterable[AlertSeverity]] = None,
+        lang: Optional[Languages] = None,
+        opened_at_start: Optional[str] = None,
+        opened_at_end: Optional[str] = None,
+        resolved_at_start: Optional[str] = None,
+        resolved_at_end: Optional[str] = None,
+        created_at_start: Optional[str] = None,
+        created_at_end: Optional[str] = None,
+        updated_at_start: Optional[str] = None,
+        updated_at_end: Optional[str] = None,
+        search: Optional[str] = None,
         cursor: Optional[str] = None,
         order: Optional[AlertsOrderOpts] = None,
+        sort: Optional[SortOpts] = None,
     ) -> Iterator[Dict]:
         """
         Iterates over the alerts of an organization by loading them, transparently paginating on the API
@@ -1494,6 +1568,20 @@ class Client:
             include_empty_scan_target_tags=include_empty_scan_target_tags,
             cursor=cursor,
             order=order,
+            rules=rules,
+            states=states,
+            severities=severities,
+            lang=lang,
+            opened_at_start=opened_at_start,
+            opened_at_end=opened_at_end,
+            resolved_at_start=resolved_at_start,
+            resolved_at_end=resolved_at_end,
+            created_at_start=created_at_start,
+            created_at_end=created_at_end,
+            updated_at_start=updated_at_start,
+            updated_at_end=updated_at_end,
+            search=search,
+            sort=sort,
         )
         yield from page.get("data", [])
         while page.get("cursor"):
@@ -1504,6 +1592,20 @@ class Client:
                 include_empty_scan_target_tags=include_empty_scan_target_tags,
                 cursor=page.get("cursor"),
                 order=order,
+                rules=rules,
+                states=states,
+                severities=severities,
+                lang=lang,
+                opened_at_start=opened_at_start,
+                opened_at_end=opened_at_end,
+                resolved_at_start=resolved_at_start,
+                resolved_at_end=resolved_at_end,
+                created_at_start=created_at_start,
+                created_at_end=created_at_end,
+                updated_at_start=updated_at_start,
+                updated_at_end=updated_at_end,
+                search=search,
+                sort=sort,
             )
             yield from page.get("data", [])
 
@@ -1513,8 +1615,22 @@ class Client:
         following_ids: Optional[Iterable[Union[UUID, str]]] = None,
         following_tags: Optional[Iterable[str]] = None,
         include_empty_following_tags: Optional[bool] = None,
+        rules: Optional[Iterable[str]] = None,
+        states: Optional[Iterable[AlertState]] = None,
+        severities: Optional[Iterable[AlertSeverity]] = None,
+        lang: Optional[Languages] = None,
+        opened_at_start: Optional[str] = None,
+        opened_at_end: Optional[str] = None,
+        resolved_at_start: Optional[str] = None,
+        resolved_at_end: Optional[str] = None,
+        created_at_start: Optional[str] = None,
+        created_at_end: Optional[str] = None,
+        updated_at_start: Optional[str] = None,
+        updated_at_end: Optional[str] = None,
+        search: Optional[str] = None,
         cursor: Optional[str] = None,
         order: Optional[AlertsOrderOpts] = None,
+        sort: Optional[SortOpts] = None,
     ) -> Dict:
         """
         Internal method to retrieve a single page of alerts from organizations being followed
@@ -1534,6 +1650,12 @@ class Client:
         if order:
             validate_class(order, AlertsOrderOpts)
             body["order"] = order.value
+        if search:
+            validate_class(search, str)
+            body["search"] = search
+        if sort:
+            validate_class(sort, SortOpts)
+            body["sort"] = sort.value
         if following_ids:
             if isinstance(following_ids, str):
                 following_ids = [following_ids]
@@ -1547,6 +1669,41 @@ class Client:
         if include_empty_following_tags is not None:
             validate_class(include_empty_following_tags, bool)
             body["includeEmptyFollowingTags"] = include_empty_following_tags
+        if rules:
+            body["rules"] = [validate_class(rule, str) for rule in rules]
+        if states:
+            if isinstance(states, str) or isinstance(states, AlertState):
+                states = [states]
+            validate_class(states, Iterable)
+            body["states"] = [
+                validate_class(state, AlertState).value for state in states
+            ]
+        if severities:
+            if isinstance(severities, str):
+                severities = [severities]
+            validate_class(severities, Iterable)
+            body["severities"] = [
+                validate_class(severity, AlertSeverity).value for severity in severities
+            ]
+        if lang:
+            validate_class(lang, Languages)
+            body["lang"] = lang.value
+        if opened_at_start:
+            body["openedAtStart"] = validate_date(opened_at_start).isoformat()
+        if opened_at_end:
+            body["openedAtEnd"] = validate_date(opened_at_end).isoformat()
+        if resolved_at_start:
+            body["resolvedAtStart"] = validate_date(resolved_at_start).isoformat()
+        if resolved_at_end:
+            body["resolvedAtEnd"] = validate_date(resolved_at_end).isoformat()
+        if created_at_start:
+            body["createdAtStart"] = validate_date(created_at_start).isoformat()
+        if created_at_end:
+            body["createdAtEnd"] = validate_date(created_at_end).isoformat()
+        if updated_at_start:
+            body["updatedAtStart"] = validate_date(updated_at_start).isoformat()
+        if updated_at_end:
+            body["updatedAtEnd"] = validate_date(updated_at_end).isoformat()
         return self._request(
             "POST",
             f"/organizations/{validate_uuid(organization_id)}/followings/alerts",
@@ -1560,8 +1717,22 @@ class Client:
         following_ids: Optional[Iterable[Union[UUID, str]]] = None,
         following_tags: Optional[Iterable[str]] = None,
         include_empty_following_tags: Optional[bool] = None,
+        rules: Optional[Iterable[str]] = None,
+        states: Optional[Iterable[AlertState]] = None,
+        severities: Optional[Iterable[AlertSeverity]] = None,
+        lang: Optional[Languages] = None,
+        opened_at_start: Optional[str] = None,
+        opened_at_end: Optional[str] = None,
+        resolved_at_start: Optional[str] = None,
+        resolved_at_end: Optional[str] = None,
+        created_at_start: Optional[str] = None,
+        created_at_end: Optional[str] = None,
+        updated_at_start: Optional[str] = None,
+        updated_at_end: Optional[str] = None,
+        search: Optional[str] = None,
         cursor: Optional[str] = None,
         order: Optional[AlertsOrderOpts] = None,
+        sort: Optional[SortOpts] = None,
     ) -> Iterator[Dict]:
         """
         Iterates over the following alerts from organizations being followed by transparently paginating on the API.
@@ -1580,6 +1751,20 @@ class Client:
             include_empty_following_tags=include_empty_following_tags,
             cursor=cursor,
             order=order,
+            rules=rules,
+            states=states,
+            severities=severities,
+            lang=lang,
+            opened_at_start=opened_at_start,
+            opened_at_end=opened_at_end,
+            resolved_at_start=resolved_at_start,
+            resolved_at_end=resolved_at_end,
+            created_at_start=created_at_start,
+            created_at_end=created_at_end,
+            updated_at_start=updated_at_start,
+            updated_at_end=updated_at_end,
+            search=search,
+            sort=sort,
         )
         yield from page.get("data", [])
         while page.get("cursor"):
@@ -1590,6 +1775,20 @@ class Client:
                 include_empty_following_tags=include_empty_following_tags,
                 cursor=page.get("cursor"),
                 order=order,
+                rules=rules,
+                states=states,
+                severities=severities,
+                lang=lang,
+                opened_at_start=opened_at_start,
+                opened_at_end=opened_at_end,
+                resolved_at_start=resolved_at_start,
+                resolved_at_end=resolved_at_end,
+                created_at_start=created_at_start,
+                created_at_end=created_at_end,
+                updated_at_start=updated_at_start,
+                updated_at_end=updated_at_end,
+                search=search,
+                sort=sort,
             )
             yield from page.get("data", [])
 
