@@ -66,8 +66,8 @@ class AlertsOrderOpts(str, Enum):
 
 
 class SortOpts(str, Enum):
-    ASC = "asc"
-    DESC = "desc"
+    ASC = "ASC"
+    DESC = "DESC"
 
 
 class Frequency(Enum):
