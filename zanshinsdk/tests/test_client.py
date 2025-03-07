@@ -2050,7 +2050,7 @@ class TestClient(unittest.TestCase):
 
     def test__repr__(self):
         _response = (
-            f"Connection(api_url='https://api.zanshin.tenchisecurity.com', api_key='***NG_ONE', "
+            f"Connection(api_url='https://api.zanshin.tenchisecurity.com', api_key='***pi_key', "
             f"user_agent='Zanshin Python SDK v{zanshinsdk.version.__version__}', proxy_url='None')"
         )
         self.assertEqual(self.sdk.__repr__(), _response)
