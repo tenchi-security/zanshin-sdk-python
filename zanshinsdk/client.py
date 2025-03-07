@@ -50,6 +50,7 @@ from zanshinsdk.common.targets import (
     ScanTargetZENDESK,
 )
 from zanshinsdk.common.validators import (
+    validate_base_alert_filter,
     validate_class,
     validate_date,
     validate_int,
@@ -2128,8 +2129,22 @@ class Client:
         following_ids: Optional[Iterable[Union[UUID, str]]] = None,
         following_tags: Optional[Iterable[str]] = None,
         include_empty_following_tags: Optional[bool] = None,
+        rules: Optional[Iterable[str]] = None,
+        states: Optional[Iterable[AlertState]] = None,
+        severities: Optional[Iterable[AlertSeverity]] = None,
+        lang: Optional[Languages] = None,
+        opened_at_start: Optional[str] = None,
+        opened_at_end: Optional[str] = None,
+        resolved_at_start: Optional[str] = None,
+        resolved_at_end: Optional[str] = None,
+        created_at_start: Optional[str] = None,
+        created_at_end: Optional[str] = None,
+        updated_at_start: Optional[str] = None,
+        updated_at_end: Optional[str] = None,
+        search: Optional[str] = None,
         cursor: Optional[str] = None,
         order: Optional[AlertsOrderOpts] = None,
+        sort: Optional[SortOpts] = None,
     ) -> Dict:
         """
         Internal method to retrieve a single page of alerts from organizations being followed
@@ -2137,18 +2152,46 @@ class Client:
         :param following_ids: optional list of scan target IDs to list alerts from, defaults to all
         :param following_tags: optional boolean to include followings without tags
         :param include_empty_following_tags: optional boolean to include followings without tags
+        :param rules: list of rules to filter alerts, not passing the field will fetch all
+        :param states: optional list of states to filter returned alerts, defaults to all
+        :param severities: optional list of severities to filter returned alerts, defaults to all
+        :param lang: language the rule will be returned. Ignored when historical is enabled
+        :param opened_at_start: Search alerts by opened date - greater or equals than
+        :param opened_at_end: Search alerts by opened date - less or equals than
+        :param resolved_at_start: Search alerts by resolved date - greater or equals than
+        :param resolved_at_end: Search alerts by resolved date - less or equals than
+        :param created_at_start: Search alerts by creation date - greater or equals than
+        :param created_at_end: Search alerts by creation date - less or equals than
+        :param updated_at_start: Search alerts by update date - greater or equals than
+        :param updated_at_end: Search alerts by update date - less or equals than
         :param cursor: Cursor of the last alert consumed, when this value is passed, subsequent alert histories will be returned.
         :param order: Sort order to use (ascending or descending)
+        :param cursor: Cursor of the last alert consumed, when this value is passed, subsequent alert histories will be returned.
+        :param sort: Which field to sort on
         :return: the decoded JSON response from the API
         """
-        body = {}
+        body = validate_base_alert_filter(
+            body={},
+            rules=rules,
+            states=states,
+            severities=severities,
+            search=search,
+            lang=lang,
+            opened_at_start=opened_at_start,
+            opened_at_end=opened_at_end,
+            resolved_at_start=resolved_at_start,
+            resolved_at_end=resolved_at_end,
+            created_at_start=created_at_start,
+            created_at_end=created_at_end,
+            updated_at_start=updated_at_start,
+            updated_at_end=updated_at_end,
+            order=order,
+            sort=sort,
+        )
         params = {}
         if cursor:
             validate_class(cursor, str)
             params["cursor"] = cursor
-        if order:
-            validate_class(order, AlertsOrderOpts)
-            body["order"] = order.value
         if following_ids:
             if isinstance(following_ids, str):
                 following_ids = [following_ids]
@@ -2175,8 +2218,22 @@ class Client:
         following_ids: Optional[Iterable[Union[UUID, str]]] = None,
         following_tags: Optional[Iterable[str]] = None,
         include_empty_following_tags: Optional[bool] = None,
+        rules: Optional[Iterable[str]] = None,
+        states: Optional[Iterable[AlertState]] = None,
+        severities: Optional[Iterable[AlertSeverity]] = None,
+        lang: Optional[Languages] = None,
+        opened_at_start: Optional[str] = None,
+        opened_at_end: Optional[str] = None,
+        resolved_at_start: Optional[str] = None,
+        resolved_at_end: Optional[str] = None,
+        created_at_start: Optional[str] = None,
+        created_at_end: Optional[str] = None,
+        updated_at_start: Optional[str] = None,
+        updated_at_end: Optional[str] = None,
+        search: Optional[str] = None,
         cursor: Optional[str] = None,
         order: Optional[AlertsOrderOpts] = None,
+        sort: Optional[SortOpts] = None,
     ) -> Iterator[Dict]:
         """
         Iterates over the grouped following alerts from organizations being followed by transparently paginating on the API.
@@ -2184,8 +2241,22 @@ class Client:
         :param following_ids: optional list of scan target IDs to list alerts from, defaults to all
         :param following_tags: optional boolean to include followings without tags
         :param include_empty_following_tags: optional boolean to include followings without tags
+        :param rules: list of rules to filter alerts, not passing the field will fetch all
+        :param states: optional list of states to filter returned alerts, defaults to all
+        :param severities: optional list of severities to filter returned alerts, defaults to all
+        :param lang: language the rule will be returned. Ignored when historical is enabled
+        :param opened_at_start: Search alerts by opened date - greater or equals than
+        :param opened_at_end: Search alerts by opened date - less or equals than
+        :param resolved_at_start: Search alerts by resolved date - greater or equals than
+        :param resolved_at_end: Search alerts by resolved date - less or equals than
+        :param created_at_start: Search alerts by creation date - greater or equals than
+        :param created_at_end: Search alerts by creation date - less or equals than
+        :param updated_at_start: Search alerts by update date - greater or equals than
+        :param updated_at_end: Search alerts by update date - less or equals than
         :param cursor: Cursor of the last alert consumed, when this value is passed, subsequent alert histories will be returned.
         :param order: Sort order to use (ascending or descending)
+        :param cursor: Cursor of the last alert consumed, when this value is passed, subsequent alert histories will be returned.
+        :param sort: Which field to sort on
         """
 
         page = self._get_grouped_following_alerts_page(
@@ -2195,6 +2266,20 @@ class Client:
             include_empty_following_tags=include_empty_following_tags,
             cursor=cursor,
             order=order,
+            rules=rules,
+            states=states,
+            severities=severities,
+            lang=lang,
+            opened_at_start=opened_at_start,
+            opened_at_end=opened_at_end,
+            resolved_at_start=resolved_at_start,
+            resolved_at_end=resolved_at_end,
+            created_at_start=created_at_start,
+            created_at_end=created_at_end,
+            updated_at_start=updated_at_start,
+            updated_at_end=updated_at_end,
+            search=search,
+            sort=sort,
         )
         yield from page.get("data", [])
         while page.get("cursor"):
@@ -2205,6 +2290,20 @@ class Client:
                 include_empty_following_tags=include_empty_following_tags,
                 cursor=page.get("cursor"),
                 order=order,
+                rules=rules,
+                states=states,
+                severities=severities,
+                lang=lang,
+                opened_at_start=opened_at_start,
+                opened_at_end=opened_at_end,
+                resolved_at_start=resolved_at_start,
+                resolved_at_end=resolved_at_end,
+                created_at_start=created_at_start,
+                created_at_end=created_at_end,
+                updated_at_start=updated_at_start,
+                updated_at_end=updated_at_end,
+                search=search,
+                sort=sort,
             )
             yield from page.get("data", [])
 
