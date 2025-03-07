@@ -1,7 +1,8 @@
 from copy import deepcopy
 from datetime import datetime
-from typing import Optional, Union, Iterable
+from typing import Iterable, Optional, Union
 from uuid import UUID
+
 from zanshinsdk.common.enums import (
     AlertSeverity,
     AlertsOrderOpts,
@@ -9,6 +10,7 @@ from zanshinsdk.common.enums import (
     Languages,
     SortOpts,
 )
+
 
 def validate_int(
     value, min_value=None, max_value=None, required=False
@@ -136,5 +138,4 @@ def validate_base_alert_filter(
     if sort:
         validate_class(sort, SortOpts)
         cloned_body["sort"] = sort.value
-    print(sort)
     return cloned_body

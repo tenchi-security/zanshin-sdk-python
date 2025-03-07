@@ -65,6 +65,12 @@ class AlertsOrderOpts(str, Enum):
     UPDATED_AT = "updatedAt"
 
 
+class GroupedAlertOrderOpts(str, Enum):
+    SEVERITY = "severity"
+    RULE = "rule"
+    TOTAL = "total"
+
+
 class SortOpts(str, Enum):
     ASC = "ASC"
     DESC = "DESC"

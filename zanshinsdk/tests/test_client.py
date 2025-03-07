@@ -1797,205 +1797,55 @@ class TestClient(unittest.TestCase):
 
     def test_get_grouped_alerts_page(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        page = 1
-        page_size = 100
+        order = zanshinsdk.GroupedAlertOrderOpts.SEVERITY
+        page_size = 50
 
         self.sdk._get_grouped_alerts_page(
-            organization_id, page=page, page_size=page_size
+            organization_id, page_size=page_size, order=order
         )
 
         self.sdk._request.assert_called_once_with(
             "POST",
-            f"/alerts/rules",
-            body={
-                "organizationId": organization_id,
-                "page": page,
-                "pageSize": page_size,
-            },
-        )
-
-    def test_get_grouped_alerts_page_str_scan_target_ids(self):
-        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        page = 1
-        page_size = 100
-        scan_target_ids = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
-
-        self.sdk._get_grouped_alerts_page(
-            organization_id,
-            page=page,
-            page_size=page_size,
-            scan_target_ids=scan_target_ids,
-        )
-
-        self.sdk._request.assert_called_once_with(
-            "POST",
-            f"/alerts/rules",
-            body={
-                "organizationId": organization_id,
-                "page": page,
-                "pageSize": page_size,
-                "scanTargetIds": [scan_target_ids],
-            },
-        )
-
-    def test_get_grouped_alerts_page_iterable_scan_target_ids(self):
-        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        page = 1
-        page_size = 100
-        scan_target_ids = [
-            "e22f4225-43e9-4922-b6b8-8b0620bdb110",
-            "e22f4225-43e9-4922-b6b8-8b0620bdb112",
-        ]
-
-        self.sdk._get_grouped_alerts_page(
-            organization_id,
-            page=page,
-            page_size=page_size,
-            scan_target_ids=scan_target_ids,
-        )
-
-        self.sdk._request.assert_called_once_with(
-            "POST",
-            f"/alerts/rules",
-            body={
-                "organizationId": organization_id,
-                "page": page,
-                "pageSize": page_size,
-                "scanTargetIds": scan_target_ids,
-            },
-        )
-
-    def test_get_grouped_alerts_page_str_states(self):
-        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        page = 1
-        page_size = 100
-        states = zanshinsdk.AlertState.OPEN
-
-        self.sdk._get_grouped_alerts_page(
-            organization_id, page=page, page_size=page_size, states=states
-        )
-
-        self.sdk._request.assert_called_once_with(
-            "POST",
-            f"/alerts/rules",
-            body={
-                "organizationId": organization_id,
-                "page": page,
-                "pageSize": page_size,
-                "states": [states],
-            },
-        )
-
-    def test_get_grouped_alerts_page_iterable_states(self):
-        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        page = 1
-        page_size = 100
-        states = [zanshinsdk.AlertState.OPEN, zanshinsdk.AlertState.CLOSED]
-
-        self.sdk._get_grouped_alerts_page(
-            organization_id, page=page, page_size=page_size, states=states
-        )
-
-        self.sdk._request.assert_called_once_with(
-            "POST",
-            f"/alerts/rules",
-            body={
-                "organizationId": organization_id,
-                "page": page,
-                "pageSize": page_size,
-                "states": states,
-            },
-        )
-
-    def test_get_grouped_alerts_page_str_severities(self):
-        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        page = 1
-        page_size = 100
-        severities = zanshinsdk.AlertSeverity.CRITICAL
-
-        self.sdk._get_grouped_alerts_page(
-            organization_id, page=page, page_size=page_size, severities=severities
-        )
-
-        self.sdk._request.assert_called_once_with(
-            "POST",
-            f"/alerts/rules",
-            body={
-                "organizationId": organization_id,
-                "page": page,
-                "pageSize": page_size,
-                "severities": [severities],
-            },
-        )
-
-    def test_get_grouped_alerts_page_iterable_severities(self):
-        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        page = 1
-        page_size = 100
-        severities = [zanshinsdk.AlertSeverity.CRITICAL, zanshinsdk.AlertSeverity.HIGH]
-
-        self.sdk._get_grouped_alerts_page(
-            organization_id, page=page, page_size=page_size, severities=severities
-        )
-
-        self.sdk._request.assert_called_once_with(
-            "POST",
-            f"/alerts/rules",
-            body={
-                "organizationId": organization_id,
-                "page": page,
-                "pageSize": page_size,
-                "severities": severities,
-            },
+            f"/organizations/{organization_id}/alerts/rules",
+            body={"order": order},
+            params={"pageSize": page_size},
         )
 
     @patch("zanshinsdk.client.Client._get_grouped_alerts_page")
     def test_iter_grouped_alerts(self, request):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        page = 1
-        page_size = 1
-
-        request.return_value = {"data": [""], "total": 2}
-
+        request.return_value = {"data": [""], "cursor": None}
         self.sdk._get_grouped_alerts_page = request
-        iterator = self.sdk.iter_grouped_alerts(organization_id, page_size=page_size)
-
+        iterator = self.sdk.iter_grouped_alerts(organization_id)
         next(iterator)
-        next(iterator)
-
-        self.sdk._get_grouped_alerts_page.assert_has_calls(
-            [
-                call(
-                    organization_id,
-                    None,
-                    None,
-                    None,
-                    page=page,
-                    page_size=page_size,
-                    language=None,
-                    search=None,
-                    order=None,
-                    sort=None,
-                ),
-                call(
-                    organization_id,
-                    None,
-                    None,
-                    None,
-                    page=page + 1,
-                    page_size=page_size,
-                    language=None,
-                    search=None,
-                    order=None,
-                    sort=None,
-                ),
-            ]
+        self.sdk._get_grouped_alerts_page.assert_called_once_with(
+            organization_id,
+            scan_target_ids=None,
+            scan_tagert_tags=None,
+            include_empty_scan_target_tags=None,
+            cursor=None,
+            page_size=100,
+            order=None,
+            rules=None,
+            states=None,
+            severities=None,
+            lang=None,
+            opened_at_start=None,
+            opened_at_end=None,
+            resolved_at_start=None,
+            resolved_at_end=None,
+            created_at_start=None,
+            created_at_end=None,
+            updated_at_start=None,
+            updated_at_end=None,
+            search=None,
+            sort=None,
         )
 
     def test_get_grouped_following_alerts_page(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         following_ids = ["421cfe8a-1777-4000-a000-f836dfdfcfb8"]
-        order = zanshinsdk.AlertsOrderOpts.SEVERITY
+        order = zanshinsdk.GroupedAlertOrderOpts.SEVERITY
         following_tags = None
         include_empty_following_tags = None
         cursor = "eyJpZCI6IjAyYWQxOGU3LTY1ODUtNDAwMC1hMDAwLWY2YTQzMTFlYzI4NyJ9"
@@ -2016,7 +1866,8 @@ class TestClient(unittest.TestCase):
                 "followingIds": following_ids,
             },
             params={
-                "cursor": "eyJpZCI6IjAyYWQxOGU3LTY1ODUtNDAwMC1hMDAwLWY2YTQzMTFlYzI4NyJ9"
+                "cursor": "eyJpZCI6IjAyYWQxOGU3LTY1ODUtNDAwMC1hMDAwLWY2YTQzMTFlYzI4NyJ9",
+                "pageSize": 100,
             },
         )
 
@@ -2039,7 +1890,22 @@ class TestClient(unittest.TestCase):
             following_tags=None,
             include_empty_following_tags=None,
             cursor=None,
+            page_size=100,
             order=None,
+            rules=None,
+            states=None,
+            severities=None,
+            lang=None,
+            opened_at_start=None,
+            opened_at_end=None,
+            resolved_at_start=None,
+            resolved_at_end=None,
+            created_at_start=None,
+            created_at_end=None,
+            updated_at_start=None,
+            updated_at_end=None,
+            search=None,
+            sort=None,
         )
 
     def test_get_alert(self):
@@ -2184,7 +2050,7 @@ class TestClient(unittest.TestCase):
 
     def test__repr__(self):
         _response = (
-            f"Connection(api_url='https://api.zanshin.tenchisecurity.com', api_key='***pi_key', "
+            f"Connection(api_url='https://api.zanshin.tenchisecurity.com', api_key='***NG_ONE', "
             f"user_agent='Zanshin Python SDK v{zanshinsdk.version.__version__}', proxy_url='None')"
         )
         self.assertEqual(self.sdk.__repr__(), _response)

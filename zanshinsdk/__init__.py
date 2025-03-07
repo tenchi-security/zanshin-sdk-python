@@ -7,6 +7,7 @@ from zanshinsdk.client import (
     AlertsOrderOpts,
     AlertState,
     Client,
+    GroupedAlertOrderOpts,
     Languages,
     Roles,
     ScanTargetAWS,

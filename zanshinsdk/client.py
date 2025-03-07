@@ -23,6 +23,7 @@ from zanshinsdk.common.enums import (
     AlertState,
     Day,
     Frequency,
+    GroupedAlertOrderOpts,
     Languages,
     OAuthTargetKind,
     Roles,
@@ -2004,13 +2005,24 @@ class Client:
         self,
         organization_id: Union[UUID, str],
         scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
+        scan_tagert_tags: Optional[Iterable[str]] = None,
+        include_empty_scan_target_tags: Optional[bool] = None,
+        rules: Optional[Iterable[str]] = None,
         states: Optional[Iterable[AlertState]] = None,
         severities: Optional[Iterable[AlertSeverity]] = None,
-        page: int = 1,
-        page_size: int = 100,
-        language: Optional[Languages] = None,
+        lang: Optional[Languages] = None,
+        opened_at_start: Optional[str] = None,
+        opened_at_end: Optional[str] = None,
+        resolved_at_start: Optional[str] = None,
+        resolved_at_end: Optional[str] = None,
+        created_at_start: Optional[str] = None,
+        created_at_end: Optional[str] = None,
+        updated_at_start: Optional[str] = None,
+        updated_at_end: Optional[str] = None,
         search: Optional[str] = None,
-        order: Optional[AlertsOrderOpts] = None,
+        cursor: Optional[str] = None,
+        page_size: Optional[int] = 100,
+        order: Optional[GroupedAlertOrderOpts] = None,
         sort: Optional[SortOpts] = None,
     ) -> Dict:
         """
@@ -2028,54 +2040,75 @@ class Client:
 
         :return:
         """
-        validate_int(page, min_value=1, required=True)
-        validate_int(page_size, min_value=1, required=True)
-        body = {
-            "organizationId": validate_uuid(organization_id),
-            "page": page,
-            "pageSize": page_size,
-        }
-        if language:
-            validate_class(language, Languages)
-            body["lang"] = language.value
-        if search:
-            validate_class(search, str)
-            body["search"] = search
+        body = validate_base_alert_filter(
+            body={},
+            rules=rules,
+            states=states,
+            severities=severities,
+            search=search,
+            lang=lang,
+            opened_at_start=opened_at_start,
+            opened_at_end=opened_at_end,
+            resolved_at_start=resolved_at_start,
+            resolved_at_end=resolved_at_end,
+            created_at_start=created_at_start,
+            created_at_end=created_at_end,
+            updated_at_start=updated_at_start,
+            updated_at_end=updated_at_end,
+            sort=sort,
+        )
+        params = {}
+        if page_size:
+            validate_int(page_size, min_value=1, required=True)
+            params["pageSize"] = page_size
         if order:
-            validate_class(order, AlertsOrderOpts)
+            validate_class(order, GroupedAlertOrderOpts)
             body["order"] = order.value
-        if sort:
-            validate_class(sort, SortOpts)
-            body["sort"] = sort.value
+        if cursor:
+            validate_class(cursor, str)
+            params["cursor"] = cursor
         if scan_target_ids:
             if isinstance(scan_target_ids, str):
                 scan_target_ids = [scan_target_ids]
             validate_class(scan_target_ids, Iterable)
             body["scanTargetIds"] = [validate_uuid(x) for x in scan_target_ids]
-        if states:
-            if isinstance(states, str) or isinstance(states, AlertState):
-                states = [states]
-            validate_class(states, Iterable)
-            body["states"] = [validate_class(x, AlertState).value for x in states]
-        if severities:
-            if isinstance(severities, str):
-                severities = [severities]
-            validate_class(severities, Iterable)
-            body["severities"] = [
-                validate_class(x, AlertSeverity).value for x in severities
-            ]
-        return self._request("POST", "/alerts/rules", body=body).json()
+        if scan_tagert_tags:
+            if isinstance(scan_tagert_tags, str):
+                scan_tagert_tags = [scan_tagert_tags]
+            validate_class(scan_tagert_tags, Iterable)
+            body["scanTargetTags"] = [validate_uuid(x) for x in scan_tagert_tags]
+        if include_empty_scan_target_tags is not None:
+            validate_class(include_empty_scan_target_tags, bool)
+            body["includeEmptyScanTargetTags"] = include_empty_scan_target_tags
+        return self._request(
+            "POST",
+            f"/organizations/{validate_uuid(organization_id)}/alerts/rules",
+            body=body,
+            params=params,
+        ).json()
 
     def iter_grouped_alerts(
         self,
         organization_id: Union[UUID, str],
         scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
+        scan_tagert_tags: Optional[Iterable[str]] = None,
+        include_empty_scan_target_tags: Optional[bool] = None,
+        rules: Optional[Iterable[str]] = None,
         states: Optional[Iterable[AlertState]] = None,
         severities: Optional[Iterable[AlertSeverity]] = None,
-        page_size: int = 100,
-        language: Optional[Languages] = None,
+        lang: Optional[Languages] = None,
+        opened_at_start: Optional[str] = None,
+        opened_at_end: Optional[str] = None,
+        resolved_at_start: Optional[str] = None,
+        resolved_at_end: Optional[str] = None,
+        created_at_start: Optional[str] = None,
+        created_at_end: Optional[str] = None,
+        updated_at_start: Optional[str] = None,
+        updated_at_end: Optional[str] = None,
         search: Optional[str] = None,
-        order: Optional[AlertsOrderOpts] = None,
+        cursor: Optional[str] = None,
+        page_size: Optional[int] = 100,
+        order: Optional[GroupedAlertOrderOpts] = None,
         sort: Optional[SortOpts] = None,
     ) -> Iterator[Dict]:
         """
@@ -2083,42 +2116,71 @@ class Client:
         <https://api.zanshin.tenchisecurity.com/#operation/listAllAlertRules>
         :param organization_id: the ID of the organization
         :param scan_target_ids: optional list of scan target IDs to list alerts from, defaults to all
+        :param scan_target_tags: optional list of scan target tags to list alerts from
+        :param include_empty_scan_target_tags: optional boolean to include scan targets without tags
+        :param rules: list of rules to filter alerts, not passing the field will fetch all
         :param states: optional list of states to filter returned alerts, defaults to all
         :param severities: optional list of severities to filter returned alerts, defaults to all
-        :param page_size: the number of alerts to load from the API at a time
-        :param language: language to use for the returned rules
-        :param search: Search string to find in alerts
+        :param lang: language the rule will be returned. Ignored when historical is enabled
+        :param opened_at_start: Search alerts by opened date - greater or equals than
+        :param opened_at_end: Search alerts by opened date - less or equals than
+        :param resolved_at_start: Search alerts by resolved date - greater or equals than
+        :param resolved_at_end: Search alerts by resolved date - less or equals than
+        :param created_at_start: Search alerts by creation date - greater or equals than
+        :param created_at_end: Search alerts by creation date - less or equals than
+        :param updated_at_start: Search alerts by update date - greater or equals than
+        :param updated_at_end: Search alerts by update date - less or equals than
+        :param cursor: Cursor of the last alert consumed, when this value is passed, subsequent alert histories will be returned.
         :param order: Sort order to use (ascending or descending)
         :param sort: Which field to sort on
-
         :return: an iterator over the JSON decoded alerts
         """
         page = self._get_grouped_alerts_page(
             organization_id,
-            scan_target_ids,
-            states,
-            severities,
-            page=1,
+            scan_target_ids=scan_target_ids,
+            scan_tagert_tags=scan_tagert_tags,
+            include_empty_scan_target_tags=include_empty_scan_target_tags,
+            cursor=cursor,
             page_size=page_size,
-            language=language,
-            search=search,
             order=order,
+            rules=rules,
+            states=states,
+            severities=severities,
+            lang=lang,
+            opened_at_start=opened_at_start,
+            opened_at_end=opened_at_end,
+            resolved_at_start=resolved_at_start,
+            resolved_at_end=resolved_at_end,
+            created_at_start=created_at_start,
+            created_at_end=created_at_end,
+            updated_at_start=updated_at_start,
+            updated_at_end=updated_at_end,
+            search=search,
             sort=sort,
         )
         yield from page.get("data", [])
-        for page_number in range(
-            2, int(ceil(page.get("total", 0) / float(page_size))) + 1
-        ):
+        while page.get("cursor"):
             page = self._get_grouped_alerts_page(
                 organization_id,
                 scan_target_ids,
-                states,
-                severities,
-                page=page_number,
+                scan_tagert_tags=scan_tagert_tags,
+                include_empty_scan_target_tags=include_empty_scan_target_tags,
+                cursor=page.get("cursor"),
                 page_size=page_size,
-                language=language,
-                search=search,
                 order=order,
+                rules=rules,
+                states=states,
+                severities=severities,
+                lang=lang,
+                opened_at_start=opened_at_start,
+                opened_at_end=opened_at_end,
+                resolved_at_start=resolved_at_start,
+                resolved_at_end=resolved_at_end,
+                created_at_start=created_at_start,
+                created_at_end=created_at_end,
+                updated_at_start=updated_at_start,
+                updated_at_end=updated_at_end,
+                search=search,
                 sort=sort,
             )
             yield from page.get("data", [])
@@ -2143,7 +2205,8 @@ class Client:
         updated_at_end: Optional[str] = None,
         search: Optional[str] = None,
         cursor: Optional[str] = None,
-        order: Optional[AlertsOrderOpts] = None,
+        page_size: Optional[int] = 100,
+        order: Optional[GroupedAlertOrderOpts] = None,
         sort: Optional[SortOpts] = None,
     ) -> Dict:
         """
@@ -2185,10 +2248,14 @@ class Client:
             created_at_end=created_at_end,
             updated_at_start=updated_at_start,
             updated_at_end=updated_at_end,
-            order=order,
             sort=sort,
         )
-        params = {}
+        params = {
+            "pageSize": page_size,
+        }
+        if order:
+            validate_class(order, GroupedAlertOrderOpts)
+            body["order"] = order.value
         if cursor:
             validate_class(cursor, str)
             params["cursor"] = cursor
@@ -2232,7 +2299,8 @@ class Client:
         updated_at_end: Optional[str] = None,
         search: Optional[str] = None,
         cursor: Optional[str] = None,
-        order: Optional[AlertsOrderOpts] = None,
+        page_size: Optional[int] = 100,
+        order: Optional[GroupedAlertOrderOpts] = None,
         sort: Optional[SortOpts] = None,
     ) -> Iterator[Dict]:
         """
@@ -2265,6 +2333,7 @@ class Client:
             following_tags=following_tags,
             include_empty_following_tags=include_empty_following_tags,
             cursor=cursor,
+            page_size=page_size,
             order=order,
             rules=rules,
             states=states,
@@ -2289,6 +2358,7 @@ class Client:
                 following_tags=following_tags,
                 include_empty_following_tags=include_empty_following_tags,
                 cursor=page.get("cursor"),
+                page_size=page_size,
                 order=order,
                 rules=rules,
                 states=states,
