@@ -1931,19 +1931,6 @@ class TestClient(unittest.TestCase):
             f"/alerts/{alert_id}/history",
         )
 
-    def test_iter_alert_comments(self):
-        alert_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-
-        try:
-            next(self.sdk.iter_alert_comments(alert_id))
-        except StopIteration:
-            pass
-
-        self.sdk._request.assert_called_once_with(
-            "GET",
-            f"/alerts/{alert_id}/comments",
-        )
-
     def test_update_alert(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         alert_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
@@ -2547,3 +2534,46 @@ class TestClient(unittest.TestCase):
         )
         for cf_stack in cf_stacks["Stacks"]:
             cloudformation.delete_stack(StackName=cf_stack["StackName"])
+
+    def test_get_alert_comment_page(self):
+        alert_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
+        page = 1
+        page_size = 100
+
+        self.sdk._get_alert_comment_page(alert_id, page=page, page_size=page_size)
+
+        self.sdk._request.assert_called_once_with(
+            "GET",
+            f"/alerts/{alert_id}/comments",
+            params={
+                "page": page,
+                "pageSize": page_size,
+            },
+        )
+
+    @patch("zanshinsdk.client.Client._get_alert_comment_page")
+    def test_iter_alert_comments(self, request):
+        alert_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
+        page_size = 2
+        total_comments = 5
+
+        request.side_effect = [
+            {"data": ["comment1", "comment2"], "total": total_comments},
+            {"data": ["comment3", "comment4"]},
+            {"data": ["comment5"]},
+        ]
+
+        self.sdk._get_alert_comment_page = request
+        iterator = self.sdk.iter_alert_comments(alert_id, page_size=page_size)
+        comments = list(iterator)
+
+        self.assertEqual(
+            comments, ["comment1", "comment2", "comment3", "comment4", "comment5"]
+        )
+
+        expected_calls = [
+            call(alert_id=alert_id, page_size=page_size, page=1),
+            call(alert_id=alert_id, page_size=page_size, page=2),
+            call(alert_id=alert_id, page_size=page_size, page=3),
+        ]
+        self.sdk._get_alert_comment_page.assert_has_calls(expected_calls)

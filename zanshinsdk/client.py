@@ -2397,16 +2397,43 @@ class Client:
             "GET", f"/alerts/{validate_uuid(alert_id)}/history"
         ).json()
 
-    def iter_alert_comments(self, alert_id: Union[UUID, str]) -> Iterator[Dict]:
+    def _get_alert_comment_page(
+        self,
+        alert_id: Union[UUID, str],
+        page: Optional[int] = 1,
+        page_size: Optional[int] = 100,
+    ) -> Dict:
+        validate_int(page, min_value=1, required=True)
+        validate_int(page_size, min_value=1, required=True)
+        params = {"page": page, "pageSize": page_size}
+        return self._request(
+            "GET", f"/alerts/{validate_uuid(alert_id)}/comments", params=params
+        ).json()
+
+    def iter_alert_comments(
+        self,
+        alert_id: Union[UUID, str],
+        page_size: Optional[int] = 100,
+    ) -> Iterator[Dict]:
         """
         Iterates over the comment of an alert.
         <https://api.zanshin.tenchisecurity.com/#operation/listAllAlertComments>
         :param alert_id: the ID of the alert
         :return:
         """
-        yield from self._request(
-            "GET", f"/alerts/{validate_uuid(alert_id)}/comments"
-        ).json()
+        page = self._get_alert_comment_page(
+            alert_id=alert_id, page_size=page_size, page=1
+        )
+        yield from page.get("data", [])
+        for page_number in range(
+            2, int(ceil(page.get("total", 0) / float(page_size))) + 1
+        ):
+            page = self._get_alert_comment_page(
+                alert_id=alert_id,
+                page_size=page_size,
+                page=page_number,
+            )
+            yield from page.get("data", [])
 
     def update_alert(
         self,
