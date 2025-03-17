@@ -240,7 +240,7 @@ class Client:
             pass
         finally:
             self._client = httpx.Client(
-                proxies=self._proxy_url,
+                proxy=self._proxy_url,
                 timeout=60,
                 verify=self._verify,
                 headers={
