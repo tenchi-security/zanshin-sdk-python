@@ -1569,7 +1569,8 @@ class TestClient(unittest.TestCase):
                 "openedAtStart": "2025-01-10T00:00:00",
             },
             params={
-                "cursor": "eyJpZCI6IjAyYWQxOGU3LTY1ODUtNDAwMC1hMDAwLWY2YTQzMTFlYzI4NyJ9"
+                "cursor": "eyJpZCI6IjAyYWQxOGU3LTY1ODUtNDAwMC1hMDAwLWY2YTQzMTFlYzI4NyJ9",
+                "size": 100,
             },
         )
 
@@ -1607,6 +1608,7 @@ class TestClient(unittest.TestCase):
             updated_at_end=None,
             search=None,
             sort=None,
+            page_size=100,
         )
 
     def test_get_alerts_history_page(self):

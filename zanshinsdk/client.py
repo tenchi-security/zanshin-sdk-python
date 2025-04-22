@@ -1659,6 +1659,7 @@ class Client:
         cursor: Optional[str] = None,
         order: Optional[AlertsOrderOpts] = None,
         sort: Optional[SortOpts] = None,
+        page_size: int = 100,
     ) -> Dict:
         """
         Internal method to retrieve a single page of alerts from organizations being followed
@@ -1683,8 +1684,9 @@ class Client:
         :param sort: Which field to sort on
         :return: a JSON decoded following alerts
         """
+        validate_int(page_size, min_value=1, required=True)
         body = {}
-        params = {}
+        params = {"size": page_size}
         if cursor:
             validate_class(cursor, str)
             params["cursor"] = cursor
@@ -1774,6 +1776,7 @@ class Client:
         cursor: Optional[str] = None,
         order: Optional[AlertsOrderOpts] = None,
         sort: Optional[SortOpts] = None,
+        page_size: int = 100,
     ) -> Iterator[Dict]:
         """
         Iterates over the following alerts from organizations being followed by transparently paginating on the API.
@@ -1796,6 +1799,7 @@ class Client:
         :param cursor: Cursor of the last alert consumed, when this value is passed, subsequent alert histories will be returned.
         :param order: Sort order to use based od alert order opts
         :param sort: Which field to sort on
+        :param page_size: Page size of alerts
         :return: an iterator over the JSON decoded alerts
         """
         page = self._get_following_alerts_page(
@@ -1819,6 +1823,7 @@ class Client:
             updated_at_end=updated_at_end,
             search=search,
             sort=sort,
+            page_size=page_size,
         )
         yield from page.get("data", [])
         while page.get("cursor"):
@@ -1843,6 +1848,7 @@ class Client:
                 updated_at_end=updated_at_end,
                 search=search,
                 sort=sort,
+                page_size=page_size,
             )
             yield from page.get("data", [])
 
