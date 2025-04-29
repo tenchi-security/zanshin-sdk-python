@@ -25,7 +25,6 @@ from zanshinsdk.common.enums import (
     Frequency,
     GroupedAlertOrderOpts,
     Languages,
-    OAuthTargetKind,
     Roles,
     ScanTargetGroupKind,
     ScanTargetKind,
@@ -506,7 +505,7 @@ class Client:
         :return: a dict representing the organization
         """
         body = {"name": name}
-        return self._request("POST", f"/organizations", body=body).json()
+        return self._request("POST", "/organizations", body=body).json()
 
     ###################################################
     # Organization Member
@@ -2911,7 +2910,7 @@ class Client:
             sts = boto3_session.client("sts")
             sts.get_caller_identity()
         except Exception as e:
-            self._logger.exception("boto3 session is invalid")
+            self._logger.exception(f"boto3 session is invalid: {e}")
             raise ValueError(
                 "boto3 session is invalid. Working boto3 session is required."
             )
