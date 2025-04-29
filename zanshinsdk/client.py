@@ -1189,11 +1189,15 @@ class Client:
         :param scan_target_id: the ID of the scan target
         :return: an iterator over the JSON decoded scans
         """
-        yield from self._request(
-            "GET",
-            f"/organizations/{validate_uuid(organization_id)}/scantargets/"
-            f"{validate_uuid(scan_target_id)}/scans",
-        ).json().get("data", [])
+        yield from (
+            self._request(
+                "GET",
+                f"/organizations/{validate_uuid(organization_id)}/scantargets/"
+                f"{validate_uuid(scan_target_id)}/scans",
+            )
+            .json()
+            .get("data", [])
+        )
 
     def get_organization_scan_target_scan(
         self,
@@ -2392,16 +2396,43 @@ class Client:
         """
         return self._request("GET", f"/alerts/{validate_uuid(alert_id)}").json()
 
-    def iter_alert_history(self, alert_id: Union[UUID, str]) -> Iterator[Dict]:
+    def _get_alert_history_page(
+        self,
+        alert_id: Union[UUID, str],
+        page: Optional[int] = 1,
+        page_size: Optional[int] = 100,
+    ) -> Dict:
+        validate_int(page, min_value=1, required=True)
+        validate_int(page_size, min_value=100, required=True)
+        params = {"page": page, "pageSize": page_size}
+        return self._request(
+            "GET", f"/alerts/{validate_uuid(alert_id)}/history", params=params
+        ).json()
+
+    def iter_alert_history(
+        self,
+        alert_id: Union[UUID, str],
+        page_size: Optional[int] = 100,
+    ) -> Iterator[Dict]:
         """
         Iterates over the history of an alert.
         <https://api.zanshin.tenchisecurity.com/#operation/listAllAlertHistory>
         :param alert_id: the ID of the alert
         :return:
         """
-        yield from self._request(
-            "GET", f"/alerts/{validate_uuid(alert_id)}/history"
-        ).json()
+
+        page = self._get_alert_history_page(
+            alert_id=alert_id, page_size=page_size, page=1
+        )
+
+        yield from page.get("data", [])
+        for page_number in range(
+            2, int(ceil(page.get("total", 0) / float(page_size))) + 1
+        ):
+            page = self._get_alert_history_page(
+                alert_id=alert_id, page_size=page_size, page=page_number
+            )
+            yield from page.get("data", [])
 
     def _get_alert_comment_page(
         self,
