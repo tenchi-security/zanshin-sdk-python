@@ -1920,19 +1920,6 @@ class TestClient(unittest.TestCase):
             f"/alerts/{alert_id}",
         )
 
-    def test_iter_alert_history(self):
-        alert_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-
-        try:
-            next(self.sdk.iter_alert_history(alert_id))
-        except StopIteration:
-            pass
-
-        self.sdk._request.assert_called_once_with(
-            "GET",
-            f"/alerts/{alert_id}/history",
-        )
-
     def test_update_alert(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         alert_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
@@ -2579,3 +2566,30 @@ class TestClient(unittest.TestCase):
             call(alert_id=alert_id, page_size=page_size, page=3),
         ]
         self.sdk._get_alert_comment_page.assert_has_calls(expected_calls)
+
+    @patch("zanshinsdk.client.Client._get_alert_history_page")
+    def test_iter_alert_history(self, request):
+        alert_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
+        page_size = 2
+        total_comments = 5
+
+        request.side_effect = [
+            {"data": ["history1", "history2"], "total": total_comments},
+            {"data": ["history3", "history4"]},
+            {"data": ["history5"]},
+        ]
+
+        self.sdk._get_alert_history_page = request
+        iterator = self.sdk.iter_alert_history(alert_id, page_size=page_size)
+        comments = list(iterator)
+
+        self.assertEqual(
+            comments, ["history1", "history2", "history3", "history4", "history5"]
+        )
+
+        expected_calls = [
+            call(alert_id=alert_id, page_size=page_size, page=1),
+            call(alert_id=alert_id, page_size=page_size, page=2),
+            call(alert_id=alert_id, page_size=page_size, page=3),
+        ]
+        self.sdk._get_alert_history_page.assert_has_calls(expected_calls)
