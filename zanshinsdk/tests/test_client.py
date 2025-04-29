@@ -27,8 +27,6 @@ class TestClient(unittest.TestCase):
 
         self.HAVE_BOTO3 = False
         try:
-            import boto3
-
             self.HAVE_BOTO3 = True
         except ModuleNotFoundError:
             pass
@@ -244,7 +242,7 @@ class TestClient(unittest.TestCase):
 
             client.api_url = None
         except Exception as e:
-            self.assertEqual(str(e), f"API URL cannot be null")
+            self.assertEqual(str(e), "API URL cannot be null")
 
     @patch("zanshinsdk.client.isfile")
     def test_get_api_key(self, mock_is_file):
@@ -548,7 +546,7 @@ class TestClient(unittest.TestCase):
         self.sdk.create_organization(name)
 
         self.sdk._request.assert_called_once_with(
-            "POST", f"/organizations", body={"name": name}
+            "POST", "/organizations", body={"name": name}
         )
 
     ###################################################
@@ -1623,7 +1621,7 @@ class TestClient(unittest.TestCase):
 
         self.sdk._request.assert_called_once_with(
             "POST",
-            f"/alerts/history",
+            "/alerts/history",
             body={
                 "organizationId": organization_id,
                 "pageSize": page_size,
@@ -1643,7 +1641,7 @@ class TestClient(unittest.TestCase):
 
         self.sdk._request.assert_called_once_with(
             "POST",
-            f"/alerts/history",
+            "/alerts/history",
             body={
                 "organizationId": organization_id,
                 "pageSize": page_size,
@@ -1665,7 +1663,7 @@ class TestClient(unittest.TestCase):
 
         self.sdk._request.assert_called_once_with(
             "POST",
-            f"/alerts/history",
+            "/alerts/history",
             body={
                 "organizationId": organization_id,
                 "pageSize": page_size,
@@ -1715,7 +1713,7 @@ class TestClient(unittest.TestCase):
 
         self.sdk._request.assert_called_once_with(
             "POST",
-            f"/alerts/history/following",
+            "/alerts/history/following",
             body={
                 "organizationId": organization_id,
                 "pageSize": page_size,
@@ -1735,7 +1733,7 @@ class TestClient(unittest.TestCase):
 
         self.sdk._request.assert_called_once_with(
             "POST",
-            f"/alerts/history/following",
+            "/alerts/history/following",
             body={
                 "organizationId": organization_id,
                 "pageSize": page_size,
@@ -1757,7 +1755,7 @@ class TestClient(unittest.TestCase):
 
         self.sdk._request.assert_called_once_with(
             "POST",
-            f"/alerts/history/following",
+            "/alerts/history/following",
             body={
                 "organizationId": organization_id,
                 "pageSize": page_size,
@@ -2044,7 +2042,7 @@ class TestClient(unittest.TestCase):
         try:
             zanshinsdk.client.validate_int(_int, required=True)
         except Exception as e:
-            self.assertEqual(str(e), f"required integer parameter missing")
+            self.assertEqual(str(e), "required integer parameter missing")
 
     def test_validate_int_not_int(self):
         _int = "NaN"
