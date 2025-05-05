@@ -70,6 +70,6 @@ class TestAlertsHistoryIterator(unittest.TestCase):
 
         self.file_persistent.client._request.assert_called_once_with(
             "POST",
-            f"/alerts/history",
+            "/alerts/history",
             body={"organizationId": organization_id, "pageSize": 100, "cursor": cursor},
         )
