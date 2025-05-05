@@ -1,8 +1,6 @@
 import logging
 
 from zanshinsdk.client import (
-    DAILY,
-    WEEKLY,
     AlertSeverity,
     AlertsOrderOpts,
     AlertState,
@@ -15,9 +13,9 @@ from zanshinsdk.client import (
     ScanTargetDOMAIN,
     ScanTargetGCP,
     ScanTargetGroupCredentialListORACLE,
+    ScanTargetGroupKind,
     ScanTargetHUAWEI,
     ScanTargetKind,
-    ScanTargetSchedule,
     SortOpts,
     validate_uuid,
 )
@@ -26,5 +24,6 @@ from zanshinsdk.iterator import AbstractPersistentAlertsIterator, PersistenceEnt
 from zanshinsdk.version import __version__
 
 from zanshinsdk.alerts_history import FilePersistentAlertsIterator  # isort:skip
+
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())
