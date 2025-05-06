@@ -1,0 +1,2 @@
+{'region': 'sa-saopaulo-1', 'tenancyId': 'ocid1.tenancy.oc1..aaaaaaaa5nyhks35oij7sglvkw55utj66mv3vvp2ysc3hk7sprbepdhywdra', 'userId': 'ocid1.user.oc1..aaaaaaaa5nyhks35oij7sglvkw55utj66mv3vvp2ysc3hk7sprbepdhywdra', 'keyFingerprint': 'ECbOAt4cJdAWe0MNROvmRkf5c-Py6cmGJowRDDX1'}
+{"errorCode":"http.400.badrequest","errorName":"Bad Request","errorMessage":"OCIGetCompartment Error: The required information to complete authentication was not provided or was incorrect."}

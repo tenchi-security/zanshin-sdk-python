@@ -24,6 +24,7 @@ class ScanTargetKind(str, Enum):
     AZURE = "AZURE"
     GCP = "GCP"
     BITBUCKET = "BITBUCKET"
+    CLOUDFLARE = "CLOUDFLARE"
     DOMAIN = "DOMAIN"
     GITHUB = "GITHUB"
     GITLAB = "GITLAB"
@@ -38,9 +39,13 @@ class ScanTargetKind(str, Enum):
 
 
 class ScanTargetGroupKind(str, Enum):
-    ORACLE = "ORACLE"
     BITBUCKET = "BITBUCKET"
+    CLOUDFLARE = "CLOUDFLARE"
     GITLAB = "GITLAB"
+    ORACLE = "ORACLE"
+    IBM_CLOUD = "IBM_CLOUD"
+    BITDEFENDER = "BITDEFENDER"
+    MONGODB_ATLAS = "MONGODB_ATLAS"
 
 
 class OAuthTargetKind(str, Enum):
