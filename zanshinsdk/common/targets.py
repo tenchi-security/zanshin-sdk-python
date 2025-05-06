@@ -43,11 +43,11 @@ class ScanTargetORACLE(dict):
     def __init__(self, compartment_id, region, tenancy_id, user_id, key_fingerprint):
         dict.__init__(
             self,
-            compartment_id=compartment_id,
+            compartmentId=compartment_id,
             region=region,
-            tenancy_id=tenancy_id,
-            user_id=user_id,
-            key_fingerprint=key_fingerprint,
+            tenancyId=tenancy_id,
+            userId=user_id,
+            keyFingerprint=key_fingerprint,
         )
 
 
@@ -56,9 +56,9 @@ class ScanTargetGroupCredentialListORACLE(dict):
         dict.__init__(
             self,
             region=region,
-            tenancy_id=tenancy_id,
-            user_id=user_id,
-            key_fingerprint=key_fingerprint,
+            tenancyId=tenancy_id,
+            userId=user_id,
+            keyFingerprint=key_fingerprint,
         )
 
 

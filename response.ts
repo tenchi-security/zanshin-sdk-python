@@ -1,1 +1,2 @@
-{'name': 'testando pelo SDK', 'kind': 'ORACLE', 'schedule': {'frequency': '1d', 'timeOfDay': 'NIGHT'}, 'createdAt': '2025-05-05T16:41:58.485Z', 'updatedAt': '2025-05-05T16:41:58.485Z', 'id': '4be9a64c-42de-4af5-8738-172cd81965de', 'organizationId': '0fd491c6-32a2-4b5e-9bb5-1a95338de5f7'}
+{'region': 'sa-saopaulo-1', 'tenancyId': 'ocid1.tenancy.oc1..aaaaaaaa5nyhks35oij7sglvkw55utj66mv3vvp2ysc3hk7sprbepdhywdra', 'userId': 'ocid1.user.oc1..aaaaaaaa5nyhks35oij7sglvkw55utj66mv3vvp2ysc3hk7sprbepdhywdra', 'keyFingerprint': 'ECbOAt4cJdAWe0MNROvmRkf5c-Py6cmGJowRDDX1'}
+{"errorCode":"http.400.badrequest","errorName":"Bad Request","errorMessage":"OCIGetCompartment Error: The required information to complete authentication was not provided or was incorrect."}

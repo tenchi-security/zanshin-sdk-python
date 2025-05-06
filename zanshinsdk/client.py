@@ -1229,7 +1229,13 @@ class Client:
         organization_id: Union[UUID, str],
         kind: ScanTargetKind,
         name: str,
-        credential: Union[ScanTargetCLOUDFLARE],
+        credential: Union[
+            ScanTargetCLOUDFLARE,
+            ScanTargetGITLAB,
+            ScanTargetIBM_CLOUD,
+            ScanTargetMONGODB_ATLAS,
+            ScanTargetORACLE,
+        ],
         schedule: ScanTargetSchedule = DAILY,
     ) -> Dict:
         """
@@ -1245,6 +1251,14 @@ class Client:
         validate_class(kind, ScanTargetGroupKind)
         validate_class(name, str)
         validate_class(schedule, ScanTargetSchedule)
+        validate_class(
+            credential,
+            Union[
+                ScanTargetGroupCredentialListORACLE,
+                ScanTargetIBM_CLOUD,
+                ScanTargetMONGODB_ATLAS,
+            ],
+        )
 
         validator_credential_map = {
             ScanTargetGroupKind.BITBUCKET: ScanTargetBITBUCKET,
@@ -1278,7 +1292,7 @@ class Client:
         ).json()
 
         if kind == ScanTargetGroupKind.ORACLE:
-            self.insert_scan_target_group_credential(
+            self.update_scan_target_group_credential(
                 organization_id=organization_id,
                 scan_target_group_id=response["id"],
                 credential=credential,
@@ -1308,6 +1322,37 @@ class Client:
             f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
             f"{validate_uuid(scan_target_group_id)}",
             body=body,
+        ).json()
+
+    def update_scan_target_group_credential(
+        self,
+        organization_id: Union[UUID, str],
+        scan_target_group_id: Union[UUID, str],
+        credential: Union[
+            ScanTargetORACLE, ScanTargetIBM_CLOUD, ScanTargetMONGODB_ATLAS
+        ],
+    ) -> Dict:
+        """
+        Update scan target group credential.
+        <https://api.zanshin.tenchisecurity.com/#operation/UpdateOrganizationScanTargetGroupCredential>
+        :param organization_id: the ID of the organization
+        :param scan_target_group_id: the ID of the scan target group
+        :param credential: the credential of the scan target group
+        """
+        validate_class(
+            credential,
+            (
+                ScanTargetGroupCredentialListORACLE,
+                ScanTargetIBM_CLOUD,
+                ScanTargetMONGODB_ATLAS,
+            ),
+        )
+
+        return self._request(
+            "PUT",
+            f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
+            f"{validate_uuid(scan_target_group_id)}/credential",
+            body=credential,
         ).json()
 
     def iter_scan_target_group_compartments(
@@ -1388,12 +1433,12 @@ class Client:
         :param credential: scan target group credential oracle
         :return: a dict representing scan target group
         """
-
         validate_class(credential, ScanTargetGroupCredentialListORACLE)
 
         body = {
             "credential": credential,
         }
+
         return self._request(
             "POST",
             f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
