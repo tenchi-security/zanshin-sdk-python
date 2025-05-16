@@ -1483,6 +1483,7 @@ class TestClient(unittest.TestCase):
             severities=severities,
             resolved_at_start=resolved_at_start,
             resolved_at_end=resolved_at_end,
+            page_size=1000,
         )
 
         self.sdk._request.assert_called_once_with(
@@ -1496,7 +1497,8 @@ class TestClient(unittest.TestCase):
                 "resolvedAtEnd": "2025-02-12T20:22:54.440101",
             },
             params={
-                "cursor": "eyJpZCI6IjAyYWQxOGU3LTY1ODUtNDAwMC1hMDAwLWY2YTQzMTFlYzI4NyJ9"
+                "size": 1000,
+                "cursor": "eyJpZCI6IjAyYWQxOGU3LTY1ODUtNDAwMC1hMDAwLWY2YTQzMTFlYzI4NyJ9",
             },
         )
 
@@ -1535,6 +1537,7 @@ class TestClient(unittest.TestCase):
             updated_at_end=None,
             search=None,
             sort=None,
+            page_size=1000,
         )
 
     def test_get_following_alerts_page(self):
