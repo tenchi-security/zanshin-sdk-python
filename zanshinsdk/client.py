@@ -1480,7 +1480,7 @@ class Client:
         """
         validate_int(page_size, min_value=1, required=True)
         body = {}
-        params = {'size': page_size}
+        params = {"size": page_size}
         if cursor:
             validate_class(cursor, str)
             params["cursor"] = cursor

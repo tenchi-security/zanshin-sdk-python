@@ -1483,7 +1483,7 @@ class TestClient(unittest.TestCase):
             severities=severities,
             resolved_at_start=resolved_at_start,
             resolved_at_end=resolved_at_end,
-            page_size=1000
+            page_size=1000,
         )
 
         self.sdk._request.assert_called_once_with(
@@ -1498,7 +1498,7 @@ class TestClient(unittest.TestCase):
             },
             params={
                 "size": 1000,
-                "cursor": "eyJpZCI6IjAyYWQxOGU3LTY1ODUtNDAwMC1hMDAwLWY2YTQzMTFlYzI4NyJ9"
+                "cursor": "eyJpZCI6IjAyYWQxOGU3LTY1ODUtNDAwMC1hMDAwLWY2YTQzMTFlYzI4NyJ9",
             },
         )
 
