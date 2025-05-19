@@ -14,6 +14,11 @@ class ScanTargetAZURE(dict):
         )
 
 
+class ScanTargetCLOUDFLARE(dict):
+    def __init__(self, api_token):
+        dict.__init__(self, apiToken=api_token)
+
+
 class ScanTargetGCP(dict):
     def __init__(self, project_id):
         dict.__init__(self, projectId=project_id)
@@ -22,6 +27,11 @@ class ScanTargetGCP(dict):
 class ScanTargetHUAWEI(dict):
     def __init__(self, account_id):
         dict.__init__(self, accountId=account_id)
+
+
+class ScanTargetIBM_CLOUD(dict):
+    def __init__(self, resource_group_id):
+        dict.__init__(self, resourceGroupId=resource_group_id)
 
 
 class ScanTargetDOMAIN(dict):
@@ -33,11 +43,11 @@ class ScanTargetORACLE(dict):
     def __init__(self, compartment_id, region, tenancy_id, user_id, key_fingerprint):
         dict.__init__(
             self,
-            compartment_id=compartment_id,
+            compartmentId=compartment_id,
             region=region,
-            tenancy_id=tenancy_id,
-            user_id=user_id,
-            key_fingerprint=key_fingerprint,
+            tenancyId=tenancy_id,
+            userId=user_id,
+            keyFingerprint=key_fingerprint,
         )
 
 
@@ -46,9 +56,9 @@ class ScanTargetGroupCredentialListORACLE(dict):
         dict.__init__(
             self,
             region=region,
-            tenancy_id=tenancy_id,
-            user_id=user_id,
-            key_fingerprint=key_fingerprint,
+            tenancyId=tenancy_id,
+            userId=user_id,
+            keyFingerprint=key_fingerprint,
         )
 
 
@@ -102,3 +112,8 @@ class ScanTargetGITHUB(dict):
         dict.__init__(
             self, organizationName=organization_name, installationId=installation_id
         )
+
+
+class ScanTargetMONGODB_ATLAS(dict):
+    def __init__(self, public_key, private_key):
+        dict.__init__(self, publicKey=public_key, privateKey=private_key)
