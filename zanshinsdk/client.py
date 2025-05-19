@@ -1452,6 +1452,7 @@ class Client:
         cursor: Optional[str] = None,
         order: Optional[AlertsOrderOpts] = None,
         sort: Optional[SortOpts] = None,
+        page_size: Optional[int] = None,
     ) -> Dict:
         """
         Internal method to retrieve a single page of alerts from an organization
@@ -1477,8 +1478,9 @@ class Client:
         :return: a JSON decoded alerts
         :return:
         """
+        validate_int(page_size, min_value=1, required=True)
         body = {}
-        params = {}
+        params = {"size": page_size}
         if cursor:
             validate_class(cursor, str)
             params["cursor"] = cursor
@@ -1568,6 +1570,7 @@ class Client:
         cursor: Optional[str] = None,
         order: Optional[AlertsOrderOpts] = None,
         sort: Optional[SortOpts] = None,
+        page_size: Optional[int] = 1000,
     ) -> Iterator[Dict]:
         """
         Iterates over the alerts of an organization by loading them, transparently paginating on the API
@@ -1613,6 +1616,7 @@ class Client:
             updated_at_end=updated_at_end,
             search=search,
             sort=sort,
+            page_size=page_size,
         )
         yield from page.get("data", [])
         while page.get("cursor"):
@@ -1637,6 +1641,7 @@ class Client:
                 updated_at_end=updated_at_end,
                 search=search,
                 sort=sort,
+                page_size=page_size,
             )
             yield from page.get("data", [])
 
