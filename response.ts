@@ -1,2 +1,11 @@
-{'region': 'sa-saopaulo-1', 'tenancyId': 'ocid1.tenancy.oc1..aaaaaaaa5nyhks35oij7sglvkw55utj66mv3vvp2ysc3hk7sprbepdhywdra', 'userId': 'ocid1.user.oc1..aaaaaaaa5nyhks35oij7sglvkw55utj66mv3vvp2ysc3hk7sprbepdhywdra', 'keyFingerprint': 'ECbOAt4cJdAWe0MNROvmRkf5c-Py6cmGJowRDDX1'}
+Creating ORACLE scan target group
 {"errorCode":"http.400.badrequest","errorName":"Bad Request","errorMessage":"OCIGetCompartment Error: The required information to complete authentication was not provided or was incorrect."}
+Creating IBM Cloud scan target group
+{"errorCode":"invalid.input","errorName":"Invalid Input","errorMessage":"ValidateError","errors":[{"code":"invalid.required","message":"The 'credential.publicKey' field is required.","field":"credential.publicKey"},{"code":"invalid.required","message":"The 'credential.privateKey' field is required.","field":"credential.privateKey"},{"code":"invalid.required","message":"The 'credential.apiToken' field is required.","field":"credential.apiToken"},{"code":"invalid.required","message":"The 'credential.accountId' field is required.","field":"credential.accountId"}]}
+Creating MONGODB ATLAS scan target group
+MONGODB ATLAS scan target group created {'name': 'testando pelo SDK', 'kind': 'MONGODB_ATLAS', 'schedule': {'frequency': '1d', 'timeOfDay': 'NIGHT'}, 'createdAt': '2025-05-06T14:48:39.348Z', 'updatedAt': '2025-05-06T14:48:39.348Z', 'id': '2f75cfef-b9eb-43f1-8cc0-2616dab29fa9', 'organizationId': '0fd491c6-32a2-4b5e-9bb5-1a95338de5f7'}
+Creating CLOUDFLARE scan target group
+CLOUDFLARE scan target group created {'name': 'testando pelo SDK', 'kind': 'CLOUDFLARE', 'schedule': {'frequency': '1d', 'timeOfDay': 'NIGHT'}, 'createdAt': '2025-05-06T14:48:40.010Z', 'updatedAt': '2025-05-06T14:48:40.010Z', 'id': '774f202f-3cb3-403e-9a73-99143cbdde03', 'organizationId': '0fd491c6-32a2-4b5e-9bb5-1a95338de5f7'}
+Creating GITLAB scan target group
+{"errorCode":"invalid.input","errorName":"Invalid Input","errorMessage":"ValidateError","errors":[{"code":"invalid.required","message":"The 'credential.publicKey' field is required.","field":"credential.publicKey"},{"code":"invalid.required","message":"The 'credential.privateKey' field is required.","field":"credential.privateKey"},{"code":"invalid.required","message":"The 'credential.apiToken' field is required.","field":"credential.apiToken"},{"code":"invalid.required","message":"The 'credential.accountId' field is required.","field":"credential.accountId"}]}
+Creating Bitbucket scan target group

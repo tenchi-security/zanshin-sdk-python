@@ -1257,6 +1257,9 @@ class Client:
                 ScanTargetGroupCredentialListORACLE,
                 ScanTargetIBM_CLOUD,
                 ScanTargetMONGODB_ATLAS,
+                ScanTargetBITBUCKET,
+                ScanTargetCLOUDFLARE,
+                ScanTargetGITLAB,
             ],
         )
 
@@ -1329,7 +1332,12 @@ class Client:
         organization_id: Union[UUID, str],
         scan_target_group_id: Union[UUID, str],
         credential: Union[
-            ScanTargetORACLE, ScanTargetIBM_CLOUD, ScanTargetMONGODB_ATLAS
+            ScanTargetORACLE,
+            ScanTargetIBM_CLOUD,
+            ScanTargetMONGODB_ATLAS,
+            ScanTargetBITBUCKET,
+            ScanTargetCLOUDFLARE,
+            ScanTargetGITLAB,
         ],
     ) -> Dict:
         """
@@ -1345,6 +1353,9 @@ class Client:
                 ScanTargetGroupCredentialListORACLE,
                 ScanTargetIBM_CLOUD,
                 ScanTargetMONGODB_ATLAS,
+                ScanTargetBITBUCKET,
+                ScanTargetCLOUDFLARE,
+                ScanTargetGITLAB,
             ),
         )
 
