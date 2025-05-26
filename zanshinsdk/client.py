@@ -2525,7 +2525,6 @@ class Client:
         states: Optional[Iterable[AlertState]] = None,
         rules: Optional[Iterable[str]] = None,
         severities: Optional[Iterable[str]] = None,
-        include_empty_scan_target_tags: Optional[bool] = None,
     ) -> bool:
         body = {
             "state": validate_class(state, AlertState).value,
@@ -2560,18 +2559,36 @@ class Client:
                         else None
                     ),
                 },
-                "includeEmptyScanTargetTags": (
-                    validate_class(include_empty_scan_target_tags, bool)
-                    if include_empty_scan_target_tags
-                    else None
-                ),
             },
         }
-        return self._request(
-            "PUT",
-            f"/organizations/{validate_uuid(organization_id)}/alerts/status/batch",
-            body=body,
+
+        updated_alerts_count = 0
+        remaining_alerts_count = 0
+        endpoint = (
+            f"/organizations/{validate_uuid(organization_id)}/alerts/status/batch"
         )
+
+        # Make initial request
+        response = self._request("PUT", endpoint, body=body)
+        response_data = response.json()
+
+        updated_alerts_count = response_data.get("count", 0)
+        remaining_alerts_count = response_data.get("remaining", 0)
+
+        return updated_alerts_count, remaining_alerts_count
+
+        if dry_run:
+            return updated_alerts_count, remaining_alerts_count
+
+        # IF NOT DRY RUN, Continue making requests while there are remaining alerts to process
+        while remaining_alerts_count > 0:
+            response = self._request("PUT", endpoint, body=body)
+            response_data = response.json()
+
+            updated_alerts_count += response_data.get("count", 0)
+            remaining_alerts_count = response_data.get("remaining", 0)
+
+        return updated_alerts_count, remaining_alerts_count
 
     def create_alert_comment(
         self,
