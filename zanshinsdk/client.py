@@ -2562,20 +2562,15 @@ class Client:
             },
         }
 
-        updated_alerts_count = 0
-        remaining_alerts_count = 0
+        responses = []
         endpoint = (
             f"/organizations/{validate_uuid(organization_id)}/alerts/status/batch"
         )
 
-        all_responses = []
-
         # Make initial request
         response = self._request("PUT", endpoint, body=body)
         response_data = response.json()
-        all_responses.append(response_data)
-
-        updated_alerts_count = response_data.get("count", 0)
+        responses.append(response_data)
         remaining_alerts_count = response_data.get("remaining", 0)
 
         if dry_run:
@@ -2585,12 +2580,18 @@ class Client:
         while remaining_alerts_count > 0:
             response = self._request("PUT", endpoint, body=body)
             response_data = response.json()
-            all_responses.append(response_data)
 
-            updated_alerts_count += response_data.get("count", 0)
+            responses.append(response_data)
             remaining_alerts_count = response_data.get("remaining", 0)
 
-        return all_responses
+        # Merge all responses into one to keep the same response format
+        merged_response = {
+            "count": sum(r.get("count", 0) for r in responses),
+            "dry_run": dry_run,
+            "remaining": 0,
+        }
+
+        return merged_response
 
     def create_alert_comment(
         self,
