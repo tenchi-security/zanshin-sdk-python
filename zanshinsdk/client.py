@@ -2525,7 +2525,7 @@ class Client:
         states: Optional[Iterable[AlertState]] = None,
         rules: Optional[Iterable[str]] = None,
         severities: Optional[Iterable[str]] = None,
-    ) -> list[Dict]:
+    ) -> Dict:
         body = {
             "state": validate_class(state, AlertState).value,
             "comment": validate_class(comment, str),
