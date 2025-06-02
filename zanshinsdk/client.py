@@ -2525,7 +2525,7 @@ class Client:
         states: Optional[Iterable[AlertState]] = None,
         rules: Optional[Iterable[str]] = None,
         severities: Optional[Iterable[str]] = None,
-    ) -> bool:
+    ) -> list[Dict]:
         body = {
             "state": validate_class(state, AlertState).value,
             "comment": validate_class(comment, str),
@@ -2568,27 +2568,29 @@ class Client:
             f"/organizations/{validate_uuid(organization_id)}/alerts/status/batch"
         )
 
+        all_responses = []
+
         # Make initial request
         response = self._request("PUT", endpoint, body=body)
         response_data = response.json()
+        all_responses.append(response_data)
 
         updated_alerts_count = response_data.get("count", 0)
         remaining_alerts_count = response_data.get("remaining", 0)
 
-        return updated_alerts_count, remaining_alerts_count
-
         if dry_run:
-            return updated_alerts_count, remaining_alerts_count
+            return response.json()
 
         # IF NOT DRY RUN, Continue making requests while there are remaining alerts to process
         while remaining_alerts_count > 0:
             response = self._request("PUT", endpoint, body=body)
             response_data = response.json()
+            all_responses.append(response_data)
 
             updated_alerts_count += response_data.get("count", 0)
             remaining_alerts_count = response_data.get("remaining", 0)
 
-        return updated_alerts_count, remaining_alerts_count
+        return all_responses
 
     def create_alert_comment(
         self,
