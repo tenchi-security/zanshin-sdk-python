@@ -2526,7 +2526,7 @@ class Client:
         rules: Optional[Iterable[str]] = None,
         severities: Optional[Iterable[str]] = None,
         include_empty_scan_target_tags: Optional[bool] = None,
-    ) -> bool:
+    ) -> Dict:
         body = {
             "state": validate_class(state, AlertState).value,
             "comment": validate_class(comment, str),
@@ -2567,11 +2567,37 @@ class Client:
                 ),
             },
         }
-        return self._request(
-            "PUT",
-            f"/organizations/{validate_uuid(organization_id)}/alerts/status/batch",
-            body=body,
+
+        responses = []
+        endpoint = (
+            f"/organizations/{validate_uuid(organization_id)}/alerts/status/batch"
         )
+
+        # Make initial request
+        response = self._request("PUT", endpoint, body=body)
+        response_data = response.json()
+        responses.append(response_data)
+        remaining_alerts_count = response_data.get("remaining", 0)
+
+        if dry_run:
+            return response.json()
+
+        # IF NOT DRY RUN, Continue making requests while there are remaining alerts to process
+        while remaining_alerts_count > 0:
+            response = self._request("PUT", endpoint, body=body)
+            response_data = response.json()
+
+            responses.append(response_data)
+            remaining_alerts_count = response_data.get("remaining", 0)
+
+        # Merge all responses into one to keep the same response format
+        merged_response = {
+            "count": sum(r.get("count", 0) for r in responses),
+            "dry_run": dry_run,
+            "remaining": 0,
+        }
+
+        return merged_response
 
     def create_alert_comment(
         self,
