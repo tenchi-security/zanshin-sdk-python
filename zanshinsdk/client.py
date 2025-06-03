@@ -2891,25 +2891,42 @@ class Client:
         Instantiate boto3 client for CloudFormation, and create the Stack containing Zanshin Service Role.
         :return: boto3 cloudformation client.
         """
+        cloudformation_client = boto3_session.client(
+            "cloudformation", region_name=region
+        )
         try:
-            cloudformation_client = boto3_session.client(
-                "cloudformation", region_name=region
+            cloudformation_client.describe_stacks(StackName=zanshin_stack_name)
+            self._logger.info(
+                f"CloudFormation stack '{zanshin_stack_name}' already exists. Skipping creation."
             )
-            cloudformation_client.create_stack(
-                StackName=zanshin_stack_name,
-                TemplateURL="https://s3.amazonaws.com/tenchi-assets/zanshin-service-role.template",
-                Parameters=[
-                    {"ParameterKey": "ExternalId", "ParameterValue": new_scan_target_id}
-                ],
-                Capabilities=["CAPABILITY_IAM", "CAPABILITY_NAMED_IAM"],
-            )
-
-            return cloudformation_client
-        except Exception as e:
-            self._logger.error(
-                "Unable to deploy CloudFormation zanshin-tenchi-service-role. The onboard won't succeed."
-            )
-            raise e
+        except cloudformation_client.exceptions.ClientError as e:
+            if "does not exist" in str(e):
+                self._logger.info(
+                    f"CloudFormation stack '{zanshin_stack_name}' does not exist. Creating stack..."
+                )
+                try:
+                    cloudformation_client.create_stack(
+                        StackName=zanshin_stack_name,
+                        TemplateURL="https://s3.amazonaws.com/tenchi-assets/zanshin-service-role.template",
+                        Parameters=[
+                            {
+                                "ParameterKey": "ExternalId",
+                                "ParameterValue": new_scan_target_id,
+                            }
+                        ],
+                        Capabilities=["CAPABILITY_IAM", "CAPABILITY_NAMED_IAM"],
+                    )
+                except Exception as ce:
+                    self._logger.error(
+                        "Failed to create the CloudFormation stack 'zanshin-tenchi-service-role'."
+                    )
+                    raise ce
+            else:
+                self._logger.error(
+                    "Unexpected error when checking for CloudFormation stack."
+                )
+                raise e
+        return cloudformation_client
 
     def _get_cloudformation_stack_status(
         self, zanshin_stack_name, cloudformation_client
