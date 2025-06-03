@@ -2525,6 +2525,7 @@ class Client:
         states: Optional[Iterable[AlertState]] = None,
         rules: Optional[Iterable[str]] = None,
         severities: Optional[Iterable[str]] = None,
+        include_empty_scan_target_tags: Optional[bool] = None,
     ) -> Dict:
         body = {
             "state": validate_class(state, AlertState).value,
@@ -2559,6 +2560,11 @@ class Client:
                         else None
                     ),
                 },
+                "includeEmptyScanTargetTags": (
+                    validate_class(include_empty_scan_target_tags, bool)
+                    if include_empty_scan_target_tags
+                    else None
+                ),
             },
         }
 
