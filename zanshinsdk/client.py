@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import logging
 import sys
 import time
@@ -15,26 +14,23 @@ from urllib.parse import urlparse
 from uuid import UUID
 
 import httpx
-from pydantic import BaseModel, Field
 
 from zanshinsdk.common.enums import (
     AlertSeverity,
     AlertsOrderOpts,
     AlertState,
-    Day,
-    Frequency,
     GroupedAlertOrderOpts,
     Languages,
     Roles,
     ScanTargetGroupKind,
     ScanTargetKind,
     SortOpts,
-    TimeOfDay,
 )
 from zanshinsdk.common.targets import (
     ScanTargetAWS,
     ScanTargetAZURE,
     ScanTargetBITBUCKET,
+    ScanTargetCLOUDFLARE,
     ScanTargetDOMAIN,
     ScanTargetGCP,
     ScanTargetGITHUB,
@@ -42,7 +38,9 @@ from zanshinsdk.common.targets import (
     ScanTargetGroupCredentialListORACLE,
     ScanTargetGWORKSPACE,
     ScanTargetHUAWEI,
+    ScanTargetIBM_CLOUD,
     ScanTargetJIRA,
+    ScanTargetMONGODB_ATLAS,
     ScanTargetMS365,
     ScanTargetORACLE,
     ScanTargetSALESFORCE,
@@ -56,39 +54,14 @@ from zanshinsdk.common.validators import (
     validate_int,
     validate_uuid,
 )
+from zanshinsdk.models.scan_targets import (
+    DAILY,
+    ScanTargetSchedule,
+)
 from zanshinsdk.version import __version__ as sdk_version
 
 CONFIG_DIR = Path.home() / ".tenchi"
 CONFIG_FILE = CONFIG_DIR / "config"
-
-
-class ScanTargetSchedule(BaseModel):
-    frequency: Frequency
-    time_of_day: Optional[TimeOfDay] = Field(TimeOfDay.NIGHT, alias="timeOfDay")
-    day: Optional[Day] = Day.SUNDAY
-
-    def value(self):
-        if self.frequency in (Frequency.SIX_HOURS, Frequency.TWELVE_HOURS):
-            return {"frequency": self.frequency.value}
-        if self.frequency == Frequency.WEEKLY:
-            return {
-                "frequency": self.frequency.value,
-                "timeOfDay": self.time_of_day.value,
-                "day": self.day.value,
-            }
-        return {
-            "frequency": self.frequency.value,
-            "timeOfDay": self.time_of_day.value,
-        }
-
-    def json(self):
-        return json.dumps(self.value())
-
-
-DAILY = ScanTargetSchedule(frequency=Frequency.DAILY, time_of_day=TimeOfDay.NIGHT)
-WEEKLY = ScanTargetSchedule(
-    frequency=Frequency.WEEKLY, time_of_day=TimeOfDay.NIGHT, day=Day.SUNDAY
-)
 
 
 class Client:
@@ -1252,7 +1225,18 @@ class Client:
         ).json()
 
     def create_scan_target_group(
-        self, organization_id: Union[UUID, str], kind: ScanTargetKind, name: str
+        self,
+        organization_id: Union[UUID, str],
+        kind: ScanTargetKind,
+        name: str,
+        credential: Union[
+            ScanTargetCLOUDFLARE,
+            ScanTargetGITLAB,
+            ScanTargetIBM_CLOUD,
+            ScanTargetMONGODB_ATLAS,
+            ScanTargetORACLE,
+        ],
+        schedule: ScanTargetSchedule = DAILY,
     ) -> Dict:
         """
         Create a new scan target group.
@@ -1260,27 +1244,64 @@ class Client:
         :param organization_id: the ID of the organization
         :param kind: The type of cloud of this scan target group
         :param name: the name of the scan target group
+        :param schedule: the schedule of the scan target group
+        :param credential: the credential of the scan target group
         :return: a dict representing the newly created scan target group
         """
-        validate_class(kind, ScanTargetKind)
+        validate_class(kind, ScanTargetGroupKind)
         validate_class(name, str)
-        group_kinds = [member.value for member in ScanTargetGroupKind]
+        validate_class(schedule, ScanTargetSchedule)
+        validate_class(
+            credential,
+            Union[
+                ScanTargetGroupCredentialListORACLE,
+                ScanTargetIBM_CLOUD,
+                ScanTargetMONGODB_ATLAS,
+                ScanTargetBITBUCKET,
+                ScanTargetCLOUDFLARE,
+                ScanTargetGITLAB,
+            ],
+        )
 
-        if kind not in group_kinds:
-            raise ValueError(
-                f"{repr(kind.value)} is not accepted. '{group_kinds}' is expected"
-            )
+        validator_credential_map = {
+            ScanTargetGroupKind.BITBUCKET: ScanTargetBITBUCKET,
+            ScanTargetGroupKind.CLOUDFLARE: ScanTargetCLOUDFLARE,
+            ScanTargetGroupKind.GITLAB: ScanTargetGITLAB,
+            ScanTargetGroupKind.IBM_CLOUD: ScanTargetIBM_CLOUD,
+            ScanTargetGroupKind.MONGODB_ATLAS: ScanTargetMONGODB_ATLAS,
+            ScanTargetGroupKind.ORACLE: ScanTargetORACLE,
+        }
+
+        if not validator_credential_map.get(kind):
+            raise ValueError(f"Invalid kind: {kind}")
 
         body = {
             "name": name,
             "kind": kind,
+            "credential": credential,
+            "schedule": schedule.value(),
         }
 
-        return self._request(
+        # For Oracle scan target groups, credentials are inserted after creation
+        response = self._request(
             "POST",
             f"/organizations/{validate_uuid(organization_id)}/scantargetgroups",
-            body=body,
+            body={
+                **body,
+                "credential": None
+                if kind == ScanTargetGroupKind.ORACLE
+                else credential,
+            },
         ).json()
+
+        if kind == ScanTargetGroupKind.ORACLE:
+            self.update_scan_target_group_credential(
+                organization_id=organization_id,
+                scan_target_group_id=response["id"],
+                credential=credential,
+            )
+
+        return response
 
     def update_scan_target_group(
         self,
@@ -1304,6 +1325,45 @@ class Client:
             f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
             f"{validate_uuid(scan_target_group_id)}",
             body=body,
+        ).json()
+
+    def update_scan_target_group_credential(
+        self,
+        organization_id: Union[UUID, str],
+        scan_target_group_id: Union[UUID, str],
+        credential: Union[
+            ScanTargetORACLE,
+            ScanTargetIBM_CLOUD,
+            ScanTargetMONGODB_ATLAS,
+            ScanTargetBITBUCKET,
+            ScanTargetCLOUDFLARE,
+            ScanTargetGITLAB,
+        ],
+    ) -> Dict:
+        """
+        Update scan target group credential.
+        <https://api.zanshin.tenchisecurity.com/#operation/UpdateOrganizationScanTargetGroupCredential>
+        :param organization_id: the ID of the organization
+        :param scan_target_group_id: the ID of the scan target group
+        :param credential: the credential of the scan target group
+        """
+        validate_class(
+            credential,
+            (
+                ScanTargetGroupCredentialListORACLE,
+                ScanTargetIBM_CLOUD,
+                ScanTargetMONGODB_ATLAS,
+                ScanTargetBITBUCKET,
+                ScanTargetCLOUDFLARE,
+                ScanTargetGITLAB,
+            ),
+        )
+
+        return self._request(
+            "PUT",
+            f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
+            f"{validate_uuid(scan_target_group_id)}/credential",
+            body=credential,
         ).json()
 
     def iter_scan_target_group_compartments(
@@ -1384,12 +1444,12 @@ class Client:
         :param credential: scan target group credential oracle
         :return: a dict representing scan target group
         """
-
         validate_class(credential, ScanTargetGroupCredentialListORACLE)
 
         body = {
             "credential": credential,
         }
+
         return self._request(
             "POST",
             f"/organizations/{validate_uuid(organization_id)}/scantargetgroups/"
