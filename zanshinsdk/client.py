@@ -2659,6 +2659,36 @@ class Client:
             "POST", "/alerts/summaries/scans/following", body=body
         ).json()
 
+    def get_alerts_summaries(
+        self,
+        organization_id: UUID,
+        scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
+        search: Optional[str] = None,
+        lang: Optional[Union[Languages, str]] = None,
+    ):
+        """
+        Get alerts summaries.
+        :param organization_id: The ID of the organization
+        :param scan_target_ids: Optional list of scan target IDs
+        :param search: Search string to find in alerts
+        :param lang: Language the rule will be returned.
+        """
+        body = {
+            "organizationId": validate_uuid(organization_id),
+        }
+        if scan_target_ids:
+            if isinstance(scan_target_ids, str):
+                scan_target_ids = [scan_target_ids]
+            validate_class(scan_target_ids, Iterable)
+            body["scanTargetIds"] = [validate_uuid(x) for x in scan_target_ids]
+        if search:
+            validate_class(search, str)
+            body["search"] = search
+        if lang:
+            validate_class(lang, Languages)
+            body["lang"] = lang.value
+        return self._request("POST", "/alerts/summaries", body=body).json()
+
     def get_scan_targets_following_summary(
         self,
         organization_id: Union[UUID, str],
