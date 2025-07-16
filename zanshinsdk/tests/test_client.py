@@ -1981,6 +1981,18 @@ class TestClient(unittest.TestCase):
             },
         )
 
+    def test_get_alert_summaries(self):
+        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
+        scan_target_ids = ["e22f4225-43e9-4922-b6b8-8b0620bdb112"]
+        self.sdk.get_alerts_summaries(
+            organization_id=organization_id, scan_target_ids=scan_target_ids
+        )
+        self.sdk._request.assert_called_once_with(
+            "POST",
+            "/alerts/summaries",
+            body={"organizationId": organization_id, "scanTargetIds": scan_target_ids},
+        )
+
     def test_get_scan_targets_following_summary(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         scan_target_kinds = [zanshinsdk.ScanTargetKind.DOMAIN]
