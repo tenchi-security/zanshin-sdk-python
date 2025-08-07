@@ -2090,7 +2090,7 @@ class Client:
             if isinstance(scan_target_tags, str):
                 scan_target_tags = [scan_target_tags]
             validate_class(scan_target_tags, Iterable)
-            body["scanTargetTags"] = [validate_uuid(x) for x in scan_target_tags]
+            body["scanTargetTags"] = [validate_class(x, str) for x in scan_target_tags]
         if include_empty_scan_target_tags is not None:
             validate_class(include_empty_scan_target_tags, bool)
             body["includeEmptyScanTargetTags"] = include_empty_scan_target_tags
