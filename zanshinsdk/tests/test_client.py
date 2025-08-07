@@ -1959,6 +1959,26 @@ class TestClient(unittest.TestCase):
     # Summary
     ###################################################
 
+    def test_get_alerts_summaries_scans(self):
+        organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
+        days = 7
+        scan_target_ids = [
+            "e22f4225-43e9-4922-b6b8-8b0620bdb110",
+            "e22f4225-43e9-4922-b6b8-8b0620bdb112",
+        ]
+        self.sdk.get_alerts_summaries_scans(
+            organization_id, days=days, scan_target_ids=scan_target_ids
+        )
+        self.sdk._request.assert_called_once_with(
+            "POST",
+            "/alerts/summaries/scans",
+            body={
+                "organizationId": organization_id,
+                "daysBefore": days,
+                "scanTargetIds": scan_target_ids,
+            },
+        )
+
     def test_get_following_scan_summaries_iterable_following_ids(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         days = 7
