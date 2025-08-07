@@ -1993,10 +1993,10 @@ class TestClient(unittest.TestCase):
             body={"organizationId": organization_id, "scanTargetIds": scan_target_ids},
         )
 
-    def test_get_alerts_over_time(self):
+    def test_get_following_alerts_over_time(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         following_ids = ["d33a5808-223c-4606-bd6c-b789f39a9e60"]
-        self.sdk.get_alerts_over_time(
+        self.sdk.get_following_alerts_over_time(
             organization_id=organization_id, following_ids=following_ids
         )
         self.sdk._request.assert_called_once_with(

@@ -2801,7 +2801,7 @@ class Client:
             body=body,
         ).json()
 
-    def get_alerts_over_time(
+    def get_following_alerts_over_time(
         self,
         organization_id: Union[UUID, str],
         following_ids: Optional[Iterable[Union[UUID, str]]] = None,
@@ -2809,7 +2809,7 @@ class Client:
         dates: Optional[Iterable[str]] = None,
     ) -> Dict:
         """
-        Get scan target following summary.
+        Get following  alerts over time.
         <https://api.zanshin.tenchisecurity.com/#tag/Summaries/operation/alertFollowingResolvedOverTimeSummary>
         :param organization_id: Organization that the requester belongs to, data will be fetched from this organization followings
         :param following_ids: Organizations to filter following alerts from (FollowingIds), all ids must belong to following organizations. not passing the field will fetch from all
