@@ -2809,7 +2809,7 @@ class Client:
         dates: Optional[Iterable[str]] = None,
     ) -> Dict:
         """
-        Get following  alerts over time.
+        Get following alerts over time.
         <https://api.zanshin.tenchisecurity.com/#tag/Summaries/operation/alertFollowingResolvedOverTimeSummary>
         :param organization_id: Organization that the requester belongs to, data will be fetched from this organization followings
         :param following_ids: Organizations to filter following alerts from (FollowingIds), all ids must belong to following organizations. not passing the field will fetch from all
