@@ -2639,7 +2639,7 @@ class Client:
         Gets a summary of the current state of alerts scans for organization.
         <https://api.zanshin.tenchisecurity.com/#tag/Summaries/operation/scanSummary>
         :param organization_id: The ID of the organization
-        :param following_ids: Optional list of scan target IDs
+        :param scan_target_ids: Optional list of scan target IDs
         :param days: Number of days to go back in time in historical search
         :return: JSON object containing the scan summaries
         """
