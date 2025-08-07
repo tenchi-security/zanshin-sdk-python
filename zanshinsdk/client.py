@@ -2019,7 +2019,7 @@ class Client:
         self,
         organization_id: Union[UUID, str],
         scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
-        scan_tagert_tags: Optional[Iterable[str]] = None,
+        scan_target_tags: Optional[Iterable[str]] = None,
         include_empty_scan_target_tags: Optional[bool] = None,
         rules: Optional[Iterable[str]] = None,
         states: Optional[Iterable[AlertState]] = None,
@@ -2086,11 +2086,11 @@ class Client:
                 scan_target_ids = [scan_target_ids]
             validate_class(scan_target_ids, Iterable)
             body["scanTargetIds"] = [validate_uuid(x) for x in scan_target_ids]
-        if scan_tagert_tags:
-            if isinstance(scan_tagert_tags, str):
-                scan_tagert_tags = [scan_tagert_tags]
-            validate_class(scan_tagert_tags, Iterable)
-            body["scanTargetTags"] = [validate_uuid(x) for x in scan_tagert_tags]
+        if scan_target_tags:
+            if isinstance(scan_target_tags, str):
+                scan_target_tags = [scan_target_tags]
+            validate_class(scan_target_tags, Iterable)
+            body["scanTargetTags"] = [validate_uuid(x) for x in scan_target_tags]
         if include_empty_scan_target_tags is not None:
             validate_class(include_empty_scan_target_tags, bool)
             body["includeEmptyScanTargetTags"] = include_empty_scan_target_tags
@@ -2105,7 +2105,7 @@ class Client:
         self,
         organization_id: Union[UUID, str],
         scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
-        scan_tagert_tags: Optional[Iterable[str]] = None,
+        scan_target_tags: Optional[Iterable[str]] = None,
         include_empty_scan_target_tags: Optional[bool] = None,
         rules: Optional[Iterable[str]] = None,
         states: Optional[Iterable[AlertState]] = None,
@@ -2152,7 +2152,7 @@ class Client:
         page = self._get_grouped_alerts_page(
             organization_id,
             scan_target_ids=scan_target_ids,
-            scan_tagert_tags=scan_tagert_tags,
+            scan_target_tags=scan_target_tags,
             include_empty_scan_target_tags=include_empty_scan_target_tags,
             cursor=cursor,
             page_size=page_size,
@@ -2177,7 +2177,7 @@ class Client:
             page = self._get_grouped_alerts_page(
                 organization_id,
                 scan_target_ids,
-                scan_tagert_tags=scan_tagert_tags,
+                scan_target_tags=scan_target_tags,
                 include_empty_scan_target_tags=include_empty_scan_target_tags,
                 cursor=page.get("cursor"),
                 page_size=page_size,

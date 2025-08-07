@@ -1824,7 +1824,7 @@ class TestClient(unittest.TestCase):
         self.sdk._get_grouped_alerts_page.assert_called_once_with(
             organization_id,
             scan_target_ids=None,
-            scan_tagert_tags=None,
+            scan_target_tags=None,
             include_empty_scan_target_tags=None,
             cursor=None,
             page_size=100,
