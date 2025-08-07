@@ -2634,7 +2634,7 @@ class Client:
         organization_id: Union[UUID, str],
         scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
         days: Optional[int] = 7,
-    ):
+    ) -> Dict:
         """
         Gets a summary of the current state of alerts scans for organization.
         <https://api.zanshin.tenchisecurity.com/#tag/Summaries/operation/scanSummary>
