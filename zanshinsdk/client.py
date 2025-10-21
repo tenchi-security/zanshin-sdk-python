@@ -2629,90 +2629,6 @@ class Client:
     # Summary
     ###################################################
 
-    def get_alerts_summaries_scans(
-        self,
-        organization_id: Union[UUID, str],
-        scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
-        days: Optional[int] = 7,
-    ) -> Dict:
-        """
-        Gets a summary of the current state of alerts scans for organization.
-        <https://api.zanshin.tenchisecurity.com/#tag/Summaries/operation/scanSummary>
-        :param organization_id: The ID of the organization
-        :param scan_target_ids: Optional list of scan target IDs
-        :param days: Number of days to go back in time in historical search
-        :return: JSON object containing the scan summaries
-        """
-        body = {
-            "organizationId": validate_uuid(organization_id),
-            "daysBefore": validate_int(days, min_value=1),
-        }
-        if scan_target_ids:
-            if isinstance(scan_target_ids, str):
-                scan_target_ids = [scan_target_ids]
-            validate_class(scan_target_ids, Iterable)
-            body["scanTargetIds"] = [validate_uuid(x) for x in scan_target_ids]
-        return self._request("POST", "/alerts/summaries/scans", body=body).json()
-
-    def get_following_scan_summaries(
-        self,
-        organization_id: Union[UUID, str],
-        following_ids: Optional[Iterable[Union[UUID, str]]] = None,
-        days: Optional[int] = 7,
-    ) -> Dict:
-        """
-        Gets a summary of the current state of alerts for followed organizations.
-        <https://api.zanshin.tenchisecurity.com/#operation/scanSummaryFollowing>
-        :param organization_id: The ID of the organization
-        :param following_ids: list of IDs of organizations being followed to summarize alerts from
-        :param days: number of days to go back in time in historical search
-        :return: JSON object containing the scan summaries
-        """
-        body = {
-            "organizationId": validate_uuid(organization_id),
-            "daysBefore": validate_int(days, min_value=1),
-        }
-
-        if following_ids:
-            if isinstance(following_ids, str):
-                following_ids = [following_ids]
-            validate_class(following_ids, Iterable)
-            body["followingIds"] = [validate_uuid(x) for x in following_ids]
-
-        return self._request(
-            "POST", "/alerts/summaries/scans/following", body=body
-        ).json()
-
-    def get_alerts_summaries(
-        self,
-        organization_id: UUID,
-        scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
-        search: Optional[str] = None,
-        lang: Optional[Union[Languages, str]] = None,
-    ):
-        """
-        Get alerts summaries.
-        :param organization_id: The ID of the organization
-        :param scan_target_ids: Optional list of scan target IDs
-        :param search: Search string to find in alerts
-        :param lang: Language the rule will be returned.
-        """
-        body = {
-            "organizationId": validate_uuid(organization_id),
-        }
-        if scan_target_ids:
-            if isinstance(scan_target_ids, str):
-                scan_target_ids = [scan_target_ids]
-            validate_class(scan_target_ids, Iterable)
-            body["scanTargetIds"] = [validate_uuid(x) for x in scan_target_ids]
-        if search:
-            validate_class(search, str)
-            body["search"] = search
-        if lang:
-            validate_class(lang, Languages)
-            body["lang"] = lang.value
-        return self._request("POST", "/alerts/summaries", body=body).json()
-
     def get_scan_targets_following_summary(
         self,
         organization_id: Union[UUID, str],
@@ -2823,37 +2739,6 @@ class Client:
             f"/organizations/{validate_uuid(organization_id)}/summaries"
             "/scantargets/details",
             body=body,
-        ).json()
-
-    def get_following_alerts_over_time(
-        self,
-        organization_id: Union[UUID, str],
-        following_ids: Optional[Iterable[Union[UUID, str]]] = None,
-        severities: Optional[Iterable[Union[AlertSeverity, str]]] = None,
-        dates: Optional[Iterable[str]] = None,
-    ) -> Dict:
-        """
-        Get following alerts over time.
-        <https://api.zanshin.tenchisecurity.com/#tag/Summaries/operation/alertFollowingResolvedOverTimeSummary>
-        :param organization_id: Organization that the requester belongs to, data will be fetched from this organization followings
-        :param following_ids: Organizations to filter following alerts from (FollowingIds), all ids must belong to following organizations. not passing the field will fetch from all
-        :param severities: Severities of the alerts to filter, not passing the field will fetch all.
-        :param dates: Dates to gather the data for (YYYY-MM-DD format), not passing the field will fetch the data for the current day. A maximum of 12 dates can be passed. Passing dates for which the system has no data will result in that item not being included in the response.``
-        :return: JSON object containing the summarized data on the trend of resolved alerts
-        """
-        body = {"organizationId": validate_uuid(organization_id)}
-        if following_ids:
-            body["followingIds"] = [
-                validate_uuid(following_id) for following_id in following_ids
-            ]
-        if severities:
-            body["severities"] = [
-                validate_class(severity, AlertSeverity).value for severity in severities
-            ]
-        if dates:
-            body["date"] = [validate_date(date) for date in dates]
-        return self._request(
-            "POST", "/alerts/summaries/following/resolvedovertime", body=body
         ).json()
 
     ###################################################
