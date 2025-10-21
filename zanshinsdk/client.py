@@ -2629,60 +2629,6 @@ class Client:
     # Summary
     ###################################################
 
-    def get_alerts_summaries_scans(
-        self,
-        organization_id: Union[UUID, str],
-        scan_target_ids: Optional[Iterable[Union[UUID, str]]] = None,
-        days: Optional[int] = 7,
-    ) -> Dict:
-        """
-        Gets a summary of the current state of alerts scans for organization.
-        <https://api.zanshin.tenchisecurity.com/#tag/Summaries/operation/scanSummary>
-        :param organization_id: The ID of the organization
-        :param scan_target_ids: Optional list of scan target IDs
-        :param days: Number of days to go back in time in historical search
-        :return: JSON object containing the scan summaries
-        """
-        body = {
-            "organizationId": validate_uuid(organization_id),
-            "daysBefore": validate_int(days, min_value=1),
-        }
-        if scan_target_ids:
-            if isinstance(scan_target_ids, str):
-                scan_target_ids = [scan_target_ids]
-            validate_class(scan_target_ids, Iterable)
-            body["scanTargetIds"] = [validate_uuid(x) for x in scan_target_ids]
-        return self._request("POST", "/alerts/summaries/scans", body=body).json()
-
-    def get_following_scan_summaries(
-        self,
-        organization_id: Union[UUID, str],
-        following_ids: Optional[Iterable[Union[UUID, str]]] = None,
-        days: Optional[int] = 7,
-    ) -> Dict:
-        """
-        Gets a summary of the current state of alerts for followed organizations.
-        <https://api.zanshin.tenchisecurity.com/#operation/scanSummaryFollowing>
-        :param organization_id: The ID of the organization
-        :param following_ids: list of IDs of organizations being followed to summarize alerts from
-        :param days: number of days to go back in time in historical search
-        :return: JSON object containing the scan summaries
-        """
-        body = {
-            "organizationId": validate_uuid(organization_id),
-            "daysBefore": validate_int(days, min_value=1),
-        }
-
-        if following_ids:
-            if isinstance(following_ids, str):
-                following_ids = [following_ids]
-            validate_class(following_ids, Iterable)
-            body["followingIds"] = [validate_uuid(x) for x in following_ids]
-
-        return self._request(
-            "POST", "/alerts/summaries/scans/following", body=body
-        ).json()
-
     def get_alerts_summaries(
         self,
         organization_id: UUID,
