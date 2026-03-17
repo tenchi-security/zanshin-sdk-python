@@ -379,7 +379,7 @@ class Client:
     # Account Invites
     ###################################################
 
-    def _get_invite_page(self, cursor: Optional[str] = None, size: int = 100) -> Dict:
+    def _get_invite_page(self, cursor: Optional[str] = None, size: int = 1000) -> Dict:
         """
         Internal method to get a page of the invites of current logged user.
         <https://api.zanshin.tenchisecurity.com/#operation/getInvites>
@@ -400,10 +400,13 @@ class Client:
         <https://api.zanshin.tenchisecurity.com/#operation/getInvites>
         :return: an iterator over the invites objects
         """
-        page = self._get_invite_page(size=100)
+        page = self._get_invite_page(size=1000)
+        if isinstance(page, list) or not page.get("data"):
+            yield from page
+            return
         yield from page.get("data", [])
         while page.get("cursor"):
-            page = self._get_invite_page(cursor=page["cursor"], size=100)
+            page = self._get_invite_page(cursor=page["cursor"], size=1000)
             yield from page.get("data", [])
 
     def get_invite(self, invite_id: Union[UUID, str]) -> Dict:
@@ -431,7 +434,7 @@ class Client:
     # Account API key
     ###################################################
 
-    def _get_api_keys_page(self, cursor: Optional[str] = None, size: int = 100) -> Dict:
+    def _get_api_keys_page(self, cursor: Optional[str] = None, size: int = 1000) -> Dict:
         """
         Internal method to get a page of the API keys of current logged user.
         <https://api.zanshin.tenchisecurity.com/#operation/getMyApiKeys>
@@ -452,10 +455,13 @@ class Client:
         <https://api.zanshin.tenchisecurity.com/#operation/getMyApiKeys>
         :return: an iterator over the api keys objects
         """
-        page = self._get_api_keys_page(size=100)
+        page = self._get_api_keys_page(size=1000)
+        if isinstance(page, list) or not page.get("data"):
+            yield from page
+            return
         yield from page.get("data", [])
         while page.get("cursor"):
-            page = self._get_api_keys_page(cursor=page["cursor"], size=100)
+            page = self._get_api_keys_page(cursor=page["cursor"], size=1000)
             yield from page.get("data", [])
 
     def create_api_key(self, name: Optional[str]) -> Dict:
@@ -507,10 +513,13 @@ class Client:
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizations>
         :return: an iterator over the organizations objects
         """
-        page = self._get_organizations_page(size=100)
+        page = self._get_organizations_page(size=1000)
+        if isinstance(page, list) or not page.get("data"):
+            yield from page
+            return
         yield from page.get("data", [])
         while page.get("cursor"):
-            page = self._get_organizations_page(cursor=page["cursor"], size=100)
+            page = self._get_organizations_page(cursor=page["cursor"], size=1000)
             yield from page.get("data", [])
 
     def get_organization(self, organization_id: Union[UUID, str]) -> Dict:
@@ -574,7 +583,7 @@ class Client:
         self,
         organization_id: Union[UUID, str],
         cursor: Optional[str] = None,
-        size: int = 100,
+        size: int = 1000,
     ) -> Dict:
         """
         Gets a page of organization members.
@@ -602,11 +611,14 @@ class Client:
         :param organization_id: the ID of the organization
         :return: an iterator over the organization members objects
         """
-        page = self._get_organization_members_page(organization_id, size=100)
+        page = self._get_organization_members_page(organization_id, size=1000)
+        if isinstance(page, list) or not page.get("data"):
+            yield from page
+            return
         yield from page.get("data", [])
         while page.get("cursor"):
             page = self._get_organization_members_page(
-                organization_id, cursor=page["cursor"], size=100
+                organization_id, cursor=page["cursor"], size=1000
             )
             yield from page.get("data", [])
 
@@ -705,7 +717,7 @@ class Client:
         self,
         organization_id: Union[UUID, str],
         cursor: Optional[str] = None,
-        size: int = 100,
+        size: int = 1000,
     ) -> Dict:
         """
         Gets a page of organization members invites.
@@ -734,11 +746,14 @@ class Client:
         :param organization_id: the ID of the organization
         :return: an iterator over the organization members invites objects
         """
-        page = self._get_organization_members_invites_page(organization_id, size=100)
+        page = self._get_organization_members_invites_page(organization_id, size=1000)
+        if isinstance(page, list) or not page.get("data"):
+            yield from page
+            return
         yield from page.get("data", [])
         while page.get("cursor"):
             page = self._get_organization_members_invites_page(
-                organization_id, cursor=page["cursor"], size=100
+                organization_id, cursor=page["cursor"], size=1000
             )
             yield from page.get("data", [])
 
@@ -817,7 +832,7 @@ class Client:
         self,
         organization_id: Union[UUID, str],
         cursor: Optional[str] = None,
-        size: int = 100,
+        size: int = 1000,
     ) -> Dict:
         """
         Internal method to get a page of the follower of an organization.
@@ -847,11 +862,14 @@ class Client:
         :param organization_id: the ID of the organization
         :return: an iterator over the organization followers objects
         """
-        page = self._get_organization_follower_page(organization_id, size=100)
+        page = self._get_organization_follower_page(organization_id, size=1000)
+        if isinstance(page, list) or not page.get("data"):
+            yield from page
+            return
         yield from page.get("data", [])
         while page.get("cursor"):
             page = self._get_organization_follower_page(
-                organization_id, cursor=page["cursor"], size=100
+                organization_id, cursor=page["cursor"], size=1000
             )
             yield from page.get("data", [])
 
@@ -879,7 +897,7 @@ class Client:
         self,
         organization_id: Union[UUID, str],
         cursor: Optional[str] = None,
-        size: int = 100,
+        size: int = 1000,
     ) -> Dict:
         """
         Internal method to get a page of the follower requests of an organization.
@@ -909,11 +927,14 @@ class Client:
         :param organization_id: the ID of the organization
         :return: an iterator over the organization follower requests objects
         """
-        page = self._get_organization_follower_request_page(organization_id, size=100)
+        page = self._get_organization_follower_request_page(organization_id, size=1000)
+        if isinstance(page, list) or not page.get("data"):
+            yield from page
+            return
         yield from page.get("data", [])
         while page.get("cursor"):
             page = self._get_organization_follower_request_page(
-                organization_id, cursor=page["cursor"], size=100
+                organization_id, cursor=page["cursor"], size=1000
             )
             yield from page.get("data", [])
 
@@ -976,7 +997,7 @@ class Client:
         self,
         organization_id: Union[UUID, str],
         cursor: Optional[str] = None,
-        size: int = 100,
+        size: int = 1000,
     ) -> Dict:
         """
         Internal method to get a page of the following of an organization.
@@ -1005,12 +1026,15 @@ class Client:
         :return: an iterator over the JSON decoded followed organizations
         """
         page = self._get_organization_following_page(
-            organization_id, cursor=None, size=100
+            organization_id, cursor=None, size=1000
         )
+        if isinstance(page, list) or not page.get("data"):
+            yield from page
+            return
         yield from page.get("data", [])
         while page.get("cursor"):
             page = self._get_organization_following_page(
-                organization_id, cursor=page["cursor"], size=100
+                organization_id, cursor=page["cursor"], size=1000
             )
             yield from page.get("data", [])
 
@@ -1103,7 +1127,7 @@ class Client:
         self,
         organization_id: Union[UUID, str],
         cursor: Optional[str] = None,
-        size: int = 100,
+        size: int = 1000,
     ) -> Dict:
         """
         Internal method to get a page of the scan targets of an organization.
@@ -1133,11 +1157,14 @@ class Client:
         :param organization_id: the ID of the organization
         : return: an iterator over the scan target objects
         """
-        page = self._get_organization_scan_targets_page(organization_id, size=100)
+        page = self._get_organization_scan_targets_page(organization_id, size=1000)
+        if isinstance(page, list) or not page.get("data"):
+            yield from page
+            return
         yield from page.get("data", [])
         while page.get("cursor"):
             page = self._get_organization_scan_targets_page(
-                organization_id, cursor=page["cursor"], size=100
+                organization_id, cursor=page["cursor"], size=1000
             )
             yield from page.get("data", [])
 
@@ -1456,7 +1483,7 @@ class Client:
         self,
         organization_id: Union[UUID, str],
         cursor: Optional[str] = None,
-        size: int = 100,
+        size: int = 1000,
     ) -> Dict:
         """
         Internal method to get a page of the scan target groups of an organization.
@@ -1486,11 +1513,14 @@ class Client:
         :param organization_id: the ID of the organization
         : return: an iterator over the scan target groups
         """
-        page = self._get_organization_scan_target_groups(organization_id, size=100)
+        page = self._get_organization_scan_target_groups(organization_id, size=1000)
+        if isinstance(page, list) or not page.get("data"):
+            yield from page
+            return
         yield from page.get("data", [])
         while page.get("cursor"):
             page = self._get_organization_scan_target_groups(
-                organization_id, cursor=page["cursor"], size=100
+                organization_id, cursor=page["cursor"], size=1000
             )
             yield from page.get("data", [])
 

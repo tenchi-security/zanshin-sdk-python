@@ -458,9 +458,9 @@ class TestClient(unittest.TestCase):
             results, ["invite1", "invite2", "invite3", "invite4", "invite5"]
         )
         expected_calls = [
-            call(size=100),
-            call(cursor="cursor2", size=100),
-            call(cursor="cursor3", size=100),
+            call(size=1000),
+            call(cursor="cursor2", size=1000),
+            call(cursor="cursor3", size=1000),
         ]
         mock_get_page.assert_has_calls(expected_calls)
 
@@ -496,9 +496,9 @@ class TestClient(unittest.TestCase):
         results = list(iterator)
         self.assertEqual(results, ["key1", "key2", "key3", "key4", "key5"])
         expected_calls = [
-            call(size=100),
-            call(cursor="cursor2", size=100),
-            call(cursor="cursor3", size=100),
+            call(size=1000),
+            call(cursor="cursor2", size=1000),
+            call(cursor="cursor3", size=1000),
         ]
         mock_get_page.assert_has_calls(expected_calls)
 
@@ -534,9 +534,9 @@ class TestClient(unittest.TestCase):
         results = list(iterator)
         self.assertEqual(results, ["org1", "org2", "org3", "org4", "org5"])
         expected_calls = [
-            call(size=100),
-            call(cursor="cursor2", size=100),
-            call(cursor="cursor3", size=100),
+            call(size=1000),
+            call(cursor="cursor2", size=1000),
+            call(cursor="cursor3", size=1000),
         ]
         mock_get_page.assert_has_calls(expected_calls)
 
@@ -600,9 +600,9 @@ class TestClient(unittest.TestCase):
             results, ["member1", "member2", "member3", "member4", "member5"]
         )
         expected_calls = [
-            call(organization_id, size=100),
-            call(organization_id, cursor="cursor2", size=100),
-            call(organization_id, cursor="cursor3", size=100),
+            call(organization_id, size=1000),
+            call(organization_id, cursor="cursor2", size=1000),
+            call(organization_id, cursor="cursor3", size=1000),
         ]
         mock_get_page.assert_has_calls(expected_calls)
 
@@ -679,9 +679,9 @@ class TestClient(unittest.TestCase):
             results, ["invite1", "invite2", "invite3", "invite4", "invite5"]
         )
         expected_calls = [
-            call(organization_id, size=100),
-            call(organization_id, cursor="cursor2", size=100),
-            call(organization_id, cursor="cursor3", size=100),
+            call(organization_id, size=1000),
+            call(organization_id, cursor="cursor2", size=1000),
+            call(organization_id, cursor="cursor3", size=1000),
         ]
         mock_get_page.assert_has_calls(expected_calls)
 
@@ -748,9 +748,9 @@ class TestClient(unittest.TestCase):
             results, ["follower1", "follower2", "follower3", "follower4", "follower5"]
         )
         expected_calls = [
-            call(organization_id, size=100),
-            call(organization_id, cursor="cursor2", size=100),
-            call(organization_id, cursor="cursor3", size=100),
+            call(organization_id, size=1000),
+            call(organization_id, cursor="cursor2", size=1000),
+            call(organization_id, cursor="cursor3", size=1000),
         ]
         mock_get_page.assert_has_calls(expected_calls)
 
@@ -788,9 +788,9 @@ class TestClient(unittest.TestCase):
         )
 
         expected_calls = [
-            call(organization_id, size=100),
-            call(organization_id, cursor="cursor2", size=100),
-            call(organization_id, cursor="cursor3", size=100),
+            call(organization_id, size=1000),
+            call(organization_id, cursor="cursor2", size=1000),
+            call(organization_id, cursor="cursor3", size=1000),
         ]
         mock_get_page.assert_has_calls(expected_calls)
 
@@ -852,9 +852,9 @@ class TestClient(unittest.TestCase):
         )
 
         expected_calls = [
-            call(organization_id, cursor=None, size=100),
-            call(organization_id, cursor="cursor2", size=100),
-            call(organization_id, cursor="cursor3", size=100),
+            call(organization_id, cursor=None, size=1000),
+            call(organization_id, cursor="cursor2", size=1000),
+            call(organization_id, cursor="cursor3", size=1000),
         ]
         mock_get_page.assert_has_calls(expected_calls)
 
@@ -935,9 +935,9 @@ class TestClient(unittest.TestCase):
             results, ["target1", "target2", "target3", "target4", "target5"]
         )
         expected_calls = [
-            call(organization_id, size=100),
-            call(organization_id, cursor="cursor2", size=100),
-            call(organization_id, cursor="cursor3", size=100),
+            call(organization_id, size=1000),
+            call(organization_id, cursor="cursor2", size=1000),
+            call(organization_id, cursor="cursor3", size=1000),
         ]
         mock_get_page.assert_has_calls(expected_calls)
 
@@ -1286,9 +1286,9 @@ class TestClient(unittest.TestCase):
         results = list(iterator)
         self.assertEqual(results, ["group1", "group2", "group3", "group4", "group5"])
         expected_calls = [
-            call(organization_id, size=100),
-            call(organization_id, cursor="cursor2", size=100),
-            call(organization_id, cursor="cursor3", size=100),
+            call(organization_id, size=1000),
+            call(organization_id, cursor="cursor2", size=1000),
+            call(organization_id, cursor="cursor3", size=1000),
         ]
         mock_get_groups.assert_has_calls(expected_calls)
 
