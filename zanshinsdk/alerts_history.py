@@ -3,6 +3,7 @@
 This module allows persistent iteration of alerts. Some use cases include opening tickets based
 on new alerts, or even automating responses for some high-confidence alerts.
 """
+
 import json
 from os.path import isfile
 from typing import Dict, Iterator
