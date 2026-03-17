@@ -701,6 +701,30 @@ class Client:
     # Organization Member Invite
     ###################################################
 
+    def _get_organization_members_invites_page(
+        self,
+        organization_id: Union[UUID, str],
+        cursor: Optional[str] = None,
+        size: int = 100,
+    ) -> Dict:
+        """
+        Gets a page of organization members invites.
+        <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationInvites>
+        :param organization_id: the ID of the organization
+        :param cursor: the cursor for pagination
+        :param size: the number of items per page
+        :return: a dict representing the page of organization members invites
+        """
+        validate_int(size, min_value=1, required=True)
+        params = {"size": size}
+        if cursor:
+            params["cursor"] = cursor
+        return self._request(
+            "GET",
+            f"/organizations/{validate_uuid(organization_id)}/invites",
+            params=params,
+        ).json()
+
     def iter_organization_members_invites(
         self, organization_id: Union[UUID, str]
     ) -> Iterator[Dict]:
@@ -710,9 +734,13 @@ class Client:
         :param organization_id: the ID of the organization
         :return: an iterator over the organization members invites objects
         """
-        yield from self._request(
-            "GET", f"/organizations/{validate_uuid(organization_id)}/invites"
-        ).json()
+        page = self._get_organization_members_invites_page(organization_id, size=100)
+        yield from page.get("data", [])
+        while page.get("cursor"):
+            page = self._get_organization_members_invites_page(
+                organization_id, cursor=page["cursor"], size=100
+            )
+            yield from page.get("data", [])
 
     def create_organization_members_invite(
         self,
