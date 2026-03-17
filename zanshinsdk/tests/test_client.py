@@ -484,13 +484,25 @@ class TestClient(unittest.TestCase):
     # Account API key
     ###################################################
 
-    def test_iter_api_keys(self):
-        try:
-            next(self.sdk.iter_api_keys())
-        except StopIteration:
-            pass
-
-        self.sdk._request.assert_called_once_with("GET", "/me/apikeys")
+    @patch("zanshinsdk.client.Client._get_api_keys_page")
+    def test_iter_api_keys(self, mock_get_page):
+        mock_get_page.side_effect = [
+            {"data": ["key1", "key2"], "cursor": "cursor2"},
+            {"data": ["key3", "key4"], "cursor": "cursor3"},
+            {"data": ["key5"]},
+        ]
+        self.sdk._get_api_keys_page = mock_get_page
+        iterator = self.sdk.iter_api_keys()
+        results = list(iterator)
+        self.assertEqual(
+            results, ["key1", "key2", "key3", "key4", "key5"]
+        )
+        expected_calls = [
+            call(size=100),
+            call(cursor="cursor2", size=100),
+            call(cursor="cursor3", size=100),
+        ]
+        mock_get_page.assert_has_calls(expected_calls)
 
     def test_create_api_key(self):
         name = "MyKey"

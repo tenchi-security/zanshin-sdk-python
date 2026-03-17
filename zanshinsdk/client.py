@@ -431,13 +431,32 @@ class Client:
     # Account API key
     ###################################################
 
+    def _get_api_keys_page(self, cursor: Optional[str] = None, size: int = 100) -> Dict:
+        """
+        Internal method to get a page of the API keys of current logged user.
+        <https://api.zanshin.tenchisecurity.com/#operation/getMyApiKeys>
+        :param cursor: the cursor for pagination
+        :param size: the number of items per page
+        :return: a dict representing the page of API keys
+        """
+        validate_int(size, min_value=1, required=True)
+        params = {"size": size}
+        if cursor:
+            validate_class(cursor, str)
+            params["cursor"] = cursor
+        return self._request("GET", "/me/apikeys", params=params).json()
+
     def iter_api_keys(self) -> Iterator[Dict]:
         """
         Iterates over the API keys of current logged user.
         <https://api.zanshin.tenchisecurity.com/#operation/getMyApiKeys>
         :return: an iterator over the api keys objects
         """
-        yield from self._request("GET", "/me/apikeys").json()
+        page = self._get_api_keys_page(size=100)
+        yield from page.get("data", [])
+        while page.get("cursor"):
+            page = self._get_api_keys_page(cursor=page["cursor"], size=100)
+            yield from page.get("data", [])
 
     def create_api_key(self, name: Optional[str]) -> Dict:
         """
