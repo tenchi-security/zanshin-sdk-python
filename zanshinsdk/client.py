@@ -484,13 +484,34 @@ class Client:
     # Organization
     ###################################################
 
+    def _get_organizations_page(
+        self, cursor: Optional[str] = None, size: int = 100
+    ) -> Dict:
+        """
+        Internal method to get a page of the organizations of current logged user.
+        <https://api.zanshin.tenchisecurity.com/#operation/getOrganizations>
+        :param cursor: the cursor for pagination
+        :param size: the number of items per page
+        :return: a dict representing the page of organizations
+        """
+        validate_int(size, min_value=1, required=True)
+        params = {"size": size}
+        if cursor:
+            validate_class(cursor, str)
+            params["cursor"] = cursor
+        return self._request("GET", "/organizations", params=params).json()
+
     def iter_organizations(self) -> Iterator[Dict]:
         """
         Iterates over organizations of current logged user.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizations>
         :return: an iterator over the organizations objects
         """
-        yield from self._request("GET", "/organizations").json()
+        page = self._get_organizations_page(size=100)
+        yield from page.get("data", [])
+        while page.get("cursor"):
+            page = self._get_organizations_page(cursor=page["cursor"], size=100)
+            yield from page.get("data", [])
 
     def get_organization(self, organization_id: Union[UUID, str]) -> Dict:
         """
