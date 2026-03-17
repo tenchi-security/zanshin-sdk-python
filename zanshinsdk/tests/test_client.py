@@ -756,17 +756,32 @@ class TestClient(unittest.TestCase):
     # Organization Following
     ###################################################
 
-    def test_iter_organization_following(self):
+    @patch("zanshinsdk.client.Client._get_organization_following_page")
+    def test_iter_organization_following_cursor(self, mock_get_page):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
 
-        try:
-            next(self.sdk.iter_organization_following(organization_id))
-        except StopIteration:
-            pass
+        # Simulate cursor-based pagination
+        mock_get_page.side_effect = [
+            {"data": ["following1", "following2"], "cursor": "cursor2"},
+            {"data": ["following3", "following4"], "cursor": "cursor3"},
+            {"data": ["following5"]},
+        ]
 
-        self.sdk._request.assert_called_once_with(
-            "GET", f"/organizations/{organization_id}/following"
+        self.sdk._get_organization_following_page = mock_get_page
+        iterator = self.sdk.iter_organization_following(organization_id)
+        results = list(iterator)
+
+        self.assertEqual(
+            results,
+            ["following1", "following2", "following3", "following4", "following5"],
         )
+
+        expected_calls = [
+            call(organization_id, cursor=None, size=100),
+            call(organization_id, cursor="cursor2", size=100),
+            call(organization_id, cursor="cursor3", size=100),
+        ]
+        mock_get_page.assert_has_calls(expected_calls)
 
     def test_stop_organization_following(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"

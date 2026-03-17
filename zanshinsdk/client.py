@@ -800,6 +800,26 @@ class Client:
     # Organization Following
     ###################################################
 
+    def _get_organization_following_page(
+        self, organization_id: Union[UUID, str], cursor: int, size: int
+    ) -> Iterator[Dict]:
+        """
+        Internal method to get a page of the following of an organization.
+        <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationFollowing>
+        :param organization_id: the ID of the organization whose followed organizations we should list
+        :param cursor: the index of the first result to return
+        :param size: the maximum number of results to return
+        :return: an iterator over the JSON decoded followed organizations in the requested page
+        """
+        params = {"size": size}
+        if cursor:
+            params["cursor"] = cursor
+        yield from self._request(
+            "GET",
+            f"/organizations/{validate_uuid(organization_id)}/following",
+            params=params,
+        ).json()
+
     def iter_organization_following(
         self, organization_id: Union[UUID, str]
     ) -> Iterator[Dict]:
@@ -809,9 +829,15 @@ class Client:
         :param organization_id: the ID of the organization whose followed organizations we should list
         :return: an iterator over the JSON decoded followed organizations
         """
-        yield from self._request(
-            "GET", f"/organizations/{validate_uuid(organization_id)}/following"
-        ).json()
+        page = self._get_organization_following_page(
+            organization_id, cursor=None, size=100
+        )
+        yield from page.get("data", [])
+        while page.get("cursor"):
+            page = self._get_organization_following_page(
+                organization_id, cursor=page["cursor"], size=100
+            )
+            yield from page.get("data", [])
 
     def stop_organization_following(
         self, organization_id: Union[UUID, str], following_id: Union[UUID, str]
