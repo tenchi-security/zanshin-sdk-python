@@ -1273,7 +1273,7 @@ class TestClient(unittest.TestCase):
     # Organization Scan Target Groups
     ###################################################
 
-    @patch("zanshinsdk.Client._get_organization_scan_target_groups")
+    @patch("zanshinsdk.Client._get_organization_scan_target_groups_page")
     def test_iter_organization_scan_target_groups(self, mock_get_groups):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         mock_get_groups.side_effect = [
@@ -1281,7 +1281,7 @@ class TestClient(unittest.TestCase):
             {"data": ["group3", "group4"], "cursor": "cursor3"},
             {"data": ["group5"]},
         ]
-        self.sdk._get_organization_scan_target_groups = mock_get_groups
+        self.sdk._get_organization_scan_target_groups_page = mock_get_groups
         iterator = self.sdk.iter_organization_scan_target_groups(organization_id)
         results = list(iterator)
         self.assertEqual(results, ["group1", "group2", "group3", "group4", "group5"])
