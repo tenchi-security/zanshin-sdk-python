@@ -434,7 +434,9 @@ class Client:
     # Account API key
     ###################################################
 
-    def _get_api_keys_page(self, cursor: Optional[str] = None, size: int = 1000) -> Dict:
+    def _get_api_keys_page(
+        self, cursor: Optional[str] = None, size: int = 1000
+    ) -> Dict:
         """
         Internal method to get a page of the API keys of current logged user.
         <https://api.zanshin.tenchisecurity.com/#operation/getMyApiKeys>
@@ -593,6 +595,7 @@ class Client:
         :param size: the number of items per page
         :return: a dict representing the page of organization members
         """
+        validate_int(size, min_value=1)
         params = {"size": size}
         if cursor:
             params["cursor"] = cursor
@@ -1007,6 +1010,7 @@ class Client:
         :param size: the maximum number of results to return
         :return: an iterator over the JSON decoded followed organizations in the requested page
         """
+        validate_int(size, min_value=1)
         params = {"size": size}
         if cursor:
             params["cursor"] = cursor
@@ -1479,7 +1483,7 @@ class Client:
     # Organization Scan Target Groups
     ###################################################
 
-    def _get_organization_scan_target_groups(
+    def _get_organization_scan_target_groups_page(
         self,
         organization_id: Union[UUID, str],
         cursor: Optional[str] = None,
@@ -1513,13 +1517,15 @@ class Client:
         :param organization_id: the ID of the organization
         : return: an iterator over the scan target groups
         """
-        page = self._get_organization_scan_target_groups(organization_id, size=1000)
+        page = self._get_organization_scan_target_groups_page(
+            organization_id, size=1000
+        )
         if isinstance(page, list) or not page.get("data"):
             yield from page
             return
         yield from page.get("data", [])
         while page.get("cursor"):
-            page = self._get_organization_scan_target_groups(
+            page = self._get_organization_scan_target_groups_page(
                 organization_id, cursor=page["cursor"], size=1000
             )
             yield from page.get("data", [])
