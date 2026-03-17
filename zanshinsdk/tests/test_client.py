@@ -722,16 +722,31 @@ class TestClient(unittest.TestCase):
     # Organization Follower Request
     ###################################################
 
-    def test_iter_organization_follower_requests(self):
+    @patch("zanshinsdk.client.Client._get_organization_follower_request_page")
+    def test_iter_organization_follower_requests(self, mock_get_page):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        try:
-            next(self.sdk.iter_organization_follower_requests(organization_id))
-        except StopIteration:
-            pass
 
-        self.sdk._request.assert_called_once_with(
-            "GET", f"/organizations/{organization_id}/followers/requests"
+        mock_get_page.side_effect = [
+            {"data": ["request1", "request2"], "cursor": "cursor2"},
+            {"data": ["request3", "request4"], "cursor": "cursor3"},
+            {"data": ["request5"]},
+        ]
+
+        self.sdk._get_organization_follower_request_page = mock_get_page
+        iterator = self.sdk.iter_organization_follower_requests(organization_id)
+        results = list(iterator)
+
+        self.assertEqual(
+            results,
+            ["request1", "request2", "request3", "request4", "request5"],
         )
+
+        expected_calls = [
+            call(organization_id, size=100),
+            call(organization_id, cursor="cursor2", size=100),
+            call(organization_id, cursor="cursor3", size=100),
+        ]
+        mock_get_page.assert_has_calls(expected_calls)
 
     def test_create_organization_follower_request(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
