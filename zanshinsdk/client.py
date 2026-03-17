@@ -1452,6 +1452,31 @@ class Client:
     # Organization Scan Target Groups
     ###################################################
 
+    def _get_organization_scan_target_groups(
+        self,
+        organization_id: Union[UUID, str],
+        cursor: Optional[str] = None,
+        size: int = 100,
+    ) -> Dict:
+        """
+        Internal method to get a page of the scan target groups of an organization.
+        <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationScanTargetGroups>
+        :param organization_id: the ID of the organization
+        :param cursor: the cursor for pagination
+        :param size: the number of items per page
+        :return: a dict representing the page of scan target groups
+        """
+        validate_int(size, min_value=1, required=True)
+        params = {"size": size}
+        if cursor:
+            validate_class(cursor, str)
+            params["cursor"] = cursor
+        return self._request(
+            "GET",
+            f"/organizations/{validate_uuid(organization_id)}/scantargetgroups",
+            params=params,
+        ).json()
+
     def iter_organization_scan_target_groups(
         self, organization_id: Union[UUID, str]
     ) -> Iterator[Dict]:
@@ -1461,9 +1486,13 @@ class Client:
         :param organization_id: the ID of the organization
         : return: an iterator over the scan target groups
         """
-        yield from self._request(
-            "GET", f"/organizations/{validate_uuid(organization_id)}/scantargetgroups"
-        ).json()
+        page = self._get_organization_scan_target_groups(organization_id, size=100)
+        yield from page.get("data", [])
+        while page.get("cursor"):
+            page = self._get_organization_scan_target_groups(
+                organization_id, cursor=page["cursor"], size=100
+            )
+            yield from page.get("data", [])
 
     def get_organization_scan_target_group(
         self, organization_id: Union[UUID, str], scan_target_group_id: Union[UUID, str]

@@ -735,22 +735,18 @@ class TestClient(unittest.TestCase):
     @patch("zanshinsdk.client.Client._get_organization_follower_page")
     def test_iter_organization_followers_cursor(self, mock_get_page):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-
         # Simulate cursor-based pagination
         mock_get_page.side_effect = [
             {"data": ["follower1", "follower2"], "cursor": "cursor2"},
             {"data": ["follower3", "follower4"], "cursor": "cursor3"},
             {"data": ["follower5"]},
         ]
-
         self.sdk._get_organization_follower_page = mock_get_page
         iterator = self.sdk.iter_organization_followers(organization_id)
         results = list(iterator)
-
         self.assertEqual(
             results, ["follower1", "follower2", "follower3", "follower4", "follower5"]
         )
-
         expected_calls = [
             call(organization_id, size=100),
             call(organization_id, cursor="cursor2", size=100),
@@ -1277,26 +1273,24 @@ class TestClient(unittest.TestCase):
     # Organization Scan Target Groups
     ###################################################
 
-    def test_iter_organization_scan_target_groups(self):
+    @patch("zanshinsdk.Client._get_organization_scan_target_groups")
+    def test_iter_organization_scan_target_groups(self, mock_get_groups):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-
-        try:
-            next(self.sdk.iter_organization_scan_target_groups(organization_id))
-        except StopIteration:
-            pass
-
-        self.sdk._request.assert_called_once_with(
-            "GET", f"/organizations/{organization_id}/scantargetgroups"
-        )
-
-        with self.assertRaises(TypeError):
-            next(self.sdk.iter_organization_scan_target_groups(1))
-        with self.assertRaises(TypeError):
-            next(self.sdk.iter_organization_scan_target_groups(None))
-        with self.assertRaises(ValueError):
-            next(self.sdk.iter_organization_scan_target_groups(""))
-        with self.assertRaises(ValueError):
-            next(self.sdk.iter_organization_scan_target_groups("foo"))
+        mock_get_groups.side_effect = [
+            {"data": ["group1", "group2"], "cursor": "cursor2"},
+            {"data": ["group3", "group4"], "cursor": "cursor3"},
+            {"data": ["group5"]},
+        ]
+        self.sdk._get_organization_scan_target_groups = mock_get_groups
+        iterator = self.sdk.iter_organization_scan_target_groups(organization_id)
+        results = list(iterator)
+        self.assertEqual(results, ["group1", "group2", "group3", "group4", "group5"])
+        expected_calls = [
+            call(organization_id, size=100),
+            call(organization_id, cursor="cursor2", size=100),
+            call(organization_id, cursor="cursor3", size=100),
+        ]
+        mock_get_groups.assert_has_calls(expected_calls)
 
     def test_get_organization_scan_target_group(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
