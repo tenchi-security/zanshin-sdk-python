@@ -405,7 +405,7 @@ class Client:
         :return: a dict representing the organization of this invite
         """
         return self._request(
-            "POST", f"/me/invites/{invite_id}/accept"
+            "POST", f"/me/invites/{validate_uuid(invite_id)}/accept"
         ).json()
 
     ###################################################
