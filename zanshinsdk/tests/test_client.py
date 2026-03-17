@@ -924,17 +924,26 @@ class TestClient(unittest.TestCase):
     # Organization Scan Target
     ###################################################
 
-    def test_iter_organization_scan_targets(self):
+    @patch("zanshinsdk.client.Client._get_organization_scan_targets_page")
+    def test_iter_organization_scan_targets(self, mock_get_page):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-
-        try:
-            next(self.sdk.iter_organization_scan_targets(organization_id))
-        except StopIteration:
-            pass
-
-        self.sdk._request.assert_called_once_with(
-            "GET", f"/organizations/{organization_id}/scantargets"
+        mock_get_page.side_effect = [
+            {"data": ["target1", "target2"], "cursor": "cursor2"},
+            {"data": ["target3", "target4"], "cursor": "cursor3"},
+            {"data": ["target5"]},
+        ]
+        self.sdk._get_organization_scan_targets_page = mock_get_page
+        iterator = self.sdk.iter_organization_scan_targets(organization_id)
+        results = list(iterator)
+        self.assertEqual(
+            results, ["target1", "target2", "target3", "target4", "target5"]
         )
+        expected_calls = [
+            call(organization_id, size=100),
+            call(organization_id, cursor="cursor2", size=100),
+            call(organization_id, cursor="cursor3", size=100),
+        ]
+        mock_get_page.assert_has_calls(expected_calls)
 
     def test_create_organization_scan_target_AWS(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
