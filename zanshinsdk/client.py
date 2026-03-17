@@ -570,6 +570,29 @@ class Client:
     # Organization Member
     ###################################################
 
+    def _get_organization_members_page(
+        self,
+        organization_id: Union[UUID, str],
+        cursor: Optional[str] = None,
+        size: int = 100,
+    ) -> Dict:
+        """
+        Gets a page of organization members.
+        <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationMembers>
+        :param organization_id: the ID of the organization
+        :param cursor: the cursor for pagination
+        :param size: the number of items per page
+        :return: a dict representing the page of organization members
+        """
+        params = {"size": size}
+        if cursor:
+            params["cursor"] = cursor
+        return self._request(
+            "GET",
+            f"/organizations/{validate_uuid(organization_id)}/members",
+            params=params,
+        ).json()
+
     def iter_organization_members(
         self, organization_id: Union[UUID, str]
     ) -> Iterator[Dict]:
@@ -579,9 +602,13 @@ class Client:
         :param organization_id: the ID of the organization
         :return: an iterator over the organization members objects
         """
-        yield from self._request(
-            "GET", f"/organizations/{validate_uuid(organization_id)}/members"
-        ).json()
+        page = self._get_organization_members_page(organization_id, size=100)
+        yield from page.get("data", [])
+        while page.get("cursor"):
+            page = self._get_organization_members_page(
+                organization_id, cursor=page["cursor"], size=100
+            )
+            yield from page.get("data", [])
 
     def get_organization_member(
         self, organization_id: Union[UUID, str], member_id: Union[UUID, str]
