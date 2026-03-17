@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import pprint
 import sys
 import time
 from configparser import RawConfigParser
@@ -60,7 +61,8 @@ from zanshinsdk.version import __version__ as sdk_version
 
 CONFIG_DIR = Path.home() / ".tenchi"
 CONFIG_FILE = CONFIG_DIR / "config"
-
+pp = pprint.PrettyPrinter(indent=2)
+    
 
 class ScanTargetSchedule(BaseModel):
     frequency: Frequency
@@ -405,7 +407,7 @@ class Client:
         :return: a dict representing the organization of this invite
         """
         return self._request(
-            "POST", f"/me/invites/{validate_uuid(invite_id)}/accept"
+            "POST", f"/me/invites/{invite_id}/accept"
         ).json()
 
     ###################################################
@@ -1478,6 +1480,7 @@ class Client:
         :return: a JSON decoded alerts
         :return:
         """
+        pp.pprint(f"page_size: {page_size}")
         validate_int(page_size, min_value=1, required=True)
         body = {}
         params = {"size": page_size}
@@ -2441,12 +2444,13 @@ class Client:
     def _get_alert_comment_page(
         self,
         alert_id: Union[UUID, str],
-        page: Optional[int] = 1,
+        cursor: Optional[str] = None,
         page_size: Optional[int] = 100,
     ) -> Dict:
-        validate_int(page, min_value=1, required=True)
         validate_int(page_size, min_value=1, required=True)
-        params = {"page": page, "pageSize": page_size}
+        params = {"size": page_size}
+        if cursor:
+            params["cursor"] = cursor
         return self._request(
             "GET", f"/alerts/{validate_uuid(alert_id)}/comments", params=params
         ).json()
@@ -2463,16 +2467,12 @@ class Client:
         :return:
         """
         page = self._get_alert_comment_page(
-            alert_id=alert_id, page_size=page_size, page=1
+            alert_id=alert_id, page_size=page_size
         )
         yield from page.get("data", [])
-        for page_number in range(
-            2, int(ceil(page.get("total", 0) / float(page_size))) + 1
-        ):
+        while page.get("cursor"):
             page = self._get_alert_comment_page(
-                alert_id=alert_id,
-                page_size=page_size,
-                page=page_number,
+                alert_id=alert_id, page_size=page_size, cursor=page.get("cursor")
             )
             yield from page.get("data", [])
 
