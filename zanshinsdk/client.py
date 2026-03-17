@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import logging
-import pprint
 import sys
 import time
 from configparser import RawConfigParser
@@ -61,7 +60,6 @@ from zanshinsdk.version import __version__ as sdk_version
 
 CONFIG_DIR = Path.home() / ".tenchi"
 CONFIG_FILE = CONFIG_DIR / "config"
-pp = pprint.PrettyPrinter(indent=2)
     
 
 class ScanTargetSchedule(BaseModel):
@@ -1480,7 +1478,6 @@ class Client:
         :return: a JSON decoded alerts
         :return:
         """
-        pp.pprint(f"page_size: {page_size}")
         validate_int(page_size, min_value=1, required=True)
         body = {}
         params = {"size": page_size}
