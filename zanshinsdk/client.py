@@ -379,13 +379,32 @@ class Client:
     # Account Invites
     ###################################################
 
+    def _get_invite_page(self, cursor: Optional[str] = None, size: int = 100) -> Dict:
+        """
+        Internal method to get a page of the invites of current logged user.
+        <https://api.zanshin.tenchisecurity.com/#operation/getInvites>
+        :param cursor: the cursor for pagination
+        :param size: the number of items per page
+        :return: a dict representing the page of invites
+        """
+        validate_int(size, min_value=1, required=True)
+        params = {"size": size}
+        if cursor:
+            validate_class(cursor, str)
+            params["cursor"] = cursor
+        return self._request("GET", "/me/invites", params=params).json()
+
     def iter_invites(self) -> Iterator[Dict]:
         """
         Iterates over the invites of current logged user.
         <https://api.zanshin.tenchisecurity.com/#operation/getInvites>
         :return: an iterator over the invites objects
         """
-        yield from self._request("GET", "/me/invites").json()
+        page = self._get_invite_page(size=100)
+        yield from page.get("data", [])
+        while page.get("cursor"):
+            page = self._get_invite_page(cursor=page["cursor"], size=100)
+            yield from page.get("data", [])
 
     def get_invite(self, invite_id: Union[UUID, str]) -> Dict:
         """

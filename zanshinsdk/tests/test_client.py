@@ -444,13 +444,25 @@ class TestClient(unittest.TestCase):
     # Account Invites
     ###################################################
 
-    def test_iter_invites(self):
-        try:
-            next(self.sdk.iter_invites())
-        except StopIteration:
-            pass
-
-        self.sdk._request.assert_called_once_with("GET", "/me/invites")
+    @patch("zanshinsdk.client.Client._get_invite_page")
+    def test_iter_invites(self, mock_get_page):
+        mock_get_page.side_effect = [
+            {"data": ["invite1", "invite2"], "cursor": "cursor2"},
+            {"data": ["invite3", "invite4"], "cursor": "cursor3"},
+            {"data": ["invite5"]},
+        ]
+        self.sdk._get_invite_page = mock_get_page
+        iterator = self.sdk.iter_invites()
+        results = list(iterator)
+        self.assertEqual(
+            results, ["invite1", "invite2", "invite3", "invite4", "invite5"]
+        )
+        expected_calls = [
+            call(size=100),
+            call(cursor="cursor2", size=100),
+            call(cursor="cursor3", size=100),
+        ]
+        mock_get_page.assert_has_calls(expected_calls)
 
     def test_get_invite(self):
         invite_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
