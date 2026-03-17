@@ -60,7 +60,7 @@ from zanshinsdk.version import __version__ as sdk_version
 
 CONFIG_DIR = Path.home() / ".tenchi"
 CONFIG_FILE = CONFIG_DIR / "config"
-    
+
 
 class ScanTargetSchedule(BaseModel):
     frequency: Frequency
@@ -2463,9 +2463,7 @@ class Client:
         :param alert_id: the ID of the alert
         :return:
         """
-        page = self._get_alert_comment_page(
-            alert_id=alert_id, page_size=page_size
-        )
+        page = self._get_alert_comment_page(alert_id=alert_id, page_size=page_size)
         yield from page.get("data", [])
         while page.get("cursor"):
             page = self._get_alert_comment_page(
