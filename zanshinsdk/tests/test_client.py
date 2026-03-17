@@ -2602,29 +2602,26 @@ class TestClient(unittest.TestCase):
 
     def test_get_alert_comment_page(self):
         alert_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
-        page = 1
         page_size = 100
+        cursor = None
 
-        self.sdk._get_alert_comment_page(alert_id, page=page, page_size=page_size)
+        self.sdk._get_alert_comment_page(alert_id, page_size=page_size, cursor=cursor)
 
         self.sdk._request.assert_called_once_with(
             "GET",
             f"/alerts/{alert_id}/comments",
-            params={
-                "page": page,
-                "pageSize": page_size,
-            },
+            params={"size": page_size},
         )
 
     @patch("zanshinsdk.client.Client._get_alert_comment_page")
     def test_iter_alert_comments(self, request):
         alert_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
         page_size = 2
-        total_comments = 5
 
+        # Simulate cursor-based pagination
         request.side_effect = [
-            {"data": ["comment1", "comment2"], "total": total_comments},
-            {"data": ["comment3", "comment4"]},
+            {"data": ["comment1", "comment2"], "cursor": "cursor2"},
+            {"data": ["comment3", "comment4"], "cursor": "cursor3"},
             {"data": ["comment5"]},
         ]
 
@@ -2637,9 +2634,9 @@ class TestClient(unittest.TestCase):
         )
 
         expected_calls = [
-            call(alert_id=alert_id, page_size=page_size, page=1),
-            call(alert_id=alert_id, page_size=page_size, page=2),
-            call(alert_id=alert_id, page_size=page_size, page=3),
+            call(alert_id=alert_id, page_size=page_size),
+            call(alert_id=alert_id, page_size=page_size, cursor="cursor2"),
+            call(alert_id=alert_id, page_size=page_size, cursor="cursor3"),
         ]
         self.sdk._get_alert_comment_page.assert_has_calls(expected_calls)
 
