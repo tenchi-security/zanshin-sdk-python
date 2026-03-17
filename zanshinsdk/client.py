@@ -699,6 +699,26 @@ class Client:
     # Organization Follower
     ###################################################
 
+    def _get_organization_follower_page(
+        self, organization_id: Union[UUID, str], cursor: Optional[str] = None, size: int = 100
+    ) -> Dict:
+        """
+        Internal method to get a page of the follower of an organization.
+        <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationFollowers>
+        :param organization_id: the ID of the organization
+        :param cursor: the cursor for pagination
+        :param size: the number of items per page
+        :return: a dict representing the page of organization followers
+        """
+        validate_int(size, min_value=1, required=True)
+        params = {"size": size}
+        if cursor:
+            validate_class(cursor, str)
+            params["cursor"] = cursor
+        return self._request(
+            "GET", f"/organizations/{validate_uuid(organization_id)}/followers", params=params
+        ).json()
+
     def iter_organization_followers(
         self, organization_id: Union[UUID, str]
     ) -> Iterator[Dict]:
@@ -708,9 +728,13 @@ class Client:
         :param organization_id: the ID of the organization
         :return: an iterator over the organization followers objects
         """
-        yield from self._request(
-            "GET", f"/organizations/{validate_uuid(organization_id)}/followers"
-        ).json()
+        page = self._get_organization_follower_page(organization_id, size=100)
+        yield from page.get("data", [])
+        while page.get("cursor"):
+            page = self._get_organization_follower_page(
+                organization_id, cursor=page["cursor"], size=100
+            )
+            yield from page.get("data", [])
 
     def stop_organization_follower(
         self, organization_id: Union[UUID, str], follower_id: Union[UUID, str]
@@ -801,8 +825,8 @@ class Client:
     ###################################################
 
     def _get_organization_following_page(
-        self, organization_id: Union[UUID, str], cursor: int, size: int
-    ) -> Iterator[Dict]:
+        self, organization_id: Union[UUID, str], cursor: Optional[str] = None, size: int = 100
+    ) -> Dict:
         """
         Internal method to get a page of the following of an organization.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationFollowing>
@@ -814,7 +838,7 @@ class Client:
         params = {"size": size}
         if cursor:
             params["cursor"] = cursor
-        yield from self._request(
+        return self._request(
             "GET",
             f"/organizations/{validate_uuid(organization_id)}/following",
             params=params,
