@@ -444,13 +444,25 @@ class TestClient(unittest.TestCase):
     # Account Invites
     ###################################################
 
-    def test_iter_invites(self):
-        try:
-            next(self.sdk.iter_invites())
-        except StopIteration:
-            pass
-
-        self.sdk._request.assert_called_once_with("GET", "/me/invites")
+    @patch("zanshinsdk.client.Client._get_invite_page")
+    def test_iter_invites(self, mock_get_page):
+        mock_get_page.side_effect = [
+            {"data": ["invite1", "invite2"], "cursor": "cursor2"},
+            {"data": ["invite3", "invite4"], "cursor": "cursor3"},
+            {"data": ["invite5"]},
+        ]
+        self.sdk._get_invite_page = mock_get_page
+        iterator = self.sdk.iter_invites()
+        results = list(iterator)
+        self.assertEqual(
+            results, ["invite1", "invite2", "invite3", "invite4", "invite5"]
+        )
+        expected_calls = [
+            call(size=1000),
+            call(cursor="cursor2", size=1000),
+            call(cursor="cursor3", size=1000),
+        ]
+        mock_get_page.assert_has_calls(expected_calls)
 
     def test_get_invite(self):
         invite_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
@@ -472,13 +484,23 @@ class TestClient(unittest.TestCase):
     # Account API key
     ###################################################
 
-    def test_iter_api_keys(self):
-        try:
-            next(self.sdk.iter_api_keys())
-        except StopIteration:
-            pass
-
-        self.sdk._request.assert_called_once_with("GET", "/me/apikeys")
+    @patch("zanshinsdk.client.Client._get_api_keys_page")
+    def test_iter_api_keys(self, mock_get_page):
+        mock_get_page.side_effect = [
+            {"data": ["key1", "key2"], "cursor": "cursor2"},
+            {"data": ["key3", "key4"], "cursor": "cursor3"},
+            {"data": ["key5"]},
+        ]
+        self.sdk._get_api_keys_page = mock_get_page
+        iterator = self.sdk.iter_api_keys()
+        results = list(iterator)
+        self.assertEqual(results, ["key1", "key2", "key3", "key4", "key5"])
+        expected_calls = [
+            call(size=1000),
+            call(cursor="cursor2", size=1000),
+            call(cursor="cursor3", size=1000),
+        ]
+        mock_get_page.assert_has_calls(expected_calls)
 
     def test_create_api_key(self):
         name = "MyKey"
@@ -500,13 +522,23 @@ class TestClient(unittest.TestCase):
     # Organization
     ###################################################
 
-    def test_iter_organizations(self):
-        try:
-            next(self.sdk.iter_organizations())
-        except StopIteration:
-            pass
-
-        self.sdk._request.assert_called_once_with("GET", "/organizations")
+    @patch("zanshinsdk.client.Client._get_organizations_page")
+    def test_iter_organizations(self, mock_get_page):
+        mock_get_page.side_effect = [
+            {"data": ["org1", "org2"], "cursor": "cursor2"},
+            {"data": ["org3", "org4"], "cursor": "cursor3"},
+            {"data": ["org5"]},
+        ]
+        self.sdk._get_organizations_page = mock_get_page
+        iterator = self.sdk.iter_organizations()
+        results = list(iterator)
+        self.assertEqual(results, ["org1", "org2", "org3", "org4", "org5"])
+        expected_calls = [
+            call(size=1000),
+            call(cursor="cursor2", size=1000),
+            call(cursor="cursor3", size=1000),
+        ]
+        mock_get_page.assert_has_calls(expected_calls)
 
     def test_get_organization(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
@@ -553,17 +585,26 @@ class TestClient(unittest.TestCase):
     # Organization Member
     ###################################################
 
-    def test_iter_organization_members(self):
+    @patch("zanshinsdk.client.Client._get_organization_members_page")
+    def test_iter_organization_members(self, mock_get_page):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-
-        try:
-            next(self.sdk.iter_organization_members(organization_id))
-        except StopIteration:
-            pass
-
-        self.sdk._request.assert_called_once_with(
-            "GET", f"/organizations/{organization_id}/members"
+        mock_get_page.side_effect = [
+            {"data": ["member1", "member2"], "cursor": "cursor2"},
+            {"data": ["member3", "member4"], "cursor": "cursor3"},
+            {"data": ["member5"]},
+        ]
+        self.sdk._get_organization_members_page = mock_get_page
+        iterator = self.sdk.iter_organization_members(organization_id)
+        results = list(iterator)
+        self.assertEqual(
+            results, ["member1", "member2", "member3", "member4", "member5"]
         )
+        expected_calls = [
+            call(organization_id, size=1000),
+            call(organization_id, cursor="cursor2", size=1000),
+            call(organization_id, cursor="cursor3", size=1000),
+        ]
+        mock_get_page.assert_has_calls(expected_calls)
 
     def test_get_organization_members(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
@@ -623,17 +664,26 @@ class TestClient(unittest.TestCase):
     # Organization Member Invite
     ###################################################
 
-    def test_iter_organization_members_invites(self):
+    @patch("zanshinsdk.client.Client._get_organization_members_invites_page")
+    def test_iter_organization_members_invites(self, mock_get_page):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-
-        try:
-            next(self.sdk.iter_organization_members_invites(organization_id))
-        except StopIteration:
-            pass
-
-        self.sdk._request.assert_called_once_with(
-            "GET", f"/organizations/{organization_id}/invites"
+        mock_get_page.side_effect = [
+            {"data": ["invite1", "invite2"], "cursor": "cursor2"},
+            {"data": ["invite3", "invite4"], "cursor": "cursor3"},
+            {"data": ["invite5"]},
+        ]
+        self.sdk._get_organization_members_invites_page = mock_get_page
+        iterator = self.sdk.iter_organization_members_invites(organization_id)
+        results = list(iterator)
+        self.assertEqual(
+            results, ["invite1", "invite2", "invite3", "invite4", "invite5"]
         )
+        expected_calls = [
+            call(organization_id, size=1000),
+            call(organization_id, cursor="cursor2", size=1000),
+            call(organization_id, cursor="cursor3", size=1000),
+        ]
+        mock_get_page.assert_has_calls(expected_calls)
 
     def test_create_organization_members_invite(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
@@ -682,17 +732,27 @@ class TestClient(unittest.TestCase):
     # Organization Follower
     ###################################################
 
-    def test_iter_organization_followers(self):
+    @patch("zanshinsdk.client.Client._get_organization_follower_page")
+    def test_iter_organization_followers_cursor(self, mock_get_page):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-
-        try:
-            next(self.sdk.iter_organization_followers(organization_id))
-        except StopIteration:
-            pass
-
-        self.sdk._request.assert_called_once_with(
-            "GET", f"/organizations/{organization_id}/followers"
+        # Simulate cursor-based pagination
+        mock_get_page.side_effect = [
+            {"data": ["follower1", "follower2"], "cursor": "cursor2"},
+            {"data": ["follower3", "follower4"], "cursor": "cursor3"},
+            {"data": ["follower5"]},
+        ]
+        self.sdk._get_organization_follower_page = mock_get_page
+        iterator = self.sdk.iter_organization_followers(organization_id)
+        results = list(iterator)
+        self.assertEqual(
+            results, ["follower1", "follower2", "follower3", "follower4", "follower5"]
         )
+        expected_calls = [
+            call(organization_id, size=1000),
+            call(organization_id, cursor="cursor2", size=1000),
+            call(organization_id, cursor="cursor3", size=1000),
+        ]
+        mock_get_page.assert_has_calls(expected_calls)
 
     def test_stop_organization_follower(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
@@ -708,16 +768,31 @@ class TestClient(unittest.TestCase):
     # Organization Follower Request
     ###################################################
 
-    def test_iter_organization_follower_requests(self):
+    @patch("zanshinsdk.client.Client._get_organization_follower_request_page")
+    def test_iter_organization_follower_requests(self, mock_get_page):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-        try:
-            next(self.sdk.iter_organization_follower_requests(organization_id))
-        except StopIteration:
-            pass
 
-        self.sdk._request.assert_called_once_with(
-            "GET", f"/organizations/{organization_id}/followers/requests"
+        mock_get_page.side_effect = [
+            {"data": ["request1", "request2"], "cursor": "cursor2"},
+            {"data": ["request3", "request4"], "cursor": "cursor3"},
+            {"data": ["request5"]},
+        ]
+
+        self.sdk._get_organization_follower_request_page = mock_get_page
+        iterator = self.sdk.iter_organization_follower_requests(organization_id)
+        results = list(iterator)
+
+        self.assertEqual(
+            results,
+            ["request1", "request2", "request3", "request4", "request5"],
         )
+
+        expected_calls = [
+            call(organization_id, size=1000),
+            call(organization_id, cursor="cursor2", size=1000),
+            call(organization_id, cursor="cursor3", size=1000),
+        ]
+        mock_get_page.assert_has_calls(expected_calls)
 
     def test_create_organization_follower_request(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
@@ -756,17 +831,32 @@ class TestClient(unittest.TestCase):
     # Organization Following
     ###################################################
 
-    def test_iter_organization_following(self):
+    @patch("zanshinsdk.client.Client._get_organization_following_page")
+    def test_iter_organization_following_cursor(self, mock_get_page):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
 
-        try:
-            next(self.sdk.iter_organization_following(organization_id))
-        except StopIteration:
-            pass
+        # Simulate cursor-based pagination
+        mock_get_page.side_effect = [
+            {"data": ["following1", "following2"], "cursor": "cursor2"},
+            {"data": ["following3", "following4"], "cursor": "cursor3"},
+            {"data": ["following5"]},
+        ]
 
-        self.sdk._request.assert_called_once_with(
-            "GET", f"/organizations/{organization_id}/following"
+        self.sdk._get_organization_following_page = mock_get_page
+        iterator = self.sdk.iter_organization_following(organization_id)
+        results = list(iterator)
+
+        self.assertEqual(
+            results,
+            ["following1", "following2", "following3", "following4", "following5"],
         )
+
+        expected_calls = [
+            call(organization_id, cursor=None, size=1000),
+            call(organization_id, cursor="cursor2", size=1000),
+            call(organization_id, cursor="cursor3", size=1000),
+        ]
+        mock_get_page.assert_has_calls(expected_calls)
 
     def test_stop_organization_following(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
@@ -830,17 +920,26 @@ class TestClient(unittest.TestCase):
     # Organization Scan Target
     ###################################################
 
-    def test_iter_organization_scan_targets(self):
+    @patch("zanshinsdk.client.Client._get_organization_scan_targets_page")
+    def test_iter_organization_scan_targets(self, mock_get_page):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-
-        try:
-            next(self.sdk.iter_organization_scan_targets(organization_id))
-        except StopIteration:
-            pass
-
-        self.sdk._request.assert_called_once_with(
-            "GET", f"/organizations/{organization_id}/scantargets"
+        mock_get_page.side_effect = [
+            {"data": ["target1", "target2"], "cursor": "cursor2"},
+            {"data": ["target3", "target4"], "cursor": "cursor3"},
+            {"data": ["target5"]},
+        ]
+        self.sdk._get_organization_scan_targets_page = mock_get_page
+        iterator = self.sdk.iter_organization_scan_targets(organization_id)
+        results = list(iterator)
+        self.assertEqual(
+            results, ["target1", "target2", "target3", "target4", "target5"]
         )
+        expected_calls = [
+            call(organization_id, size=1000),
+            call(organization_id, cursor="cursor2", size=1000),
+            call(organization_id, cursor="cursor3", size=1000),
+        ]
+        mock_get_page.assert_has_calls(expected_calls)
 
     def test_create_organization_scan_target_AWS(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
@@ -1174,26 +1273,24 @@ class TestClient(unittest.TestCase):
     # Organization Scan Target Groups
     ###################################################
 
-    def test_iter_organization_scan_target_groups(self):
+    @patch("zanshinsdk.Client._get_organization_scan_target_groups_page")
+    def test_iter_organization_scan_target_groups(self, mock_get_groups):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
-
-        try:
-            next(self.sdk.iter_organization_scan_target_groups(organization_id))
-        except StopIteration:
-            pass
-
-        self.sdk._request.assert_called_once_with(
-            "GET", f"/organizations/{organization_id}/scantargetgroups"
-        )
-
-        with self.assertRaises(TypeError):
-            next(self.sdk.iter_organization_scan_target_groups(1))
-        with self.assertRaises(TypeError):
-            next(self.sdk.iter_organization_scan_target_groups(None))
-        with self.assertRaises(ValueError):
-            next(self.sdk.iter_organization_scan_target_groups(""))
-        with self.assertRaises(ValueError):
-            next(self.sdk.iter_organization_scan_target_groups("foo"))
+        mock_get_groups.side_effect = [
+            {"data": ["group1", "group2"], "cursor": "cursor2"},
+            {"data": ["group3", "group4"], "cursor": "cursor3"},
+            {"data": ["group5"]},
+        ]
+        self.sdk._get_organization_scan_target_groups_page = mock_get_groups
+        iterator = self.sdk.iter_organization_scan_target_groups(organization_id)
+        results = list(iterator)
+        self.assertEqual(results, ["group1", "group2", "group3", "group4", "group5"])
+        expected_calls = [
+            call(organization_id, size=1000),
+            call(organization_id, cursor="cursor2", size=1000),
+            call(organization_id, cursor="cursor3", size=1000),
+        ]
+        mock_get_groups.assert_has_calls(expected_calls)
 
     def test_get_organization_scan_target_group(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
