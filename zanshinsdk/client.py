@@ -10,7 +10,7 @@ from math import ceil
 from os import environ
 from os.path import isfile
 from pathlib import Path
-from typing import Dict, Iterable, Iterator, Optional, Union
+from typing import Any, Callable, Dict, Iterable, Iterator, Optional, Union
 from urllib.parse import urlparse
 from uuid import UUID
 
@@ -363,6 +363,30 @@ class Client:
         response.raise_for_status()
         return response
 
+    def _paginate(
+        self, fetch_func: Callable[..., Any], size: int = 1000, **kwargs
+    ) -> Iterator[Any]:
+        """
+        A generalized helper to handle API pagination.
+        :param fetch_func: The specific internal method to call for a page of data.
+        :param size: the number of items per page
+        :param kwargs: Additional arguments to pass to the fetch_func (e.g., organization_id).
+        """
+        page = fetch_func(size=size, **kwargs)
+
+        if isinstance(page, list):
+            yield from page
+            return
+
+        if not page.get("data"):
+            return
+
+        yield from page.get("data", [])
+
+        while page.get("cursor"):
+            page = fetch_func(cursor=page["cursor"], size=size, **kwargs)
+            yield from page.get("data", [])
+
     ###################################################
     # Account
     ###################################################
@@ -394,20 +418,14 @@ class Client:
             params["cursor"] = cursor
         return self._request("GET", "/me/invites", params=params).json()
 
-    def iter_invites(self) -> Iterator[Dict]:
+    def iter_invites(self, size: int = 1000) -> Iterator[Dict]:
         """
         Iterates over the invites of current logged user.
         <https://api.zanshin.tenchisecurity.com/#operation/getInvites>
+        :param size: the number of items per page
         :return: an iterator over the invites objects
         """
-        page = self._get_invite_page(size=1000)
-        if isinstance(page, list) or not page.get("data"):
-            yield from page
-            return
-        yield from page.get("data", [])
-        while page.get("cursor"):
-            page = self._get_invite_page(cursor=page["cursor"], size=1000)
-            yield from page.get("data", [])
+        return self._paginate(self._get_invite_page, size=size)
 
     def get_invite(self, invite_id: Union[UUID, str]) -> Dict:
         """
@@ -451,20 +469,14 @@ class Client:
             params["cursor"] = cursor
         return self._request("GET", "/me/apikeys", params=params).json()
 
-    def iter_api_keys(self) -> Iterator[Dict]:
+    def iter_api_keys(self, size: int = 1000) -> Iterator[Dict]:
         """
         Iterates over the API keys of current logged user.
         <https://api.zanshin.tenchisecurity.com/#operation/getMyApiKeys>
+        :param size: the number of items per page
         :return: an iterator over the api keys objects
         """
-        page = self._get_api_keys_page(size=1000)
-        if isinstance(page, list) or not page.get("data"):
-            yield from page
-            return
-        yield from page.get("data", [])
-        while page.get("cursor"):
-            page = self._get_api_keys_page(cursor=page["cursor"], size=1000)
-            yield from page.get("data", [])
+        return self._paginate(self._get_api_keys_page, size=size)
 
     def create_api_key(self, name: Optional[str]) -> Dict:
         """
@@ -493,7 +505,7 @@ class Client:
     ###################################################
 
     def _get_organizations_page(
-        self, cursor: Optional[str] = None, size: int = 100
+        self, cursor: Optional[str] = None, size: int = 1000
     ) -> Dict:
         """
         Internal method to get a page of the organizations of current logged user.
@@ -509,20 +521,14 @@ class Client:
             params["cursor"] = cursor
         return self._request("GET", "/organizations", params=params).json()
 
-    def iter_organizations(self) -> Iterator[Dict]:
+    def iter_organizations(self, size: int = 1000) -> Iterator[Dict]:
         """
         Iterates over organizations of current logged user.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizations>
+        :param size: the number of items per page
         :return: an iterator over the organizations objects
         """
-        page = self._get_organizations_page(size=1000)
-        if isinstance(page, list) or not page.get("data"):
-            yield from page
-            return
-        yield from page.get("data", [])
-        while page.get("cursor"):
-            page = self._get_organizations_page(cursor=page["cursor"], size=1000)
-            yield from page.get("data", [])
+        return self._paginate(self._get_organizations_page, size=size)
 
     def get_organization(self, organization_id: Union[UUID, str]) -> Dict:
         """
@@ -606,24 +612,20 @@ class Client:
         ).json()
 
     def iter_organization_members(
-        self, organization_id: Union[UUID, str]
+        self, organization_id: Union[UUID, str], size: int = 1000
     ) -> Iterator[Dict]:
         """
         Iterates over the users which are members of an organization.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationMembers>
         :param organization_id: the ID of the organization
+        :param size: the number of items per page
         :return: an iterator over the organization members objects
         """
-        page = self._get_organization_members_page(organization_id, size=1000)
-        if isinstance(page, list) or not page.get("data"):
-            yield from page
-            return
-        yield from page.get("data", [])
-        while page.get("cursor"):
-            page = self._get_organization_members_page(
-                organization_id, cursor=page["cursor"], size=1000
-            )
-            yield from page.get("data", [])
+        return self._paginate(
+            self._get_organization_members_page,
+            size=size,
+            organization_id=organization_id,
+        )
 
     def get_organization_member(
         self, organization_id: Union[UUID, str], member_id: Union[UUID, str]
@@ -741,24 +743,20 @@ class Client:
         ).json()
 
     def iter_organization_members_invites(
-        self, organization_id: Union[UUID, str]
+        self, organization_id: Union[UUID, str], size: int = 1000
     ) -> Iterator[Dict]:
         """
         Iterates over the members invites of an organization.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrgamizationInvites>
         :param organization_id: the ID of the organization
+        :param size: the number of items per page
         :return: an iterator over the organization members invites objects
         """
-        page = self._get_organization_members_invites_page(organization_id, size=1000)
-        if isinstance(page, list) or not page.get("data"):
-            yield from page
-            return
-        yield from page.get("data", [])
-        while page.get("cursor"):
-            page = self._get_organization_members_invites_page(
-                organization_id, cursor=page["cursor"], size=1000
-            )
-            yield from page.get("data", [])
+        return self._paginate(
+            self._get_organization_members_invites_page,
+            size=size,
+            organization_id=organization_id,
+        )
 
     def create_organization_members_invite(
         self,
@@ -857,24 +855,20 @@ class Client:
         ).json()
 
     def iter_organization_followers(
-        self, organization_id: Union[UUID, str]
+        self, organization_id: Union[UUID, str], size: int = 1000
     ) -> Iterator[Dict]:
         """
         Iterates over the followers of an organization.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationFollowers>
         :param organization_id: the ID of the organization
+        :param size: the number of items per page
         :return: an iterator over the organization followers objects
         """
-        page = self._get_organization_follower_page(organization_id, size=1000)
-        if isinstance(page, list) or not page.get("data"):
-            yield from page
-            return
-        yield from page.get("data", [])
-        while page.get("cursor"):
-            page = self._get_organization_follower_page(
-                organization_id, cursor=page["cursor"], size=1000
-            )
-            yield from page.get("data", [])
+        return self._paginate(
+            self._get_organization_follower_page,
+            size=size,
+            organization_id=organization_id,
+        )
 
     def stop_organization_follower(
         self, organization_id: Union[UUID, str], follower_id: Union[UUID, str]
@@ -922,24 +916,20 @@ class Client:
         ).json()
 
     def iter_organization_follower_requests(
-        self, organization_id: Union[UUID, str]
+        self, organization_id: Union[UUID, str], size: int = 1000
     ) -> Iterator[Dict]:
         """
         Iterates over the follower requests of an organization.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationFollowRequests>
         :param organization_id: the ID of the organization
+        :param size: the number of items per page
         :return: an iterator over the organization follower requests objects
         """
-        page = self._get_organization_follower_request_page(organization_id, size=1000)
-        if isinstance(page, list) or not page.get("data"):
-            yield from page
-            return
-        yield from page.get("data", [])
-        while page.get("cursor"):
-            page = self._get_organization_follower_request_page(
-                organization_id, cursor=page["cursor"], size=1000
-            )
-            yield from page.get("data", [])
+        return self._paginate(
+            self._get_organization_follower_request_page,
+            size=size,
+            organization_id=organization_id,
+        )
 
     def create_organization_follower_request(
         self, organization_id: Union[UUID, str], token: Union[UUID, str]
@@ -1021,26 +1011,20 @@ class Client:
         ).json()
 
     def iter_organization_following(
-        self, organization_id: Union[UUID, str]
+        self, organization_id: Union[UUID, str], size: int = 1000
     ) -> Iterator[Dict]:
         """
         Iterates over the following of an organization.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationFollowing>
         :param organization_id: the ID of the organization whose followed organizations we should list
+        :param size: the number of items per page
         :return: an iterator over the JSON decoded followed organizations
         """
-        page = self._get_organization_following_page(
-            organization_id, cursor=None, size=1000
+        return self._paginate(
+            self._get_organization_following_page,
+            size=size,
+            organization_id=organization_id,
         )
-        if isinstance(page, list) or not page.get("data"):
-            yield from page
-            return
-        yield from page.get("data", [])
-        while page.get("cursor"):
-            page = self._get_organization_following_page(
-                organization_id, cursor=page["cursor"], size=1000
-            )
-            yield from page.get("data", [])
 
     def stop_organization_following(
         self, organization_id: Union[UUID, str], following_id: Union[UUID, str]
@@ -1153,24 +1137,20 @@ class Client:
         ).json()
 
     def iter_organization_scan_targets(
-        self, organization_id: Union[UUID, str]
+        self, organization_id: Union[UUID, str], size: int = 1000
     ) -> Iterator[Dict]:
         """
         Iterates over the scan targets of an organization.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationScanTargets>
         :param organization_id: the ID of the organization
+        :param size: the number of items per page
         : return: an iterator over the scan target objects
         """
-        page = self._get_organization_scan_targets_page(organization_id, size=1000)
-        if isinstance(page, list) or not page.get("data"):
-            yield from page
-            return
-        yield from page.get("data", [])
-        while page.get("cursor"):
-            page = self._get_organization_scan_targets_page(
-                organization_id, cursor=page["cursor"], size=1000
-            )
-            yield from page.get("data", [])
+        return self._paginate(
+            self._get_organization_scan_targets_page,
+            size=size,
+            organization_id=organization_id,
+        )
 
     def create_organization_scan_target(
         self,
@@ -1509,26 +1489,20 @@ class Client:
         ).json()
 
     def iter_organization_scan_target_groups(
-        self, organization_id: Union[UUID, str]
+        self, organization_id: Union[UUID, str], size: int = 1000
     ) -> Iterator[Dict]:
         """
         Iterates over the scan targets groups.
         <https://api.zanshin.tenchisecurity.com/#operation/getOrganizationScanTargetGroups>
         :param organization_id: the ID of the organization
+        :param size: the number of items per page
         : return: an iterator over the scan target groups
         """
-        page = self._get_organization_scan_target_groups_page(
-            organization_id, size=1000
+        return self._paginate(
+            self._get_organization_scan_target_groups_page,
+            size=size,
+            organization_id=organization_id,
         )
-        if isinstance(page, list) or not page.get("data"):
-            yield from page
-            return
-        yield from page.get("data", [])
-        while page.get("cursor"):
-            page = self._get_organization_scan_target_groups_page(
-                organization_id, cursor=page["cursor"], size=1000
-            )
-            yield from page.get("data", [])
 
     def get_organization_scan_target_group(
         self, organization_id: Union[UUID, str], scan_target_group_id: Union[UUID, str]
