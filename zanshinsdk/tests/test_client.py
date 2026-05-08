@@ -432,6 +432,43 @@ class TestClient(unittest.TestCase):
         )
 
     ###################################################
+    # Pagination Helper (_paginate) Tests
+    ###################################################
+
+    def test_paginate_returns_raw_list(self):
+        """Test that _paginate yields properly if the API returns a raw list."""
+        mock_fetch = Mock(return_value=["item1", "item2"])
+        iterator = self.sdk._paginate(mock_fetch)
+        self.assertEqual(list(iterator), ["item1", "item2"])
+        mock_fetch.assert_called_once_with(size=1000)
+
+    def test_paginate_returns_empty_dict(self):
+        """Test that _paginate stops if the API returns a dictionary with no data key."""
+        mock_fetch = Mock(return_value={})
+        iterator = self.sdk._paginate(mock_fetch)
+        self.assertEqual(list(iterator), [])
+        mock_fetch.assert_called_once_with(size=1000)
+
+    def test_paginate_returns_empty_data_list(self):
+        """
+        Test that _paginate stops cleanly on empty data list.
+        This explicitly covers the bug where 'yield from {"data": []}' yielded the "data" key.
+        """
+        mock_fetch = Mock(return_value={"data": [], "cursor": None})
+        iterator = self.sdk._paginate(mock_fetch)
+        self.assertEqual(list(iterator), [])
+        mock_fetch.assert_called_once_with(size=1000)
+
+    def test_paginate_kwargs_passing(self):
+        """Test that _paginate passes custom size and arbitrary kwargs through to the fetch function."""
+        mock_fetch = Mock(return_value={"data": ["item1"], "cursor": None})
+        iterator = self.sdk._paginate(
+            mock_fetch, size=50, custom_arg="foo", org_id="bar"
+        )
+        self.assertEqual(list(iterator), ["item1"])
+        mock_fetch.assert_called_once_with(size=50, custom_arg="foo", org_id="bar")
+
+    ###################################################
     # Account
     ###################################################
 
@@ -600,9 +637,9 @@ class TestClient(unittest.TestCase):
             results, ["member1", "member2", "member3", "member4", "member5"]
         )
         expected_calls = [
-            call(organization_id, size=1000),
-            call(organization_id, cursor="cursor2", size=1000),
-            call(organization_id, cursor="cursor3", size=1000),
+            call(size=1000, organization_id=organization_id),
+            call(cursor="cursor2", size=1000, organization_id=organization_id),
+            call(cursor="cursor3", size=1000, organization_id=organization_id),
         ]
         mock_get_page.assert_has_calls(expected_calls)
 
@@ -679,9 +716,9 @@ class TestClient(unittest.TestCase):
             results, ["invite1", "invite2", "invite3", "invite4", "invite5"]
         )
         expected_calls = [
-            call(organization_id, size=1000),
-            call(organization_id, cursor="cursor2", size=1000),
-            call(organization_id, cursor="cursor3", size=1000),
+            call(size=1000, organization_id=organization_id),
+            call(cursor="cursor2", size=1000, organization_id=organization_id),
+            call(cursor="cursor3", size=1000, organization_id=organization_id),
         ]
         mock_get_page.assert_has_calls(expected_calls)
 
@@ -748,9 +785,9 @@ class TestClient(unittest.TestCase):
             results, ["follower1", "follower2", "follower3", "follower4", "follower5"]
         )
         expected_calls = [
-            call(organization_id, size=1000),
-            call(organization_id, cursor="cursor2", size=1000),
-            call(organization_id, cursor="cursor3", size=1000),
+            call(size=1000, organization_id=organization_id),
+            call(cursor="cursor2", size=1000, organization_id=organization_id),
+            call(cursor="cursor3", size=1000, organization_id=organization_id),
         ]
         mock_get_page.assert_has_calls(expected_calls)
 
@@ -788,9 +825,9 @@ class TestClient(unittest.TestCase):
         )
 
         expected_calls = [
-            call(organization_id, size=1000),
-            call(organization_id, cursor="cursor2", size=1000),
-            call(organization_id, cursor="cursor3", size=1000),
+            call(size=1000, organization_id=organization_id),
+            call(cursor="cursor2", size=1000, organization_id=organization_id),
+            call(cursor="cursor3", size=1000, organization_id=organization_id),
         ]
         mock_get_page.assert_has_calls(expected_calls)
 
@@ -852,9 +889,9 @@ class TestClient(unittest.TestCase):
         )
 
         expected_calls = [
-            call(organization_id, cursor=None, size=1000),
-            call(organization_id, cursor="cursor2", size=1000),
-            call(organization_id, cursor="cursor3", size=1000),
+            call(size=1000, organization_id=organization_id),
+            call(cursor="cursor2", size=1000, organization_id=organization_id),
+            call(cursor="cursor3", size=1000, organization_id=organization_id),
         ]
         mock_get_page.assert_has_calls(expected_calls)
 
@@ -935,9 +972,9 @@ class TestClient(unittest.TestCase):
             results, ["target1", "target2", "target3", "target4", "target5"]
         )
         expected_calls = [
-            call(organization_id, size=1000),
-            call(organization_id, cursor="cursor2", size=1000),
-            call(organization_id, cursor="cursor3", size=1000),
+            call(size=1000, organization_id=organization_id),
+            call(cursor="cursor2", size=1000, organization_id=organization_id),
+            call(cursor="cursor3", size=1000, organization_id=organization_id),
         ]
         mock_get_page.assert_has_calls(expected_calls)
 
@@ -1286,9 +1323,9 @@ class TestClient(unittest.TestCase):
         results = list(iterator)
         self.assertEqual(results, ["group1", "group2", "group3", "group4", "group5"])
         expected_calls = [
-            call(organization_id, size=1000),
-            call(organization_id, cursor="cursor2", size=1000),
-            call(organization_id, cursor="cursor3", size=1000),
+            call(size=1000, organization_id=organization_id),
+            call(cursor="cursor2", size=1000, organization_id=organization_id),
+            call(cursor="cursor3", size=1000, organization_id=organization_id),
         ]
         mock_get_groups.assert_has_calls(expected_calls)
 
