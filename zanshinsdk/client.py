@@ -365,7 +365,7 @@ class Client:
 
     def _paginate(
         self, fetch_func: Callable[..., Any], size: int = 1000, **kwargs
-    ) -> Iterator[Dict]:
+    ) -> Iterator[Any]:
         """
         A generalized helper to handle API pagination.
         :param fetch_func: The specific internal method to call for a page of data.
