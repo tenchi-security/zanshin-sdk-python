@@ -1179,18 +1179,18 @@ class Client:
         Create a new scan target in organization.
         <https://api.zanshin.tenchisecurity.com/#operation/createOrganizationScanTargets>
         :param organization_id: the ID of the organization
-        :param kind: the Kind of scan target (AWS, GCP, AZURE)
+        :param kind: the Kind of scan target (AWS / Amazon Web Services, GCP / Google Cloud Platform, AZURE / Microsoft Azure)
         :param name: the name of the scan target
         :param credential: credentials to access the cloud account to be scanned:
-            * For AWS scan targets, provide the account ID in the *account* field
-            * For Azure scan targets, provide *applicationId*, *subscriptionId*, *directoryId* and *secret* fields.
-            * For GCP scan targets, provide a *projectId* field
+            * For Amazon Web Services (AWS) scan targets, provide the account ID in the *account* field
+            * For Microsoft Azure scan targets, provide *applicationId*, *subscriptionId*, *directoryId* and *secret* fields.
+            * For Google Cloud Platform (GCP) scan targets, provide a *projectId* field
             * For DOMAIN scan targets, provide a URL in the *domain* field
-            * For ZENDESK scan target, provide *instance_url* field
+            * For Zendesk Suite scan target, provide *instance_url* field
             * For Jira scan target, provide *jira_url* field
-            * For MS365 scan target, provide *tenant_id*, *application_id*, *secret* fields
-            * For GITHUB scan target, provide *installation_id*, *organizationName* fields
-            * For GWORKSPACE, SLACK, BITBUCKET, GITLAB, SALESFORCE no one credential are needed
+            * For Microsoft 365 scan target, provide *tenant_id*, *application_id*, *secret* fields
+            * For GitHub scan target, provide *installation_id*, *organizationName* fields
+            * For Google Workspace (GWORKSPACE), Slack, Bitbucket Cloud (BITBUCKET), GitLab.com (GITLAB), Salesforce CRM (SALESFORCE) no credentials are needed
         :param schedule: schedule as a string or enum version of the scan frequency
         :return: a dict representing the newly created scan target
         """
@@ -1650,7 +1650,7 @@ class Client:
         <https://api.zanshin.tenchisecurity.com/#operation/UpdateOrganizationScanTargetGroupCredential>
         :param organization_id: the ID of the organization
         :param scan_target_group_id: the ID of the scan target group
-        :param credential: scan target group credential oracle
+        :param credential: scan target group credential for Oracle Cloud Infrastructure (OCI)
         :return: a dict representing scan target group
         """
 
@@ -1678,7 +1678,7 @@ class Client:
         <https://api.zanshin.tenchisecurity.com/#operation/createOrganizationScanTargetByCompartments>
         :param organization_id: the ID of the organization
         :param scan_target_group_id: the ID of the scan target group
-        :param ocid: Oracle Compartment Id
+        :param ocid: Oracle Cloud Infrastructure (OCI) Compartment Id
         :param name: the name of the scan target group
         :return: a dict representing the scan target
         """
