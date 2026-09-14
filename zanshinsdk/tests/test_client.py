@@ -1651,12 +1651,11 @@ class TestClient(unittest.TestCase):
         next(iterator)
 
         self.sdk._get_alerts_page.assert_called_once_with(
-            organization_id,
-            scan_target_ids,
+            size=1000,
+            organization_id=organization_id,
+            scan_target_ids=scan_target_ids,
             scan_target_tags=None,
             include_empty_scan_target_tags=None,
-            cursor=None,
-            order=None,
             rules=None,
             states=None,
             severities=None,
@@ -1670,9 +1669,11 @@ class TestClient(unittest.TestCase):
             updated_at_start=None,
             updated_at_end=None,
             search=None,
+            cursor=None,
+            order=None,
             sort=None,
-            size=1000,
         )
+
 
     def test_get_following_alerts_page(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
@@ -1723,12 +1724,11 @@ class TestClient(unittest.TestCase):
         )
         next(iterator)
         self.sdk._get_following_alerts_page.assert_called_once_with(
-            organization_id,
-            following_ids,
+            size=100,
+            organization_id=organization_id,
+            following_ids=following_ids,
             following_tags=None,
             include_empty_following_tags=None,
-            cursor=None,
-            order=None,
             rules=None,
             states=None,
             severities=None,
@@ -1742,8 +1742,9 @@ class TestClient(unittest.TestCase):
             updated_at_start=None,
             updated_at_end=None,
             search=None,
+            cursor=None,
+            order=None,
             sort=None,
-            size=100,
         )
 
     def test_get_alerts_history_page(self):
@@ -1956,13 +1957,11 @@ class TestClient(unittest.TestCase):
         iterator = self.sdk.iter_grouped_alerts(organization_id)
         next(iterator)
         self.sdk._get_grouped_alerts_page.assert_called_once_with(
-            organization_id,
+            size=100,
+            organization_id=organization_id,
             scan_target_ids=None,
             scan_target_tags=None,
             include_empty_scan_target_tags=None,
-            cursor=None,
-            size=100,
-            order=None,
             rules=None,
             states=None,
             severities=None,
@@ -1976,6 +1975,8 @@ class TestClient(unittest.TestCase):
             updated_at_start=None,
             updated_at_end=None,
             search=None,
+            cursor=None,
+            order=None,
             sort=None,
         )
 
@@ -2022,13 +2023,11 @@ class TestClient(unittest.TestCase):
         )
         next(iterator)
         self.sdk._get_grouped_following_alerts_page.assert_called_once_with(
-            organization_id,
-            following_ids,
+            size=100,
+            organization_id=organization_id,
+            following_ids=following_ids,
             following_tags=None,
             include_empty_following_tags=None,
-            cursor=None,
-            size=100,
-            order=None,
             rules=None,
             states=None,
             severities=None,
@@ -2042,8 +2041,11 @@ class TestClient(unittest.TestCase):
             updated_at_start=None,
             updated_at_end=None,
             search=None,
+            cursor=None,
+            order=None,
             sort=None,
         )
+
 
     def test_get_alert(self):
         alert_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
@@ -2663,7 +2665,7 @@ class TestClient(unittest.TestCase):
         ]
 
         self.sdk._get_alert_comment_page = request
-        iterator = self.sdk.iter_alert_comments(alert_id, size=size)
+        iterator = self.sdk.iter_alert_comments(alert_id, page_size=size)
         comments = list(iterator)
 
         self.assertEqual(
@@ -2671,9 +2673,9 @@ class TestClient(unittest.TestCase):
         )
 
         expected_calls = [
-            call(alert_id=alert_id, size=size),
-            call(alert_id=alert_id, size=size, cursor="cursor2"),
-            call(alert_id=alert_id, size=size, cursor="cursor3"),
+            call(alert_id=alert_id, page_size=size),
+            call(alert_id=alert_id, page_size=size, cursor="cursor2"),
+            call(alert_id=alert_id, page_size=size, cursor="cursor3"),
         ]
         self.sdk._get_alert_comment_page.assert_has_calls(expected_calls)
 
