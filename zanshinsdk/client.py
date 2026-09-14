@@ -2610,10 +2610,10 @@ class Client:
         self,
         alert_id: Union[UUID, str],
         cursor: Optional[str] = None,
-        page_size: Optional[int] = 100,
+        size: Optional[int] = 100,
     ) -> Dict:
-        validate_int(page_size, min_value=1, required=True)
-        params = {"size": page_size}
+        validate_int(size, min_value=1, required=True)
+        params = {"size": size}
         if cursor:
             params["cursor"] = cursor
         return self._request(
@@ -2623,7 +2623,7 @@ class Client:
     def iter_alert_comments(
         self,
         alert_id: Union[UUID, str],
-        page_size: Optional[int] = 100,
+        size: Optional[int] = 100,
     ) -> Iterator[Dict]:
         """
         Iterates over the comment of an alert.
@@ -2633,7 +2633,7 @@ class Client:
         """
         return self._paginate(
             self._get_alert_comment_page,
-            size=page_size,
+            size=size,
             alert_id=alert_id,
         )
 

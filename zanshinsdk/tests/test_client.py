@@ -2665,7 +2665,7 @@ class TestClient(unittest.TestCase):
         ]
 
         self.sdk._get_alert_comment_page = request
-        iterator = self.sdk.iter_alert_comments(alert_id, page_size=size)
+        iterator = self.sdk.iter_alert_comments(alert_id, size=size)
         comments = list(iterator)
 
         self.assertEqual(
@@ -2673,9 +2673,9 @@ class TestClient(unittest.TestCase):
         )
 
         expected_calls = [
-            call(alert_id=alert_id, page_size=size),
-            call(alert_id=alert_id, page_size=size, cursor="cursor2"),
-            call(alert_id=alert_id, page_size=size, cursor="cursor3"),
+            call(alert_id=alert_id, size=size),
+            call(alert_id=alert_id, size=size, cursor="cursor2"),
+            call(alert_id=alert_id, size=size, cursor="cursor3"),
         ]
         self.sdk._get_alert_comment_page.assert_has_calls(expected_calls)
 
