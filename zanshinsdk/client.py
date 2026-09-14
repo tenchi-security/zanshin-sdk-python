@@ -1721,7 +1721,7 @@ class Client:
         cursor: Optional[str] = None,
         order: Optional[AlertsOrderOpts] = None,
         sort: Optional[SortOpts] = None,
-        page_size: Optional[int] = None,
+        size: Optional[int] = None,
     ) -> Dict:
         """
         Internal method to retrieve a single page of alerts from an organization
@@ -1747,9 +1747,9 @@ class Client:
         :return: a JSON decoded alerts
         :return:
         """
-        validate_int(page_size, min_value=1, required=True)
+        validate_int(size, min_value=1, required=True)
         body = {}
-        params = {"size": page_size}
+        params = {"size": size}
         if cursor:
             validate_class(cursor, str)
             params["cursor"] = cursor
@@ -1839,7 +1839,7 @@ class Client:
         cursor: Optional[str] = None,
         order: Optional[AlertsOrderOpts] = None,
         sort: Optional[SortOpts] = None,
-        page_size: Optional[int] = 1000,
+        size: Optional[int] = 1000,
     ) -> Iterator[Dict]:
         """
         Iterates over the alerts of an organization by loading them, transparently paginating on the API
@@ -1864,13 +1864,13 @@ class Client:
         :param sort: Which field to sort on
         :return: an iterator over the JSON decoded alerts
         """
-        page = self._get_alerts_page(
-            organization_id,
-            scan_target_ids,
+        return self._paginate(
+            self._get_alerts_page,
+            size=size,
+            organization_id=organization_id,
+            scan_target_ids=scan_target_ids,
             scan_target_tags=scan_target_tags,
             include_empty_scan_target_tags=include_empty_scan_target_tags,
-            cursor=cursor,
-            order=order,
             rules=rules,
             states=states,
             severities=severities,
@@ -1884,35 +1884,10 @@ class Client:
             updated_at_start=updated_at_start,
             updated_at_end=updated_at_end,
             search=search,
-            sort=sort,
-            page_size=page_size,
+            cursor=cursor,
+            order=order,
+            sort=sort
         )
-        yield from page.get("data", [])
-        while page.get("cursor"):
-            page = self._get_alerts_page(
-                organization_id,
-                scan_target_ids,
-                scan_target_tags=scan_target_tags,
-                include_empty_scan_target_tags=include_empty_scan_target_tags,
-                cursor=page.get("cursor"),
-                order=order,
-                rules=rules,
-                states=states,
-                severities=severities,
-                lang=lang,
-                opened_at_start=opened_at_start,
-                opened_at_end=opened_at_end,
-                resolved_at_start=resolved_at_start,
-                resolved_at_end=resolved_at_end,
-                created_at_start=created_at_start,
-                created_at_end=created_at_end,
-                updated_at_start=updated_at_start,
-                updated_at_end=updated_at_end,
-                search=search,
-                sort=sort,
-                page_size=page_size,
-            )
-            yield from page.get("data", [])
 
     def _get_following_alerts_page(
         self,
@@ -1936,7 +1911,7 @@ class Client:
         cursor: Optional[str] = None,
         order: Optional[AlertsOrderOpts] = None,
         sort: Optional[SortOpts] = None,
-        page_size: int = 100,
+        size: int = 100,
     ) -> Dict:
         """
         Internal method to retrieve a single page of alerts from organizations being followed
@@ -1961,9 +1936,9 @@ class Client:
         :param sort: Which field to sort on
         :return: a JSON decoded following alerts
         """
-        validate_int(page_size, min_value=1, required=True)
+        validate_int(size, min_value=1, required=True)
         body = {}
-        params = {"size": page_size}
+        params = {"size": size}
         if cursor:
             validate_class(cursor, str)
             params["cursor"] = cursor
@@ -2053,7 +2028,7 @@ class Client:
         cursor: Optional[str] = None,
         order: Optional[AlertsOrderOpts] = None,
         sort: Optional[SortOpts] = None,
-        page_size: int = 100,
+        size: int = 100,
     ) -> Iterator[Dict]:
         """
         Iterates over the following alerts from organizations being followed by transparently paginating on the API.
@@ -2076,16 +2051,16 @@ class Client:
         :param cursor: Cursor of the last alert consumed, when this value is passed, subsequent alert histories will be returned.
         :param order: Sort order to use based od alert order opts
         :param sort: Which field to sort on
-        :param page_size: Page size of alerts
+        :param size: Page size of alerts
         :return: an iterator over the JSON decoded alerts
         """
-        page = self._get_following_alerts_page(
-            organization_id,
-            following_ids,
+        return self._paginate(
+            self._get_following_alerts_page,
+            size=size,
+            organization_id=organization_id,
+            following_ids=following_ids,
             following_tags=following_tags,
             include_empty_following_tags=include_empty_following_tags,
-            cursor=cursor,
-            order=order,
             rules=rules,
             states=states,
             severities=severities,
@@ -2099,35 +2074,10 @@ class Client:
             updated_at_start=updated_at_start,
             updated_at_end=updated_at_end,
             search=search,
-            sort=sort,
-            page_size=page_size,
+            cursor=cursor,
+            order=order,
+            sort=sort
         )
-        yield from page.get("data", [])
-        while page.get("cursor"):
-            page = self._get_following_alerts_page(
-                organization_id,
-                following_ids,
-                following_tags=following_tags,
-                include_empty_following_tags=include_empty_following_tags,
-                cursor=page.get("cursor"),
-                order=order,
-                rules=rules,
-                states=states,
-                severities=severities,
-                lang=lang,
-                opened_at_start=opened_at_start,
-                opened_at_end=opened_at_end,
-                resolved_at_start=resolved_at_start,
-                resolved_at_end=resolved_at_end,
-                created_at_start=created_at_start,
-                created_at_end=created_at_end,
-                updated_at_start=updated_at_start,
-                updated_at_end=updated_at_end,
-                search=search,
-                sort=sort,
-                page_size=page_size,
-            )
-            yield from page.get("data", [])
 
     def _get_alerts_history_page(
         self,
@@ -2304,7 +2254,7 @@ class Client:
         updated_at_end: Optional[str] = None,
         search: Optional[str] = None,
         cursor: Optional[str] = None,
-        page_size: Optional[int] = 100,
+        size: Optional[int] = 100,
         order: Optional[GroupedAlertOrderOpts] = None,
         sort: Optional[SortOpts] = None,
     ) -> Dict:
@@ -2341,9 +2291,9 @@ class Client:
             sort=sort,
         )
         params = {}
-        if page_size:
-            validate_int(page_size, min_value=1, required=True)
-            params["pageSize"] = page_size
+        if size:
+            validate_int(size, min_value=1, required=True)
+            params["size"] = size
         if order:
             validate_class(order, GroupedAlertOrderOpts)
             body["order"] = order.value
@@ -2390,7 +2340,7 @@ class Client:
         updated_at_end: Optional[str] = None,
         search: Optional[str] = None,
         cursor: Optional[str] = None,
-        page_size: Optional[int] = 100,
+        size: Optional[int] = 100,
         order: Optional[GroupedAlertOrderOpts] = None,
         sort: Optional[SortOpts] = None,
     ) -> Iterator[Dict]:
@@ -2418,14 +2368,13 @@ class Client:
         :param sort: Which field to sort on
         :return: an iterator over the JSON decoded alerts
         """
-        page = self._get_grouped_alerts_page(
-            organization_id,
+        return self._paginate(
+            self._get_grouped_alerts_page,
+            size=size,
+            organization_id=organization_id,
             scan_target_ids=scan_target_ids,
             scan_target_tags=scan_target_tags,
             include_empty_scan_target_tags=include_empty_scan_target_tags,
-            cursor=cursor,
-            page_size=page_size,
-            order=order,
             rules=rules,
             states=states,
             severities=severities,
@@ -2439,34 +2388,10 @@ class Client:
             updated_at_start=updated_at_start,
             updated_at_end=updated_at_end,
             search=search,
-            sort=sort,
+            cursor=cursor,
+            order=order,
+            sort=sort
         )
-        yield from page.get("data", [])
-        while page.get("cursor"):
-            page = self._get_grouped_alerts_page(
-                organization_id,
-                scan_target_ids,
-                scan_target_tags=scan_target_tags,
-                include_empty_scan_target_tags=include_empty_scan_target_tags,
-                cursor=page.get("cursor"),
-                page_size=page_size,
-                order=order,
-                rules=rules,
-                states=states,
-                severities=severities,
-                lang=lang,
-                opened_at_start=opened_at_start,
-                opened_at_end=opened_at_end,
-                resolved_at_start=resolved_at_start,
-                resolved_at_end=resolved_at_end,
-                created_at_start=created_at_start,
-                created_at_end=created_at_end,
-                updated_at_start=updated_at_start,
-                updated_at_end=updated_at_end,
-                search=search,
-                sort=sort,
-            )
-            yield from page.get("data", [])
 
     def _get_grouped_following_alerts_page(
         self,
@@ -2488,7 +2413,7 @@ class Client:
         updated_at_end: Optional[str] = None,
         search: Optional[str] = None,
         cursor: Optional[str] = None,
-        page_size: Optional[int] = 100,
+        size: Optional[int] = 100,
         order: Optional[GroupedAlertOrderOpts] = None,
         sort: Optional[SortOpts] = None,
     ) -> Dict:
@@ -2534,7 +2459,7 @@ class Client:
             sort=sort,
         )
         params = {
-            "pageSize": page_size,
+            "size": size,
         }
         if order:
             validate_class(order, GroupedAlertOrderOpts)
@@ -2582,7 +2507,7 @@ class Client:
         updated_at_end: Optional[str] = None,
         search: Optional[str] = None,
         cursor: Optional[str] = None,
-        page_size: Optional[int] = 100,
+        size: Optional[int] = 100,
         order: Optional[GroupedAlertOrderOpts] = None,
         sort: Optional[SortOpts] = None,
     ) -> Iterator[Dict]:
@@ -2609,15 +2534,13 @@ class Client:
         :param cursor: Cursor of the last alert consumed, when this value is passed, subsequent alert histories will be returned.
         :param sort: Which field to sort on
         """
-
-        page = self._get_grouped_following_alerts_page(
-            organization_id,
-            following_ids,
+        return self._paginate(
+            self._get_grouped_following_alerts_page,
+            size=size,
+            organization_id=organization_id,
+            following_ids=following_ids,
             following_tags=following_tags,
             include_empty_following_tags=include_empty_following_tags,
-            cursor=cursor,
-            page_size=page_size,
-            order=order,
             rules=rules,
             states=states,
             severities=severities,
@@ -2631,34 +2554,10 @@ class Client:
             updated_at_start=updated_at_start,
             updated_at_end=updated_at_end,
             search=search,
-            sort=sort,
+            cursor=cursor,
+            order=order,
+            sort=sort
         )
-        yield from page.get("data", [])
-        while page.get("cursor"):
-            page = self._get_grouped_following_alerts_page(
-                organization_id,
-                following_ids,
-                following_tags=following_tags,
-                include_empty_following_tags=include_empty_following_tags,
-                cursor=page.get("cursor"),
-                page_size=page_size,
-                order=order,
-                rules=rules,
-                states=states,
-                severities=severities,
-                lang=lang,
-                opened_at_start=opened_at_start,
-                opened_at_end=opened_at_end,
-                resolved_at_start=resolved_at_start,
-                resolved_at_end=resolved_at_end,
-                created_at_start=created_at_start,
-                created_at_end=created_at_end,
-                updated_at_start=updated_at_start,
-                updated_at_end=updated_at_end,
-                search=search,
-                sort=sort,
-            )
-            yield from page.get("data", [])
 
     def get_alert(self, alert_id: Union[UUID, str]) -> Dict:
         """
@@ -2732,13 +2631,11 @@ class Client:
         :param alert_id: the ID of the alert
         :return:
         """
-        page = self._get_alert_comment_page(alert_id=alert_id, page_size=page_size)
-        yield from page.get("data", [])
-        while page.get("cursor"):
-            page = self._get_alert_comment_page(
-                alert_id=alert_id, page_size=page_size, cursor=page.get("cursor")
-            )
-            yield from page.get("data", [])
+        return self._paginate(
+            self._get_alert_comment_page,
+            size=page_size,
+            alert_id=alert_id,
+        )
 
     def update_alert(
         self,
