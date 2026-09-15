@@ -2641,15 +2641,15 @@ class TestClient(unittest.TestCase):
 
     def test_get_alert_comment_page(self):
         alert_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
-        page_size = 100
+        size = 100
         cursor = None
 
-        self.sdk._get_alert_comment_page(alert_id, page_size=page_size, cursor=cursor)
+        self.sdk._get_alert_comment_page(alert_id, size=size, cursor=cursor)
 
         self.sdk._request.assert_called_once_with(
             "GET",
             f"/alerts/{alert_id}/comments",
-            params={"size": page_size},
+            params={"size": size},
         )
 
     @patch("zanshinsdk.client.Client._get_alert_comment_page")
@@ -2665,7 +2665,7 @@ class TestClient(unittest.TestCase):
         ]
 
         self.sdk._get_alert_comment_page = request
-        iterator = self.sdk.iter_alert_comments(alert_id, size=size)
+        iterator = self.sdk.iter_alert_comments(alert_id, size =size)
         comments = list(iterator)
 
         self.assertEqual(
