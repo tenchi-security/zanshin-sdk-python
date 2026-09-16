@@ -1886,7 +1886,7 @@ class Client:
             search=search,
             cursor=cursor,
             order=order,
-            sort=sort
+            sort=sort,
         )
 
     def _get_following_alerts_page(
@@ -2076,7 +2076,7 @@ class Client:
             search=search,
             cursor=cursor,
             order=order,
-            sort=sort
+            sort=sort,
         )
 
     def _get_alerts_history_page(
@@ -2390,7 +2390,7 @@ class Client:
             search=search,
             cursor=cursor,
             order=order,
-            sort=sort
+            sort=sort,
         )
 
     def _get_grouped_following_alerts_page(
@@ -2556,7 +2556,7 @@ class Client:
             search=search,
             cursor=cursor,
             order=order,
-            sort=sort
+            sort=sort,
         )
 
     def get_alert(self, alert_id: Union[UUID, str]) -> Dict:

@@ -1674,7 +1674,6 @@ class TestClient(unittest.TestCase):
             sort=None,
         )
 
-
     def test_get_following_alerts_page(self):
         organization_id = "822f4225-43e9-4922-b6b8-8b0620bdb1e3"
         following_ids = ["421cfe8a-1777-4000-a000-f836dfdfcfb8"]
@@ -1938,9 +1937,7 @@ class TestClient(unittest.TestCase):
         order = zanshinsdk.GroupedAlertOrderOpts.SEVERITY
         size = 50
 
-        self.sdk._get_grouped_alerts_page(
-            organization_id, size=size, order=order
-        )
+        self.sdk._get_grouped_alerts_page(organization_id, size=size, order=order)
 
         self.sdk._request.assert_called_once_with(
             "POST",
@@ -2045,7 +2042,6 @@ class TestClient(unittest.TestCase):
             order=None,
             sort=None,
         )
-
 
     def test_get_alert(self):
         alert_id = "e22f4225-43e9-4922-b6b8-8b0620bdb110"
@@ -2665,7 +2661,7 @@ class TestClient(unittest.TestCase):
         ]
 
         self.sdk._get_alert_comment_page = request
-        iterator = self.sdk.iter_alert_comments(alert_id, size =size)
+        iterator = self.sdk.iter_alert_comments(alert_id, size=size)
         comments = list(iterator)
 
         self.assertEqual(
