@@ -127,7 +127,7 @@ in use:
    me = client.get_me()    # calls /me API endpoint
    print(dumps(me, indent=4))
 
-For more examples, checkout the `docs <zanshinsdk/docs/README.md>`__.
+For more examples, checkout the `docs <https://github.com/tenchi-security/zanshin-sdk-python/blob/main/zanshinsdk/docs/README.md>`__.
 
 All operations call ``raise_for_status`` on the httpx `Response
 object <https://www.python-httpx.org/api/#response>`__ internally, so
